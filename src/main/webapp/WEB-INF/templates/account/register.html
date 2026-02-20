@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация - Музыкальный стриминговый сервис</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style th:inline="css">
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #181818;
+            --card-bg: #1e1e1e;
+            --hover-bg: #282828;
+            --accent: #ffdb4d;
+            --accent-hover: #ffcc00;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --success: #1db954;
+            --danger: #e22134;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.15) 0%, transparent 50%);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+            font-size: inherit;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Обертка для аутентификации */
+        .auth-wrapper {
+            display: flex;
+            min-height: 600px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Левая часть - промо */
+        .auth-promo {
+            flex: 1;
+            background: var(--gradient);
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-promo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+
+        .promo-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+
+        .logo i {
+            font-size: 36px;
+        }
+
+        .promo-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .promo-subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .features-list {
+            list-style: none;
+            margin-bottom: 40px;
+        }
+
+        .features-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .features-list i {
+            color: var(--accent);
+        }
+
+        .promo-footer {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 40px;
+        }
+
+        /* Правая часть - форма */
+        .auth-form-container {
+            flex: 1;
+            background-color: var(--card-bg);
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .form-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .form-subtitle {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        /* Форма */
+        .auth-form {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 16px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(255, 219, 77, 0.2);
+        }
+
+        .form-input.error {
+            border-color: var(--danger);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* Дополнительные опции */
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+
+        .forgot-password {
+            color: var(--accent);
+            transition: opacity 0.2s;
+        }
+
+        .forgot-password:hover {
+            opacity: 0.8;
+        }
+
+        /* Кнопка отправки */
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--accent);
+            color: var(--primary-bg);
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background-color 0.2s;
+            margin-bottom: 30px;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .submit-btn.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .submit-btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary-bg);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Разделитель */
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 30px 0;
+            color: var(--text-secondary);
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: var(--border-color);
+        }
+
+        .divider span {
+            padding: 0 15px;
+            font-size: 14px;
+        }
+
+        /* Ссылка на регистрацию/вход */
+        .auth-switch {
+            text-align: center;
+            margin-top: 30px;
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        .auth-link {
+            color: var(--accent);
+            font-weight: 600;
+            margin-left: 5px;
+            transition: opacity 0.2s;
+        }
+
+        .auth-link:hover {
+            opacity: 0.8;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            .auth-wrapper {
+                flex-direction: column;
+                min-height: auto;
+            }
+
+            .auth-promo {
+                padding: 40px 30px;
+            }
+
+            .auth-form-container {
+                padding: 40px 30px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            body {
+                padding: 10px;
+            }
+
+            .auth-promo, .auth-form-container {
+                padding: 30px 20px;
+            }
+
+            .promo-title {
+                font-size: 28px;
+            }
+
+            .form-title {
+                font-size: 26px;
+            }
+
+            .features-list li {
+                font-size: 14px;
+            }
+        }
+
+        /* Дополнительные стили для регистрации */
+        .password-strength {
+            margin-top: 8px;
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s, background-color 0.3s;
+        }
+
+        .strength-weak { width: 25%; background-color: var(--danger); }
+        .strength-fair { width: 50%; background-color: #ffcc00; }
+        .strength-good { width: 75%; background-color: #ffcc00; }
+        .strength-strong { width: 100%; background-color: var(--success); }
+
+        .strength-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .terms-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .terms-link {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-error {
+            background-color: rgba(226, 33, 52, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="auth-wrapper">
+        <!-- Левая часть - промо (такая же как на странице входа) -->
+        <div class="auth-promo">
+            <div class="promo-content">
+                <div class="logo">
+                    <i class="fas fa-music"></i>
+                    <span>MusicStream</span>
+                </div>
+
+                <h1 class="promo-title">Слушайте музыку без ограничений</h1>
+                <p class="promo-subtitle">Миллионы треков, персонализированные рекомендации и эксклюзивный контент от ваших любимых исполнителей.</p>
+
+                <ul class="features-list">
+                    <li><i class="fas fa-check-circle"></i> Безлимитный доступ к миллионам треков</li>
+                    <li><i class="fas fa-check-circle"></i> Персонализированные рекомендации</li>
+                    <li><i class="fas fa-check-circle"></i> Высокое качество звука</li>
+                    <li><i class="fas fa-check-circle"></i> Без рекламы для подписчиков</li>
+                </ul>
+
+                <div class="promo-footer">
+                    Присоединяйтесь к сообществу из 1+ миллиона пользователей
+                </div>
+            </div>
+        </div>
+
+        <!-- Правая часть - форма регистрации -->
+        <div class="auth-form-container">
+            <div class="form-header">
+                <h2 class="form-title">Создание аккаунта</h2>
+                <p class="form-subtitle">Заполните форму для регистрации</p>
+            </div>
+
+            <div th:if="${error}" class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${error}">Ошибка регистрации</span>
+            </div>
+
+            <form class="auth-form" th:action="@{/account/register}" method="post">
+                <div class="form-group">
+                    <label class="form-label" for="username">Имя пользователя</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" id="username" name="username" class="form-input" placeholder="Имя пользователя" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" id="email" name="email" class="form-input" placeholder="email@example.com" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Пароль</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="password" name="password" class="form-input" placeholder="Создайте пароль" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="confirmPassword">Подтверждение пароля</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="Повторите пароль" required>
+                    </div>
+                </div>
+
+                <div class="terms-checkbox">
+                    <input type="checkbox" id="agreeTerms" name="agreeTerms" class="checkbox-input" required>
+                    <label for="agreeTerms" class="terms-text">
+                        Я соглашаюсь с
+                        <a href="/terms" class="terms-link">Условиями использования</a>
+                        и
+                        <a href="/privacy" class="terms-link">Политикой конфиденциальности</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-user-plus"></i>
+                    Зарегистрироваться
+                </button>
+            </form>
+
+            <div class="auth-switch">
+                Уже есть аккаунт?
+                <a href="/account/login" class="auth-link">Войти</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

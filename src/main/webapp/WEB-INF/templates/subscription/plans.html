@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тарифы - MusicStream</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style th:inline="css">
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #181818;
+            --card-bg: #1e1e1e;
+            --hover-bg: #282828;
+            --accent: #ffdb4d;
+            --accent-hover: #ffcc00;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --success: #1db954;
+            --danger: #e22134;
+            --info: #2196f3;
+            --purple: #9c27b0;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-premium: linear-gradient(135deg, #f8c300 0%, #ffdb4d 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.15) 0%, transparent 50%);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+            font-size: inherit;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Навигационная панель */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .logo i {
+            margin-right: 8px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-link.active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Основной контент */
+        .main-content {
+            padding-top: 100px;
+            padding-bottom: 80px;
+        }
+
+        /* Заголовок страницы */
+        .page-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .page-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 36px;
+            }
+        }
+
+        .page-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* Переключатель периодов */
+        .period-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .toggle-wrapper {
+            background-color: var(--secondary-bg);
+            border-radius: 30px;
+            padding: 5px;
+            display: inline-flex;
+        }
+
+        .period-option {
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .period-option.active {
+            background-color: var(--accent);
+            color: var(--primary-bg);
+        }
+
+        /* Тарифные карточки */
+        .plans-section {
+            margin-bottom: 60px;
+        }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .plan-card {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 40px 30px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .plan-card.popular {
+            border: 2px solid var(--accent);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            background-color: var(--accent);
+            color: var(--primary-bg);
+            padding: 5px 40px;
+            font-size: 12px;
+            font-weight: 600;
+            transform: rotate(45deg);
+        }
+
+        .plan-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .plan-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .plan-price {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .price-amount {
+            font-size: 48px;
+            font-weight: 800;
+        }
+
+        .price-period {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .plan-savings {
+            color: var(--success);
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .plan-features li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .plan-features i {
+            color: var(--success);
+            font-size: 14px;
+        }
+
+        .plan-features .disabled {
+            color: var(--text-muted);
+        }
+
+        .plan-features .disabled i {
+            color: var(--text-muted);
+        }
+
+        .plan-button {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .plan-button.primary {
+            background-color: var(--accent);
+            color: var(--primary-bg);
+        }
+
+        .plan-button.primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .plan-button.secondary {
+            background-color: var(--secondary-bg);
+            color: var(--text-primary);
+        }
+
+        .plan-button.secondary:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .current-plan {
+            background-color: var(--success);
+            color: white;
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            opacity: 0.8;
+            cursor: default;
+        }
+
+        /* FAQ секция */
+        .faq-section {
+            max-width: 800px;
+            margin: 0 auto 60px;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .faq-item {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 20px;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .faq-question:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s, padding 0.3s;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 0 20px 20px;
+            max-height: 500px;
+        }
+
+        .faq-item.active .faq-question i {
+            transform: rotate(180deg);
+        }
+
+        .faq-question i {
+            transition: transform 0.3s;
+            color: var(--text-secondary);
+        }
+
+        /* Гарантия */
+        .guarantee {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Подвал */
+        .footer {
+            background-color: var(--secondary-bg);
+            padding: 40px 0;
+            margin-top: 60px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .footer-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-link {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .footer-link:hover {
+            color: var(--text-primary);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .period-option {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .plan-card {
+                padding: 30px 20px;
+            }
+
+            .price-amount {
+                font-size: 36px;
+            }
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .plan-card {
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Баннер акции */
+        .promo-banner {
+            background: var(--gradient);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .promo-text {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .promo-highlight {
+            color: var(--accent);
+            font-weight: 800;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background-color: rgba(29, 185, 84, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+<!-- Навигационная панель -->
+<nav class="navbar">
+    <div class="container navbar-content">
+        <a href="/" class="logo">
+            <i class="fas fa-music"></i>
+            MusicStream
+        </a>
+
+        <div class="nav-links">
+            <a href="/" class="nav-link">Главная</a>
+            <a href="/search" class="nav-link">Поиск</a>
+            <a href="/playlists" class="nav-link">Библиотека</a>
+            <a href="/subscription/plans" class="nav-link active">Подписка</a>
+        </div>
+
+        <div th:if="${isAuthenticated}">
+            <a href="/account/profile" class="nav-link">Профиль</a>
+        </div>
+        <div th:unless="${isAuthenticated}">
+            <a href="/account/login" class="nav-link">Вход</a>
+            <a href="/account/register" class="btn" style="background-color: var(--accent); color: var(--primary-bg); padding: 8px 16px; border-radius: 20px;">Регистрация</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<main class="main-content">
+    <div class="container">
+        <!-- Уведомления -->
+        <div th:if="${success}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${success}">Подписка успешно оформлена!</span>
+        </div>
+
+        <!-- Заголовок -->
+        <header class="page-header">
+            <h1 class="page-title">Выберите свой план подписки</h1>
+            <p class="page-subtitle">
+                Получите доступ ко всем функциям MusicStream. Отмена в любой момент.
+                <span style="color: var(--accent); font-weight: 600;">Первый месяц бесплатно</span> для новых подписчиков.
+            </p>
+        </header>
+
+        <!-- Баннер акции -->
+        <div class="promo-banner">
+            <div class="promo-text">
+                🎉 <span class="promo-highlight">Специальное предложение:</span> При оплате годового тарифа получите 2 месяца в подарок!
+            </div>
+        </div>
+
+        <!-- Переключатель периодов -->
+        <div class="period-toggle">
+            <div class="toggle-wrapper">
+                <div class="period-option active" data-period="monthly" id="monthlyToggle">Ежемесячно</div>
+                <div class="period-option" data-period="yearly" id="yearlyToggle">Ежегодно (выгоднее!)</div>
+            </div>
+        </div>
+
+        <!-- Тарифные карточки -->
+        <section class="plans-section">
+            <div class="plans-grid">
+                <!-- Бесплатный тариф -->
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <div class="plan-name">Бесплатный</div>
+                        <div class="plan-price">
+                            <span class="price-amount">0₽</span>
+                            <span class="price-period">/месяц</span>
+                        </div>
+                    </div>
+
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> Прослушивание музыки</li>
+                        <li><i class="fas fa-check"></i> Поиск треков</li>
+                        <li><i class="fas fa-times disabled"></i> Создание плейлистов</li>
+                        <li><i class="fas fa-times disabled"></i> Без рекламы</li>
+                        <li><i class="fas fa-times disabled"></i> Высокое качество звука</li>
+                    </ul>
+
+                    <div th:if="${hasActiveSubscription}">
+                        <button class="current-plan" disabled>
+                            <i class="fas fa-check-circle"></i>
+                            Текущий план
+                        </button>
+                    </div>
+                    <div th:unless="${hasActiveSubscription}">
+                        <button class="plan-button secondary" onclick="location.href='/'">
+                            <i class="fas fa-home"></i>
+                            Начать бесплатно
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Премиум тариф -->
+                <div class="plan-card popular">
+                    <div class="popular-badge">Популярный</div>
+
+                    <div class="plan-header">
+                        <div class="plan-name">Премиум</div>
+                        <div class="plan-price monthly-price">
+                            <span class="price-amount" id="monthlyPrice">299₽</span>
+                            <span class="price-period">/месяц</span>
+                        </div>
+                        <div class="plan-price yearly-price" style="display: none;">
+                            <span class="price-amount" id="yearlyPrice">2,990₽</span>
+                            <span class="price-period">/год</span>
+                        </div>
+                        <div class="plan-savings yearly-price" style="display: none;">
+                            <i class="fas fa-percentage"></i>
+                            Экономия 598₽ по сравнению с ежемесячной оплатой
+                        </div>
+                    </div>
+
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> Без рекламы</li>
+                        <li><i class="fas fa-check"></i> Высокое качество звука</li>
+                        <li><i class="fas fa-check"></i> Создание плейлистов</li>
+                        <li><i class="fas fa-check"></i> Персонализированные плейлисты</li>
+                        <li><i class="fas fa-check"></i> Оффлайн прослушивание</li>
+                    </ul>
+
+                    <div th:if="${hasActiveSubscription}">
+                        <button class="current-plan" disabled>
+                            <i class="fas fa-check-circle"></i>
+                            Активна
+                        </button>
+                    </div>
+                    <div th:unless="${hasActiveSubscription}">
+                        <a th:href="@{${isAuthenticated} ? '/subscription/create' : '/account/login?redirect=/subscription/create'}" class="plan-button primary choose-plan">
+                            <i class="fas fa-crown"></i>
+                            Выбрать Премиум
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Гарантия -->
+        <div class="guarantee">
+            <i class="fas fa-shield-alt" style="color: var(--success);"></i>
+            <span>30-дневная гарантия возврата денег</span>
+        </div>
+
+        <!-- FAQ -->
+        <section class="faq-section">
+            <h2 class="section-title">Часто задаваемые вопросы</h2>
+
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Как работает бесплатный пробный период?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Новые пользователи получают 30 дней бесплатного доступа ко всем функциям Премиум подписки. Для активации необходимо указать платежные данные, но плата не будет списана до окончания пробного периода. Вы можете отменить подписку в любое время до окончания пробного периода.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Как происходит оплата?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Оплата производится банковской картой через безопасный платежный шлюз. Мы поддерживаем Visa, MasterCard, Мир. Платежи обрабатываются в защищенном режиме с использованием шифрования.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Можно ли отменить подписку?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Да, вы можете отменить подписку в любой момент. После отмены вы сохраните доступ до конца оплаченного периода. Автопродление будет отключено.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>В чем разница между ежемесячной и ежегодной подпиской?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>При ежегодной подписке вы получаете скидку до 20% по сравнению с ежемесячной оплатой. Функционал подписок идентичен, отличается только период оплаты и стоимость.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- Подвал -->
+<footer class="footer">
+    <div class="container footer-content">
+        <div class="copyright">
+            © 2025 MusicStream. Все права защищены.
+        </div>
+
+        <div class="footer-links">
+            <a href="/terms" class="footer-link">Условия использования</a>
+            <a href="/privacy" class="footer-link">Политика конфиденциальности</a>
+            <a href="/support" class="footer-link">Поддержка</a>
+        </div>
+    </div>
+</footer>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Переключение между месячной и годовой подпиской
+    const monthlyToggle = document.getElementById('monthlyToggle');
+    const yearlyToggle = document.getElementById('yearlyToggle');
+    const monthlyPrices = document.querySelectorAll('.monthly-price');
+    const yearlyPrices = document.querySelectorAll('.yearly-price');
+
+    monthlyToggle.addEventListener('click', function() {
+        monthlyToggle.classList.add('active');
+        yearlyToggle.classList.remove('active');
+
+        monthlyPrices.forEach(el => el.style.display = 'block');
+        yearlyPrices.forEach(el => el.style.display = 'none');
+    });
+
+    yearlyToggle.addEventListener('click', function() {
+        yearlyToggle.classList.add('active');
+        monthlyToggle.classList.remove('active');
+
+        yearlyPrices.forEach(el => el.style.display = 'block');
+        monthlyPrices.forEach(el => el.style.display = 'none');
+    });
+
+    // FAQ аккордеон
+    document.querySelectorAll('.faq-question').forEach(question => {
+        question.addEventListener('click', () => {
+            const item = question.closest('.faq-item');
+            item.classList.toggle('active');
+        });
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

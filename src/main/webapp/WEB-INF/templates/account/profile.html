@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль - Музыкальный стриминговый сервис</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style th:inline="css">
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #181818;
+            --card-bg: #1e1e1e;
+            --hover-bg: #282828;
+            --accent: #ffdb4d;
+            --accent-hover: #ffcc00;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --success: #1db954;
+            --danger: #e22134;
+            --premium: #f8c300;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.15) 0%, transparent 50%);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+            font-size: inherit;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Навигационная панель */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .logo i {
+            margin-right: 8px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+        .nav-action-btn:hover {
+            color: var(--text-primary);
+            background-color: var(--hover-bg);
+        }
+
+        /* Заголовок профиля */
+        .profile-header {
+            padding-top: 70px;
+            padding-bottom: 30px;
+            background: linear-gradient(to bottom, #1a1a1a, #121212);
+        }
+
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin-bottom: 20px;
+            position: relative;
+            border: 4px solid var(--accent);
+        }
+
+        .profile-name {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .profile-email {
+            color: var(--text-secondary);
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .profile-badges {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.User {
+            background-color: var(--text-secondary);
+            color: white;
+        }
+
+        .badge.Subscriber {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .badge.Musician {
+            background-color: var(--info);
+            color: white;
+        }
+
+        .badge.Admin {
+            background-color: var(--warning);
+            color: var(--primary-bg);
+        }
+
+        /* Основной контент */
+        .main-content {
+            padding-bottom: 80px;
+        }
+
+        /* Подписка */
+        .subscription-section {
+            margin: 30px 0;
+        }
+
+        .subscription-card {
+            background: linear-gradient(135deg, #f8c300 0%, #ffdb4d 100%);
+            border-radius: 12px;
+            padding: 25px;
+            color: #000;
+            margin-bottom: 20px;
+        }
+
+        .subscription-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .subscription-title {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .subscription-badge {
+            background-color: #000;
+            color: var(--accent);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .subscription-desc {
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+
+        .subscription-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .feature-item i {
+            color: #000;
+        }
+
+        .manage-subscription-btn {
+            background-color: #000;
+            color: var(--accent);
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .manage-subscription-btn:hover {
+            background-color: #222;
+        }
+
+        /* Плейлисты */
+        .playlists-section {
+            margin: 40px 0;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .playlists-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .playlist-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s, background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .playlist-card:hover {
+            background-color: var(--hover-bg);
+            transform: translateY(-5px);
+        }
+
+        .playlist-image {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .playlist-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .playlist-info {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .create-playlist-btn {
+            background-color: var(--accent);
+            color: var(--primary-bg);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .create-playlist-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Кнопка выхода */
+        .logout-section {
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .logout-btn {
+            background-color: var(--danger);
+            color: white;
+            padding: 12px 40px;
+            border-radius: 25px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background-color: #c21825;
+        }
+
+        /* Нижняя панель навигации */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--primary-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 10px 0;
+            z-index: 1000;
+        }
+
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-item:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+        }
+
+        /* Плеер */
+        .player {
+            position: fixed;
+            bottom: 70px;
+            left: 0;
+            right: 0;
+            background-color: var(--secondary-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 999;
+        }
+
+        .player-track {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .player-image {
+            width: 56px;
+            height: 56px;
+            border-radius: 4px;
+            background-color: #333;
+        }
+
+        .player-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-track-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .player-track-artist {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            transition: background-color 0.2s;
+        }
+
+        .control-btn.play-btn {
+            width: 44px;
+            height: 44px;
+            background-color: var(--text-primary);
+            color: var(--primary-bg);
+        }
+
+        .control-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .player-progress {
+            flex: 1;
+            max-width: 300px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .progress-filled {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 30%;
+            background-color: var(--accent);
+            border-radius: 2px;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .subscription-features {
+                grid-template-columns: 1fr;
+            }
+
+            .playlists-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+
+            .profile-name {
+                font-size: 24px;
+            }
+
+            .profile-avatar {
+                width: 100px;
+                height: 100px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .playlists-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Верхняя навигационная панель -->
+<nav class="navbar">
+    <div class="container navbar-content">
+        <a href="/" class="logo">
+            <i class="fas fa-music"></i>
+            MusicStream
+        </a>
+
+        <div class="nav-actions">
+            <a href="/" class="nav-action-btn">
+                <i class="fas fa-home"></i>
+            </a>
+            <th:block th:if="${isAdmin}">
+                <a href="/admin" class="nav-action-btn">
+                    <i class="fas fa-cog"></i>
+                </a>
+            </th:block>
+        </div>
+    </div>
+</nav>
+
+<!-- Заголовок профиля -->
+<header class="profile-header">
+    <div class="container header-content">
+        <div class="profile-avatar">
+            <span th:text="${#strings.substring(user.username, 0, 1)}">МС</span>
+        </div>
+
+        <h1 class="profile-name" th:text="${user.username}">Матвей</h1>
+        <p class="profile-email" th:text="${user.email}">student@vlsu.ru</p>
+
+        <div class="profile-badges">
+            <span class="badge" th:classappend="${user.role.name()}" th:text="${user.role.name()}">User</span>
+            <span class="badge" style="background-color: var(--success); color: white;" th:if="${user.hasActiveSubscription()}">
+                    <i class="fas fa-crown"></i> Подписка активна
+                </span>
+        </div>
+    </div>
+</header>
+
+<!-- Основной контент -->
+<main class="main-content">
+    <div class="container">
+        <!-- Подписка (если есть) -->
+        <section class="subscription-section" th:if="${user.hasActiveSubscription()}">
+            <div class="subscription-card">
+                <div class="subscription-header">
+                    <h2 class="subscription-title">Premium Подписка</h2>
+                    <span class="subscription-badge">Активна</span>
+                </div>
+
+                <div class="subscription-features">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Без рекламы</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Высокое качество звука</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Создание плейлистов</span>
+                    </div>
+                </div>
+
+                <a href="/subscription/my" class="manage-subscription-btn">
+                    <i class="fas fa-cog"></i>
+                    Управление подпиской
+                </a>
+            </div>
+        </section>
+
+        <!-- Призыв к подписке (если нет) -->
+        <section class="subscription-section" th:unless="${user.hasActiveSubscription()}">
+            <div class="subscription-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <div class="subscription-header">
+                    <h2 class="subscription-title">Оформите подписку</h2>
+                    <span class="subscription-badge" style="background-color: white; color: var(--primary-bg);">Всего 399₽/мес</span>
+                </div>
+
+                <div class="subscription-features">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Без рекламы</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Высокое качество звука</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Создание плейлистов</span>
+                    </div>
+                </div>
+
+                <a href="/subscription/plans" class="manage-subscription-btn" style="background-color: white; color: var(--primary-bg);">
+                    <i class="fas fa-crown"></i>
+                    Выбрать план
+                </a>
+            </div>
+        </section>
+
+        <!-- Мои плейлисты -->
+        <section class="playlists-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="section-title">Мои плейлисты</h2>
+                <a href="/playlists/create" class="create-playlist-btn">
+                    <i class="fas fa-plus"></i>
+                    Создать плейлист
+                </a>
+            </div>
+
+            <div class="playlists-grid" th:if="${user.playlists != null and not #lists.isEmpty(user.playlists)}">
+                <div class="playlist-card" th:each="playlist : ${user.playlists}" th:onclick="'location.href=\'/playlists/' + ${playlist.id} + '\''">
+                    <div class="playlist-image">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div class="playlist-title" th:text="${playlist.title}">Любимое</div>
+                    <div class="playlist-info">
+                        <span th:text="${playlist.trackCount} + ' треков'">125 треков</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="playlists-grid" th:unless="${user.playlists != null and not #lists.isEmpty(user.playlists)}">
+                <div class="playlist-card" onclick="location.href='/playlists/create'">
+                    <div class="playlist-image">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="playlist-title">Создать плейлист</div>
+                    <div class="playlist-info">Начните собирать музыку</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Кнопка выхода -->
+        <section class="logout-section">
+            <form th:action="@{/account/logout}" method="post">
+                <button type="submit" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Выйти из аккаунта
+                </button>
+            </form>
+        </section>
+    </div>
+</main>
+
+<!-- Нижняя панель навигации -->
+<nav class="bottom-nav">
+    <div class="nav-items">
+        <a href="/" class="nav-item">
+            <i class="fas fa-home nav-icon"></i>
+            <span class="nav-label">Главная</span>
+        </a>
+
+        <a href="/search" class="nav-item">
+            <i class="fas fa-search nav-icon"></i>
+            <span class="nav-label">Поиск</span>
+        </a>
+
+        <a href="/playlists" class="nav-item">
+            <i class="fas fa-book nav-icon"></i>
+            <span class="nav-label">Библиотека</span>
+        </a>
+
+        <a href="/account/profile" class="nav-item active">
+            <i class="fas fa-user nav-icon"></i>
+            <span class="nav-label">Профиль</span>
+        </a>
+    </div>
+</nav>
+</body>
+</html>

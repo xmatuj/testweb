@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подписка оформлена - MusicStream</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #181818;
+            --card-bg: #1e1e1e;
+            --hover-bg: #282828;
+            --accent: #ffdb4d;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --border-color: #333333;
+            --success: #1db954;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .success-container {
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .success-card {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 50px 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background-color: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 50px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: var(--accent);
+            color: var(--primary-bg);
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #ffcc00;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--hover-bg);
+        }
+    </style>
+</head>
+<body>
+<div class="success-container">
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        <h1>Подписка оформлена!</h1>
+        <p>Спасибо за покупку! Теперь вам доступны все преимущества премиум подписки. Наслаждайтесь музыкой без ограничений.</p>
+        <div>
+            <a href="/" class="btn">На главную</a>
+            <a href="/account/profile" class="btn btn-secondary">В профиль</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

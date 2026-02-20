@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Музыкальный стриминговый сервис</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style th:inline="css">
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #181818;
+            --card-bg: #1e1e1e;
+            --hover-bg: #282828;
+            --accent: #ffdb4d;
+            --accent-hover: #ffcc00;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --success: #1db954;
+            --danger: #e22134;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.15) 0%, transparent 50%);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+            font-size: inherit;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Навигационная панель */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .logo i {
+            margin-right: 8px;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 30px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notification-btn, .user-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--secondary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+
+        .notification-btn:hover, .user-btn:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--primary-bg);
+        }
+
+        /* Основной контент */
+        .main-content {
+            padding-top: 70px;
+            padding-bottom: 80px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0 20px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .see-all {
+            color: var(--text-secondary);
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .see-all:hover {
+            color: var(--text-primary);
+        }
+
+        /* Карточки */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 16px;
+            transition: background-color 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .card-image {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .play-button {
+            position: absolute;
+            right: 16px;
+            bottom: 70px;
+            width: 48px;
+            height: 48px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover .play-button {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Список треков */
+        .track-list {
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .track-item {
+            display: grid;
+            grid-template-columns: 50px 1fr 100px 50px;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .track-item:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .track-number {
+            color: var(--text-secondary);
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .track-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .track-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .track-artist {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .track-duration {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .track-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+        .action-btn:hover {
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Нижняя панель навигации */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--primary-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 10px 0;
+            z-index: 1000;
+        }
+
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-item:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+        }
+
+        /* Плеер */
+        .player {
+            position: fixed;
+            bottom: 70px;
+            left: 0;
+            right: 0;
+            background-color: var(--secondary-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 999;
+        }
+
+        .player-track {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .player-image {
+            width: 56px;
+            height: 56px;
+            border-radius: 4px;
+            background-color: #333;
+        }
+
+        .player-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-track-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .player-track-artist {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            transition: background-color 0.2s;
+        }
+
+        .control-btn.play-btn {
+            width: 44px;
+            height: 44px;
+            background-color: var(--text-primary);
+            color: var(--primary-bg);
+        }
+
+        .control-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .player-progress {
+            flex: 1;
+            max-width: 300px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .progress-filled {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 30%;
+            background-color: var(--accent);
+            border-radius: 2px;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .player-track, .player-progress {
+                display: none;
+            }
+
+            .search-bar {
+                margin: 0 15px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .cards-container {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                gap: 15px;
+            }
+
+            .section-title {
+                font-size: 20px;
+            }
+
+            .track-item {
+                grid-template-columns: 40px 1fr 80px 40px;
+                padding: 10px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Верхняя навигационная панель -->
+<nav class="navbar">
+    <div class="container navbar-content">
+        <a href="/" class="logo">
+            <i class="fas fa-music"></i>
+            MusicStream
+        </a>
+
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Поиск треков, альбомов, исполнителей" id="searchInput">
+        </div>
+
+        <div class="user-actions" th:if="${isAuthenticated}">
+            <button class="notification-btn">
+                <i class="far fa-bell"></i>
+            </button>
+            <a href="/account/profile" class="user-btn">
+                <div class="user-avatar" th:text="${#strings.substring(currentUser.username, 0, 1)}">МС</div>
+            </a>
+        </div>
+
+        <div class="user-actions" th:unless="${isAuthenticated}">
+            <a href="/account/login" class="btn" style="color: var(--text-primary); margin-right: 15px;">Войти</a>
+            <a href="/account/register" class="btn btn-primary" style="background-color: var(--accent); color: var(--primary-bg); padding: 8px 16px; border-radius: 20px;">Регистрация</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Основной контент -->
+<main class="main-content">
+    <div class="container">
+        <!-- Новые релизы -->
+        <div class="section-header">
+            <h2 class="section-title">Новые релизы</h2>
+            <a href="/search" class="see-all">Показать все</a>
+        </div>
+
+        <div class="cards-container" th:if="${newReleases != null and not #lists.isEmpty(newReleases)}">
+            <div class="card" th:each="album : ${newReleases}" th:onclick="'location.href=\'/album/' + ${album.id} + '\''">
+                <div class="card-image">
+                    <i class="fas fa-record-vinyl" style="font-size: 40px; color: #666;" th:if="${album.coverPath == null}"></i>
+                    <img th:if="${album.coverPath != null}" th:src="${album.coverPath}" alt="Обложка альбома">
+                </div>
+                <div class="play-button" th:onclick="'event.stopPropagation(); playAlbum(' + ${album.id} + ')'">
+                    <i class="fas fa-play"></i>
+                </div>
+                <div class="card-title" th:text="${album.title}">Новый альбом</div>
+                <div class="card-subtitle" th:text="${album.artist != null ? album.artist.name : 'Исполнитель'}">Исполнитель 1</div>
+            </div>
+        </div>
+
+        <div class="cards-container" th:unless="${newReleases != null and not #lists.isEmpty(newReleases)}">
+            <div class="card">
+                <div class="card-image">
+                    <i class="fas fa-record-vinyl" style="font-size: 40px; color: #666;"></i>
+                </div>
+                <div class="play-button">
+                    <i class="fas fa-play"></i>
+                </div>
+                <div class="card-title">Новый альбом</div>
+                <div class="card-subtitle">Исполнитель 1</div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <i class="fas fa-record-vinyl" style="font-size: 40px; color: #666;"></i>
+                </div>
+                <div class="play-button">
+                    <i class="fas fa-play"></i>
+                </div>
+                <div class="card-title">Летний релиз</div>
+                <div class="card-subtitle">Исполнитель 2</div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <i class="fas fa-record-vinyl" style="font-size: 40px; color: #666;"></i>
+                </div>
+                <div class="play-button">
+                    <i class="fas fa-play"></i>
+                </div>
+                <div class="card-title">Эпик-альбом</div>
+                <div class="card-subtitle">Исполнитель 3</div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <i class="fas fa-record-vinyl" style="font-size: 40px; color: #666;"></i>
+                </div>
+                <div class="play-button">
+                    <i class="fas fa-play"></i>
+                </div>
+                <div class="card-title">Сингл</div>
+                <div class="card-subtitle">Новый трек</div>
+            </div>
+        </div>
+
+        <!-- Популярные треки -->
+        <div class="section-header">
+            <h2 class="section-title">Популярные треки</h2>
+            <a href="/search" class="see-all">Показать все</a>
+        </div>
+
+        <!-- Список треков -->
+        <div class="track-list">
+            <div class="track-item" th:each="track, iterStat : ${popularTracks != null ? popularTracks : {}}" th:data-track-id="${track.id}">
+                <div class="track-number" th:text="${iterStat.index + 1}">1</div>
+                <div class="track-info">
+                    <div class="track-name" th:text="${track.title}">Название трека 1</div>
+                    <div class="track-artist" th:text="${track.artist != null ? track.artist.name : 'Исполнитель'}">Исполнитель 1</div>
+                </div>
+                <div class="track-duration" th:text="${track.duration != null ?
+    (track.duration/60) + ':' + (track.duration%60 < 10 ? '0' + track.duration%60 : track.duration%60) : '3:45'}">3:45</div>
+                <div class="track-actions">
+                    <button class="action-btn like-btn" th:data-track-id="${track.id}">
+                        <i class="far fa-heart"></i>
+                    </button>
+                    <button class="action-btn add-to-playlist-btn" th:data-track-id="${track.id}">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Демо-данные, если нет треков -->
+            <th:block th:if="${popularTracks == null or #lists.isEmpty(popularTracks)}">
+                <div class="track-item" data-track-id="1">
+                    <div class="track-number">1</div>
+                    <div class="track-info">
+                        <div class="track-name">Название трека 1</div>
+                        <div class="track-artist">Исполнитель 1</div>
+                    </div>
+                    <div class="track-duration">3:45</div>
+                    <div class="track-actions">
+                        <button class="action-btn like-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <button class="action-btn add-to-playlist-btn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="track-item" data-track-id="2">
+                    <div class="track-number">2</div>
+                    <div class="track-info">
+                        <div class="track-name">Название трека 2</div>
+                        <div class="track-artist">Исполнитель 2</div>
+                    </div>
+                    <div class="track-duration">4:12</div>
+                    <div class="track-actions">
+                        <button class="action-btn like-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <button class="action-btn add-to-playlist-btn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="track-item" data-track-id="3">
+                    <div class="track-number">3</div>
+                    <div class="track-info">
+                        <div class="track-name">Название трека 3</div>
+                        <div class="track-artist">Исполнитель 3</div>
+                    </div>
+                    <div class="track-duration">3:28</div>
+                    <div class="track-actions">
+                        <button class="action-btn like-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <button class="action-btn add-to-playlist-btn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="track-item" data-track-id="4">
+                    <div class="track-number">4</div>
+                    <div class="track-info">
+                        <div class="track-name">Название трека 4</div>
+                        <div class="track-artist">Исполнитель 4</div>
+                    </div>
+                    <div class="track-duration">5:01</div>
+                    <div class="track-actions">
+                        <button class="action-btn like-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <button class="action-btn add-to-playlist-btn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+    </div>
+</main>
+
+<!-- Плеер -->
+<div class="player" id="player" style="display: none;">
+    <div class="player-track">
+        <div class="player-image" id="playerImage"></div>
+        <div class="player-info">
+            <div class="player-track-name" id="playerTrackName">Название трека</div>
+            <div class="player-track-artist" id="playerTrackArtist">Исполнитель</div>
+        </div>
+    </div>
+
+    <div class="player-controls">
+        <button class="control-btn" id="shuffleBtn">
+            <i class="fas fa-random"></i>
+        </button>
+        <button class="control-btn" id="prevBtn">
+            <i class="fas fa-step-backward"></i>
+        </button>
+        <button class="control-btn play-btn" id="playPauseBtn">
+            <i class="fas fa-play" id="playPauseIcon"></i>
+        </button>
+        <button class="control-btn" id="nextBtn">
+            <i class="fas fa-step-forward"></i>
+        </button>
+        <button class="control-btn" id="repeatBtn">
+            <i class="fas fa-redo"></i>
+        </button>
+    </div>
+
+    <div class="player-progress">
+        <span class="time-current" id="timeCurrent">0:00</span>
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-filled" id="progressFilled"></div>
+        </div>
+        <span class="time-total" id="timeTotal">0:00</span>
+    </div>
+</div>
+
+<!-- Нижняя панель навигации -->
+<nav class="bottom-nav">
+    <div class="nav-items">
+        <a href="/" class="nav-item active">
+            <i class="fas fa-home nav-icon"></i>
+            <span class="nav-label">Главная</span>
+        </a>
+
+        <a href="/search" class="nav-item">
+            <i class="fas fa-search nav-icon"></i>
+            <span class="nav-label">Поиск</span>
+        </a>
+
+        <a href="/playlists" class="nav-item" th:if="${isAuthenticated}">
+            <i class="fas fa-book nav-icon"></i>
+            <span class="nav-label">Библиотека</span>
+        </a>
+        <a href="/playlists" class="nav-item" th:unless="${isAuthenticated}" onclick="alert('Пожалуйста, войдите в систему'); return false;">
+            <i class="fas fa-book nav-icon"></i>
+            <span class="nav-label">Библиотека</span>
+        </a>
+
+        <a href="/account/profile" class="nav-item" th:if="${isAuthenticated}">
+            <i class="fas fa-user nav-icon"></i>
+            <span class="nav-label">Профиль</span>
+        </a>
+        <a href="/account/login" class="nav-item" th:unless="${isAuthenticated}">
+            <i class="fas fa-sign-in-alt nav-icon"></i>
+            <span class="nav-label">Вход</span>
+        </a>
+    </div>
+</nav>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Глобальные переменные
+    let currentAudio = null;
+    let isPlaying = false;
+    let currentTrackId = null;
+    let currentTrackIndex = 0;
+    let tracks = [];
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        // Сбор треков для плеера
+        document.querySelectorAll('.track-item').forEach((item, index) => {
+            const trackId = item.dataset.trackId;
+            const trackName = item.querySelector('.track-name').textContent;
+            const trackArtist = item.querySelector('.track-artist').textContent;
+
+            tracks.push({
+                id: trackId,
+                name: trackName,
+                artist: trackArtist,
+                element: item
+            });
+        });
+
+        // Обработка кнопок лайка
+        document.querySelectorAll('.like-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const icon = this.querySelector('i');
+
+                if (icon.classList.contains('far')) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    icon.style.color = 'var(--accent)';
+                } else {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    icon.style.color = '';
+                }
+            });
+        });
+
+        // Воспроизведение трека при клике
+        document.querySelectorAll('.track-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (!e.target.closest('.track-actions')) {
+                    const trackId = this.dataset.trackId;
+                    const trackName = this.querySelector('.track-name').textContent;
+                    const trackArtist = this.querySelector('.track-artist').textContent;
+
+                    playTrack(trackId, trackName, trackArtist);
+                }
+            });
+        });
+
+        // Воспроизведение при клике на кнопку play в карточке
+        document.querySelectorAll('.play-button').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const card = this.closest('.card');
+                const title = card.querySelector('.card-title').textContent;
+                const subtitle = card.querySelector('.card-subtitle').textContent;
+
+                playAlbum(title, subtitle);
+            });
+        });
+
+        // Управление плеером
+        document.getElementById('playPauseBtn').addEventListener('click', togglePlay);
+        document.getElementById('prevBtn').addEventListener('click', playPrevious);
+        document.getElementById('nextBtn').addEventListener('click', playNext);
+
+        // Прогресс-бар
+        document.getElementById('progressBar').addEventListener('click', seek);
+    });
+
+    // Функция воспроизведения трека
+    function playTrack(trackId, trackName, trackArtist) {
+        if (currentAudio) {
+            currentAudio.pause();
+        }
+
+        document.getElementById('player').style.display = 'flex';
+        document.getElementById('playerTrackName').textContent = trackName;
+        document.getElementById('playerTrackArtist').textContent = trackArtist;
+
+        currentAudio = new Audio('/tracks/stream/' + trackId);
+        currentTrackId = trackId;
+
+        currentAudio.addEventListener('loadedmetadata', function() {
+            document.getElementById('timeTotal').textContent = formatTime(currentAudio.duration);
+        });
+
+        currentAudio.addEventListener('timeupdate', updateProgress);
+
+        currentAudio.addEventListener('ended', function() {
+            playNext();
+        });
+
+        currentAudio.play();
+        isPlaying = true;
+        document.getElementById('playPauseIcon').className = 'fas fa-pause';
+
+        // Запись прослушивания
+        fetch('/tracks/record/' + trackId, { method: 'POST' });
+    }
+
+    function playAlbum(albumTitle, artistName) {
+        document.getElementById('player').style.display = 'flex';
+        document.getElementById('playerTrackName').textContent = albumTitle;
+        document.getElementById('playerTrackArtist').textContent = artistName;
+
+        // Здесь можно добавить логику воспроизведения альбома
+        if (!isPlaying) {
+            isPlaying = true;
+            document.getElementById('playPauseIcon').className = 'fas fa-pause';
+        }
+    }
+
+    function togglePlay() {
+        if (!currentAudio) return;
+
+        if (isPlaying) {
+            currentAudio.pause();
+            isPlaying = false;
+            document.getElementById('playPauseIcon').className = 'fas fa-play';
+        } else {
+            currentAudio.play();
+            isPlaying = true;
+            document.getElementById('playPauseIcon').className = 'fas fa-pause';
+        }
+    }
+
+    function playNext() {
+        if (tracks.length === 0) return;
+
+        // Найти индекс текущего трека
+        const currentIndex = tracks.findIndex(t => t.id == currentTrackId);
+        const nextIndex = (currentIndex + 1) % tracks.length;
+        const nextTrack = tracks[nextIndex];
+
+        playTrack(nextTrack.id, nextTrack.name, nextTrack.artist);
+    }
+
+    function playPrevious() {
+        if (tracks.length === 0) return;
+
+        const currentIndex = tracks.findIndex(t => t.id == currentTrackId);
+        const prevIndex = (currentIndex - 1 + tracks.length) % tracks.length;
+        const prevTrack = tracks[prevIndex];
+
+        playTrack(prevTrack.id, prevTrack.name, prevTrack.artist);
+    }
+
+    function updateProgress() {
+        if (!currentAudio) return;
+
+        const progress = (currentAudio.currentTime / currentAudio.duration) * 100;
+        document.getElementById('progressFilled').style.width = progress + '%';
+        document.getElementById('timeCurrent').textContent = formatTime(currentAudio.currentTime);
+    }
+
+    function seek(event) {
+        if (!currentAudio) return;
+
+        const progressBar = event.currentTarget;
+        const rect = progressBar.getBoundingClientRect();
+        const percent = (event.clientX - rect.left) / rect.width;
+
+        currentAudio.currentTime = percent * currentAudio.duration;
+    }
+
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Поиск при нажатии Enter
+    document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const query = this.value.trim();
+            if (query) {
+                window.location.href = '/search?query=' + encodeURIComponent(query);
+            }
+        }
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

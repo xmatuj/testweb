@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление пользователями - MusicStream Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Копируем те же стили, что и в index.html */
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #181818;
+            --card-bg: #1e1e1e;
+            --hover-bg: #282828;
+            --accent: #ffdb4d;
+            --accent-hover: #ffcc00;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --success: #1db954;
+            --warning: #ff9800;
+            --danger: #e22134;
+            --info: #2196f3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+            font-size: inherit;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Боковая навигация */
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--secondary-bg);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .logo i {
+            font-size: 24px;
+        }
+
+        .logo-text {
+            margin-left: 10px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-section {
+            margin-bottom: 25px;
+        }
+
+        .menu-title {
+            padding: 0 20px 10px;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background-color: var(--hover-bg);
+            color: var(--text-primary);
+        }
+
+        .menu-item.active {
+            background-color: rgba(255, 219, 77, 0.1);
+            color: var(--accent);
+            border-left-color: var(--accent);
+        }
+
+        .menu-icon {
+            width: 20px;
+            text-align: center;
+        }
+
+        .menu-text {
+            flex: 1;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding-bottom: 20px;
+        }
+
+        .top-bar {
+            background-color: var(--secondary-bg);
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .admin-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .search-bar {
+            position: relative;
+        }
+
+        .search-bar input {
+            padding: 8px 15px 8px 35px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-primary);
+            width: 250px;
+            outline: none;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+        }
+
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            color: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Контент страницы пользователей */
+        .users-container {
+            padding: 30px 20px;
+        }
+
+        .users-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .users-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .filters-section {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .filter-form {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            flex: 1;
+        }
+
+        .filter-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .filter-input {
+            width: 100%;
+            padding: 10px 15px;
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 10px 15px;
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23b3b3b3' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: var(--primary-bg);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--hover-bg);
+        }
+
+        /* Таблица пользователей */
+        .users-table-container {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th {
+            background-color: var(--secondary-bg);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .users-table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .users-table tr:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .role-User {
+            background-color: var(--text-secondary);
+            color: white;
+        }
+
+        .role-Subscriber {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .role-Musician {
+            background-color: var(--info);
+            color: white;
+        }
+
+        .role-Admin {
+            background-color: var(--warning);
+            color: var(--primary-bg);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .action-btn.musician {
+            background-color: var(--info);
+            color: white;
+        }
+
+        .action-btn.admin {
+            background-color: var(--warning);
+            color: var(--primary-bg);
+        }
+
+        .action-btn.user {
+            background-color: var(--text-secondary);
+            color: white;
+        }
+
+        .action-btn.subscriber {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .action-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        .action-form {
+            display: inline;
+        }
+
+        /* Пагинация */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .page-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--card-bg);
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .page-btn:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .page-btn.active {
+            background-color: var(--accent);
+            color: var(--primary-bg);
+        }
+
+        .page-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Уведомления */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background-color: rgba(29, 185, 84, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background-color: rgba(226, 33, 52, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar .logo-text,
+            .sidebar .menu-text,
+            .sidebar .menu-title {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 70px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .filter-form {
+                flex-direction: column;
+            }
+
+            .filter-actions {
+                width: 100%;
+            }
+
+            .users-table {
+                display: block;
+                overflow-x: auto;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-crown"></i>
+                <span class="logo-text">Админ</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <div class="menu-title">Главная</div>
+                <a href="/admin" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <div class="menu-text">Дашборд</div>
+                </a>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Контент</div>
+                <a href="/admin/tracks" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-music"></i></div>
+                    <div class="menu-text">Треки</div>
+                </a>
+                <a href="/admin/albums" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-compact-disc"></i></div>
+                    <div class="menu-text">Альбомы</div>
+                </a>
+                <a href="/admin/artists" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-user"></i></div>
+                    <div class="menu-text">Исполнители</div>
+                </a>
+                <a href="/admin/genres" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-tags"></i></div>
+                    <div class="menu-text">Жанры</div>
+                </a>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Пользователи</div>
+                <a href="/admin/users" class="menu-item active">
+                    <div class="menu-icon"><i class="fas fa-users"></i></div>
+                    <div class="menu-text">Пользователи</div>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="container top-bar-content">
+                <h1 class="page-title">Управление пользователями</h1>
+
+                <div class="admin-actions">
+                    <div class="user-info">
+                        <div class="user-avatar" th:text="${#strings.substring(currentUser.username, 0, 1)}">A</div>
+                        <span th:text="${currentUser.username}">Admin</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="users-container">
+            <!-- Alerts -->
+            <div th:if="${success}" class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span th:text="${success}">Success message</span>
+            </div>
+
+            <div th:if="${error}" class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${error}">Error message</span>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-section">
+                <form class="filter-form" th:action="@{/admin/users}" method="get">
+                    <div class="filter-group">
+                        <label class="filter-label">Поиск</label>
+                        <input type="text" name="search" class="filter-input"
+                               placeholder="Имя, email или роль..."
+                               th:value="${search}">
+                    </div>
+
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary">Применить</button>
+                        <a href="/admin/users" class="btn btn-secondary">Сброс</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Users Table -->
+            <div class="users-table-container">
+                <table class="users-table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя пользователя</th>
+                        <th>Email</th>
+                        <th>Роль</th>
+                        <th>Дата регистрации</th>
+                        <th>Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="user : ${users}">
+                        <td th:text="${user.id}">1</td>
+                        <td th:text="${user.username}">username</td>
+                        <td th:text="${user.email}">email@example.com</td>
+                        <td>
+                                    <span class="role-badge"
+                                          th:classappend="'role-' + ${user.role.name()}"
+                                          th:text="${user.role.name()}">User</span>
+                        </td>
+                        <td th:text="${#temporals.format(user.dateOfCreated, 'dd.MM.yyyy')}">01.01.2025</td>
+                        <td>
+                            <div class="action-buttons">
+                                <!-- Make Musician -->
+                                <form class="action-form" th:if="${user.role.name() != 'Musician'}"
+                                      th:action="@{/admin/users/{id}/make-musician(id=${user.id})}"
+                                      method="post">
+                                    <button type="submit" class="action-btn musician">Музыкант</button>
+                                </form>
+
+                                <!-- Make Admin -->
+                                <form class="action-form" th:if="${user.role.name() != 'Admin'}"
+                                      th:action="@{/admin/users/{id}/make-admin(id=${user.id})}"
+                                      method="post"
+                                      onsubmit="return confirm('Назначить администратором?')">
+                                    <button type="submit" class="action-btn admin">Админ</button>
+                                </form>
+
+                                <!-- Make User -->
+                                <form class="action-form" th:if="${user.role.name() != 'User'}"
+                                      th:action="@{/admin/users/{id}/make-user(id=${user.id})}"
+                                      method="post">
+                                    <button type="submit" class="action-btn user">Обычный</button>
+                                </form>
+
+                                <!-- Make Subscriber -->
+                                <form class="action-form" th:if="${user.role.name() != 'Subscriber'}"
+                                      th:action="@{/admin/users/{id}/make-subscriber(id=${user.id})}"
+                                      method="post">
+                                    <button type="submit" class="action-btn subscriber">Подписчик</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button class="page-btn disabled"><i class="fas fa-chevron-left"></i></button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-hide alerts after 5 seconds
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
+        });
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

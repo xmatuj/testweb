@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление треками - MusicStream Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/resources/css/admin.css}">
+</head>
+<body>
+<div class="admin-layout">
+    <!-- Sidebar (копируем из users.html) -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-crown"></i>
+                <span class="logo-text">Админ</span>
+            </div>
+        </div>
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <div class="menu-title">Главная</div>
+                <a href="/admin" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <div class="menu-text">Дашборд</div>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-title">Контент</div>
+                <a href="/admin/tracks" class="menu-item active">
+                    <div class="menu-icon"><i class="fas fa-music"></i></div>
+                    <div class="menu-text">Треки</div>
+                </a>
+                <a href="/admin/albums" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-compact-disc"></i></div>
+                    <div class="menu-text">Альбомы</div>
+                </a>
+                <a href="/admin/artists" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-user"></i></div>
+                    <div class="menu-text">Исполнители</div>
+                </a>
+                <a href="/admin/genres" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-tags"></i></div>
+                    <div class="menu-text">Жанры</div>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-title">Пользователи</div>
+                <a href="/admin/users" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-users"></i></div>
+                    <div class="menu-text">Пользователи</div>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="container top-bar-content">
+                <h1 class="page-title">Управление треками</h1>
+                <div class="admin-actions">
+                    <div class="user-info">
+                        <div class="user-avatar" th:text="${#strings.substring(currentUser.username, 0, 1)}">A</div>
+                        <span th:text="${currentUser.username}">Admin</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container" style="padding: 30px 20px;">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <span>Страница управления треками находится в разработке. Здесь будет отображаться список всех треков с возможностью редактирования и модерации.</span>
+            </div>
+
+            <a href="/admin" class="btn btn-secondary">← Назад к дашборду</a>
+        </div>
+    </main>
+</div>
+</body>
+</html>

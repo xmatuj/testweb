@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои подписки - MusicStream</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #181818;
+            --card-bg: #1e1e1e;
+            --hover-bg: #282828;
+            --accent: #ffdb4d;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --border-color: #333333;
+            --success: #1db954;
+            --danger: #e22134;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            color: var(--accent);
+        }
+
+        .active-subscription {
+            background: linear-gradient(135deg, var(--accent), #ffcc00);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            color: #000;
+        }
+
+        .subscription-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .subscription-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .subscription-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .status-expired {
+            background-color: var(--text-secondary);
+            color: white;
+        }
+
+        .status-cancelled {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .subscription-details {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        .subscription-details p {
+            margin-bottom: 5px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: var(--primary-bg);
+        }
+
+        .btn-primary:hover {
+            background-color: #ffcc00;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c21825;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background-color: rgba(29, 185, 84, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background-color: rgba(226, 33, 52, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Мои подписки</h1>
+
+    <div th:if="${success}" class="alert alert-success">
+        <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+    </div>
+
+    <div th:if="${error}" class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+    </div>
+
+    <!-- Active Subscription -->
+    <div th:if="${activeSubscription != null}" class="active-subscription">
+        <h2>Активная подписка</h2>
+        <p th:text="'Действует до: ' + ${#temporals.format(activeSubscription.endDate, 'dd.MM.yyyy')}"></p>
+        <form th:action="@{/subscription/cancel}" method="post" style="margin-top: 15px;">
+            <input type="hidden" name="subscriptionId" th:value="${activeSubscription.id}">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Отменить подписку?')">Отменить подписку</button>
+        </form>
+    </div>
+
+    <!-- Subscription History -->
+    <h2 style="margin: 30px 0 20px;">История подписок</h2>
+
+    <div th:if="${subscriptions != null and not #lists.isEmpty(subscriptions)}">
+        <div class="subscription-card" th:each="sub : ${subscriptions}">
+            <div class="subscription-header">
+                <span class="subscription-title">Подписка #<span th:text="${sub.id}"></span></span>
+                <span class="status-badge" th:classappend="${sub.activated and sub.endDate.isAfter(T(java.time.LocalDateTime).now())} ? 'status-active' : (sub.status == 'cancelled' ? 'status-cancelled' : 'status-expired')"
+                      th:text="${sub.activated and sub.endDate.isAfter(T(java.time.LocalDateTime).now())} ? 'Активна' : (sub.status == 'cancelled' ? 'Отменена' : 'Истекла')"></span>
+            </div>
+            <div class="subscription-details">
+                <p th:text="'Начало: ' + ${#temporals.format(sub.startDate, 'dd.MM.yyyy')}"></p>
+                <p th:text="'Окончание: ' + ${#temporals.format(sub.endDate, 'dd.MM.yyyy')}"></p>
+                <p th:text="'Сумма: ' + ${sub.amount} + ' ₽'"></p>
+                <p th:if="${sub.transactionId != null}" th:text="'Транзакция: ' + ${sub.transactionId}"></p>
+            </div>
+        </div>
+    </div>
+
+    <div th:unless="${subscriptions != null and not #lists.isEmpty(subscriptions)}" class="empty-state">
+        <i class="fas fa-history"></i>
+        <h3>Нет истории подписок</h3>
+        <p>У вас пока нет оформленных подписок</p>
+    </div>
+
+    <div class="actions">
+        <a href="/subscription/plans" class="btn btn-primary">Выбрать план</a>
+        <a href="/account/profile" class="btn btn-secondary">Назад в профиль</a>
+    </div>
+</div>
+</body>
+</html>
