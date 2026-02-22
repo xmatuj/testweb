@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Управление пользователями - MusicStream Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/resources/css/admin.css}">
     <style>
-        /* Копируем те же стили, что и в index.html */
         :root {
             --primary-bg: #121212;
             --secondary-bg: #181818;
@@ -514,6 +514,210 @@
                 flex-direction: column;
             }
         }
+        .role-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .role-ADMIN {
+            background-color: #ff9800;
+            color: #000;
+        }
+
+        .role-MUSICIAN {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        .role-SUBSCRIBER {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .role-USER {
+            background-color: #9e9e9e;
+            color: white;
+        }
+
+        .role-selector {
+            position: relative;
+            display: inline-block;
+        }
+
+        .role-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 1000;
+            min-width: 160px;
+            padding: 8px 0;
+            margin-top: 4px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .role-selector:hover .role-dropdown {
+            display: block;
+        }
+
+        .role-option {
+            display: block;
+            width: 100%;
+            padding: 8px 16px;
+            text-align: left;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .role-option:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .role-option.active {
+            background-color: rgba(255, 219, 77, 0.1);
+            color: var(--accent);
+        }
+
+        .user-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .user-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .user-email {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .user-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .quick-action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .quick-action-btn.musician {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        .quick-action-btn.admin {
+            background-color: #ff9800;
+            color: black;
+        }
+
+        .quick-action-btn.user {
+            background-color: #9e9e9e;
+            color: white;
+        }
+
+        .quick-action-btn.subscriber {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .quick-action-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .current-role-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: 15px;
+        }
+
+        .role-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .role-icon.admin {
+            background-color: #ff9800;
+            color: black;
+        }
+
+        .role-icon.musician {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        .role-icon.subscriber {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .role-icon.user {
+            background-color: #9e9e9e;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .user-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .user-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
@@ -554,6 +758,10 @@
                     <div class="menu-icon"><i class="fas fa-tags"></i></div>
                     <div class="menu-text">Жанры</div>
                 </a>
+                <a href="/admin/moderation" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="menu-text">Модерация</div>
+                </a>
             </div>
 
             <div class="menu-section">
@@ -573,111 +781,167 @@
                 <h1 class="page-title">Управление пользователями</h1>
 
                 <div class="admin-actions">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <form th:action="@{/admin/users}" method="get" style="display: inline;">
+                            <input type="text" name="search" placeholder="Поиск пользователей..." th:value="${search}">
+                        </form>
+                    </div>
                     <div class="user-info">
-                        <div class="user-avatar" th:text="${#strings.substring(currentUser.username, 0, 1)}">A</div>
-                        <span th:text="${currentUser.username}">Admin</span>
+                        <div class="user-avatar" th:text="${currentUser != null ? #strings.substring(currentUser.username, 0, 1) : 'A'}">A</div>
+                        <span th:text="${currentUser != null ? currentUser.username : 'Admin'}">Admin</span>
                     </div>
                 </div>
             </div>
         </header>
 
-        <div class="users-container">
+        <div class="container" style="padding: 30px 20px;">
             <!-- Alerts -->
             <div th:if="${success}" class="alert alert-success">
-                <i class="fas fa-check-circle"></i>
-                <span th:text="${success}">Success message</span>
+                <i class="fas fa-check-circle"></i> <span th:text="${success}">Success</span>
             </div>
-
             <div th:if="${error}" class="alert alert-error">
-                <i class="fas fa-exclamation-circle"></i>
-                <span th:text="${error}">Error message</span>
+                <i class="fas fa-exclamation-circle"></i> <span th:text="${error}">Error</span>
             </div>
 
-            <!-- Filters -->
-            <div class="filters-section">
-                <form class="filter-form" th:action="@{/admin/users}" method="get">
-                    <div class="filter-group">
-                        <label class="filter-label">Поиск</label>
-                        <input type="text" name="search" class="filter-input"
-                               placeholder="Имя, email или роль..."
-                               th:value="${search}">
-                    </div>
-
-                    <div class="filter-actions">
-                        <button type="submit" class="btn btn-primary">Применить</button>
-                        <a href="/admin/users" class="btn btn-secondary">Сброс</a>
-                    </div>
-                </form>
+            <!-- Statistics - Исправлено: убраны stream API -->
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${#lists.size(users)}">0</div>
+                    <div class="stat-label">Всего пользователей</div>
+                </div>
+                <div class="stat-card">
+                    <!-- Эти значения будут переданы из контроллера -->
+                    <div class="stat-value" th:text="${totalAdmins}">0</div>
+                    <div class="stat-label">Администраторов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${totalMusicians}">0</div>
+                    <div class="stat-label">Музыкантов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${totalSubscribers}">0</div>
+                    <div class="stat-label">Подписчиков</div>
+                </div>
             </div>
 
-            <!-- Users Table -->
-            <div class="users-table-container">
-                <table class="users-table">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Имя пользователя</th>
-                        <th>Email</th>
-                        <th>Роль</th>
-                        <th>Дата регистрации</th>
-                        <th>Действия</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="user : ${users}">
-                        <td th:text="${user.id}">1</td>
-                        <td th:text="${user.username}">username</td>
-                        <td th:text="${user.email}">email@example.com</td>
-                        <td>
-                                    <span class="role-badge"
-                                          th:classappend="'role-' + ${user.role.name()}"
-                                          th:text="${user.role.name()}">User</span>
-                        </td>
-                        <td th:text="${#temporals.format(user.dateOfCreated, 'dd.MM.yyyy')}">01.01.2025</td>
-                        <td>
-                            <div class="action-buttons">
-                                <!-- Make Musician -->
-                                <form class="action-form" th:if="${user.role.name() != 'Musician'}"
-                                      th:action="@{/admin/users/{id}/make-musician(id=${user.id})}"
-                                      method="post">
-                                    <button type="submit" class="action-btn musician">Музыкант</button>
-                                </form>
+            <!-- Search Info -->
+            <div th:if="${search != null and !search.isEmpty()}" class="alert alert-info">
+                <i class="fas fa-search"></i> Результаты поиска: "<span th:text="${search}"></span>"
+                <a href="/admin/users" class="btn btn-sm" style="margin-left: 15px; background-color: var(--secondary-bg);">Сбросить</a>
+            </div>
 
-                                <!-- Make Admin -->
-                                <form class="action-form" th:if="${user.role.name() != 'Admin'}"
-                                      th:action="@{/admin/users/{id}/make-admin(id=${user.id})}"
-                                      method="post"
-                                      onsubmit="return confirm('Назначить администратором?')">
-                                    <button type="submit" class="action-btn admin">Админ</button>
-                                </form>
+            <!-- Users Grid -->
+            <div th:if="${users != null and not #lists.isEmpty(users)}">
+                <div class="users-grid">
+                    <div class="user-card" th:each="user : ${users}" th:data-user-id="${user.id}">
+                        <div class="user-header">
+                            <div>
+                                <div class="user-name" th:text="${user.username}">username</div>
+                                <div class="user-email" th:text="${user.email}">email@example.com</div>
+                            </div>
+                            <div class="current-role-indicator">
+                                <div class="role-icon" th:classappend="${user.role.name() == 'Admin' ? 'admin' :
+                                                                               (user.role.name() == 'Musician' ? 'musician' :
+                                                                               (user.role.name() == 'Subscriber' ? 'subscriber' : 'user'))}">
+                                    <i th:if="${user.role.name() == 'Admin'}" class="fas fa-crown"></i>
+                                    <i th:if="${user.role.name() == 'Musician'}" class="fas fa-music"></i>
+                                    <i th:if="${user.role.name() == 'Subscriber'}" class="fas fa-star"></i>
+                                    <i th:if="${user.role.name() == 'User'}" class="fas fa-user"></i>
+                                </div>
+                                <span class="role-badge" th:classappend="'role-' + ${user.role.name()}"
+                                      th:text="${user.role.name()}">User</span>
+                            </div>
+                        </div>
 
-                                <!-- Make User -->
-                                <form class="action-form" th:if="${user.role.name() != 'User'}"
-                                      th:action="@{/admin/users/{id}/make-user(id=${user.id})}"
-                                      method="post">
-                                    <button type="submit" class="action-btn user">Обычный</button>
-                                </form>
+                        <div class="user-meta">
+                            <span><i class="fas fa-calendar"></i> <span th:text="${#temporals.format(user.dateOfCreated, 'dd.MM.yyyy')}">01.01.2025</span></span>
+                            <span><i class="fas fa-music"></i> Плейлистов: <span th:text="${user.playlists != null ? #lists.size(user.playlists) : 0}">0</span></span>
+                        </div>
 
-                                <!-- Make Subscriber -->
-                                <form class="action-form" th:if="${user.role.name() != 'Subscriber'}"
-                                      th:action="@{/admin/users/{id}/make-subscriber(id=${user.id})}"
-                                      method="post">
-                                    <button type="submit" class="action-btn subscriber">Подписчик</button>
+                        <div class="user-actions">
+                            <span style="color: var(--text-secondary); margin-right: 10px;">Изменить роль:</span>
+
+                            <!-- Make Musician -->
+                            <form th:if="${user.role.name() != 'Musician'}"
+                                  th:action="@{'/admin/users/' + ${user.id} + '/make-musician'}"
+                                  method="post" style="display: inline;">
+                                <button type="submit" class="quick-action-btn musician" title="Назначить музыкантом">
+                                    <i class="fas fa-music"></i> Музыкант
+                                </button>
+                            </form>
+
+                            <!-- Make Admin -->
+                            <form th:if="${user.role.name() != 'Admin'}"
+                                  th:action="@{'/admin/users/' + ${user.id} + '/make-admin'}"
+                                  method="post" style="display: inline;"
+                                  onsubmit="return confirm('Назначить администратором?');">
+                                <button type="submit" class="quick-action-btn admin" title="Назначить администратором">
+                                    <i class="fas fa-crown"></i> Админ
+                                </button>
+                            </form>
+
+                            <!-- Make User -->
+                            <form th:if="${user.role.name() != 'User'}"
+                                  th:action="@{'/admin/users/' + ${user.id} + '/make-user'}"
+                                  method="post" style="display: inline;">
+                                <button type="submit" class="quick-action-btn user" title="Назначить обычным пользователем">
+                                    <i class="fas fa-user"></i> Обычный
+                                </button>
+                            </form>
+
+                            <!-- Make Subscriber -->
+                            <form th:if="${user.role.name() != 'Subscriber'}"
+                                  th:action="@{'/admin/users/' + ${user.id} + '/make-subscriber'}"
+                                  method="post" style="display: inline;">
+                                <button type="submit" class="quick-action-btn subscriber" title="Назначить подписчиком">
+                                    <i class="fas fa-star"></i> Подписчик
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Dropdown alternative for smaller screens -->
+                        <div class="role-selector" style="display: none;">
+                            <button class="btn btn-secondary btn-sm">
+                                <i class="fas fa-cog"></i> Сменить роль
+                            </button>
+                            <div class="role-dropdown">
+                                <form th:action="@{'/admin/users/' + ${user.id} + '/make-musician'}" method="post">
+                                    <button type="submit" class="role-option" th:classappend="${user.role.name() == 'Musician' ? 'active' : ''}">
+                                        <i class="fas fa-music"></i> Музыкант
+                                    </button>
+                                </form>
+                                <form th:action="@{'/admin/users/' + ${user.id} + '/make-admin'}" method="post">
+                                    <button type="submit" class="role-option" th:classappend="${user.role.name() == 'Admin' ? 'active' : ''}">
+                                        <i class="fas fa-crown"></i> Администратор
+                                    </button>
+                                </form>
+                                <form th:action="@{'/admin/users/' + ${user.id} + '/make-subscriber'}" method="post">
+                                    <button type="submit" class="role-option" th:classappend="${user.role.name() == 'Subscriber' ? 'active' : ''}">
+                                        <i class="fas fa-star"></i> Подписчик
+                                    </button>
+                                </form>
+                                <form th:action="@{'/admin/users/' + ${user.id} + '/make-user'}" method="post">
+                                    <button type="submit" class="role-option" th:classappend="${user.role.name() == 'User' ? 'active' : ''}">
+                                        <i class="fas fa-user"></i> Обычный пользователь
+                                    </button>
                                 </form>
                             </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Pagination -->
-            <div class="pagination">
-                <button class="page-btn disabled"><i class="fas fa-chevron-left"></i></button>
-                <button class="page-btn active">1</button>
-                <button class="page-btn">2</button>
-                <button class="page-btn">3</button>
-                <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+            <div th:unless="${users != null and not #lists.isEmpty(users)}" class="empty-state">
+                <i class="fas fa-users"></i>
+                <h3>Нет пользователей для отображения</h3>
+                <p th:if="${search != null and !search.isEmpty()}">По запросу "<span th:text="${search}"></span>" ничего не найдено</p>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <a href="/admin" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Назад к дашборду
+                </a>
             </div>
         </div>
     </main>
@@ -685,15 +949,14 @@
 
 <script th:inline="javascript">
     /*<![CDATA[*/
+    // Auto-hide alerts after 5 seconds
     document.addEventListener('DOMContentLoaded', function() {
-        // Auto-hide alerts after 5 seconds
-        const alerts = document.querySelectorAll('.alert');
-        alerts.forEach(alert => {
-            setTimeout(() => {
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(alert => {
                 alert.style.opacity = '0';
                 setTimeout(() => alert.remove(), 300);
-            }, 5000);
-        });
+            });
+        }, 5000);
     });
     /*]]>*/
 </script>

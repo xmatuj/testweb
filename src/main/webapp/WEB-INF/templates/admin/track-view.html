@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Управление треками - MusicStream Admin</title>
+    <title th:text="${track.title} + ' - MusicStream Admin'">Просмотр трека</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/resources/css/admin.css}">
-</head>
-<style>
-    :root {
+    <style>
+        :root {
     --primary-bg: #121212;
     --secondary-bg: #181818;
     --card-bg: #1e1e1e;
@@ -636,7 +635,8 @@ textarea.form-control {
         width: 150px;
     }
 }
-</style>
+    </style>
+</head>
 <body>
 <div class="admin-layout">
     <!-- Sidebar -->
@@ -647,7 +647,6 @@ textarea.form-control {
                 <span class="logo-text">Админ</span>
             </div>
         </div>
-
         <nav class="sidebar-menu">
             <div class="menu-section">
                 <div class="menu-title">Главная</div>
@@ -656,7 +655,6 @@ textarea.form-control {
                     <div class="menu-text">Дашборд</div>
                 </a>
             </div>
-
             <div class="menu-section">
                 <div class="menu-title">Контент</div>
                 <a href="/admin/tracks" class="menu-item active">
@@ -678,10 +676,8 @@ textarea.form-control {
                 <a href="/admin/moderation" class="menu-item">
                     <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
                     <div class="menu-text">Модерация</div>
-                    <div class="menu-badge" th:text="${pendingCount}">0</div>
                 </a>
             </div>
-
             <div class="menu-section">
                 <div class="menu-title">Пользователи</div>
                 <a href="/admin/users" class="menu-item">
@@ -696,15 +692,9 @@ textarea.form-control {
     <main class="main-content">
         <header class="top-bar">
             <div class="container top-bar-content">
-                <h1 class="page-title">Управление треками</h1>
+                <h1 class="page-title" th:text="${track.title}">Название трека</h1>
 
                 <div class="admin-actions">
-                    <div class="search-bar">
-                        <i class="fas fa-search"></i>
-                        <form th:action="@{/admin/tracks}" method="get" style="display: inline;">
-                            <input type="text" name="search" placeholder="Поиск треков..." th:value="${search}">
-                        </form>
-                    </div>
                     <div class="user-info">
                         <div class="user-avatar" th:text="${currentUser != null ? #strings.substring(currentUser.username, 0, 1) : 'A'}">A</div>
                         <span th:text="${currentUser != null ? currentUser.username : 'Admin'}">Admin</span>
@@ -713,109 +703,104 @@ textarea.form-control {
             </div>
         </header>
 
-        <div class="container" style="padding: 30px 20px;">
-            <!-- Alerts -->
-            <div th:if="${success}" class="alert alert-success">
-                <i class="fas fa-check-circle"></i> <span th:text="${success}">Success</span>
-            </div>
-            <div th:if="${error}" class="alert alert-error">
-                <i class="fas fa-exclamation-circle"></i> <span th:text="${error}">Error</span>
+        <div class="container" style="padding: 30px 20px;" th:data-track-id="${track.id}" th:data-track-title="${track.title}">
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="/admin/tracks" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Назад к списку
+                </a>
+                <a th:href="@{'/admin/tracks/edit/' + ${track.id}}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Редактировать
+                </a>
+                <form th:action="@{'/admin/tracks/delete/' + ${track.id}}" method="post" style="display: inline;"
+                      onsubmit="return confirm('Удалить этот трек? Это действие нельзя отменить.');">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                </form>
             </div>
 
-            <!-- Action Buttons -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <div class="stats-cards" style="margin: 0; flex: 1;">
-                    <div class="stat-card" style="margin: 0; max-width: 200px;">
-                        <div class="stat-value" th:text="${totalTracks}">0</div>
-                        <div class="stat-label">Всего треков</div>
-                    </div>
-                    <div class="stat-card" style="margin: 0; max-width: 200px;">
-                        <div class="stat-value" th:text="${pendingCount}">0</div>
-                        <div class="stat-label">На модерации</div>
+            <!-- Audio Player -->
+            <div class="audio-player">
+                <audio controls>
+                    <source th:src="${track.filePath}" type="audio/mpeg">
+                    Ваш браузер не поддерживает аудио элементы.
+                </audio>
+            </div>
+
+            <!-- Track Details -->
+            <div class="track-details">
+                <h2 style="margin-bottom: 20px; color: var(--accent);">Информация о треке</h2>
+
+                <div class="detail-row">
+                    <div class="detail-label">ID:</div>
+                    <div class="detail-value" th:text="${track.id}">1</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Название:</div>
+                    <div class="detail-value" th:text="${track.title}">Название</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Исполнитель:</div>
+                    <div class="detail-value">
+                        <span th:if="${track.artist != null}" th:text="${track.artist.name}">Исполнитель</span>
+                        <span th:unless="${track.artist != null}" style="color: var(--text-muted);">—</span>
                     </div>
                 </div>
-                <a href="/admin/tracks/new" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Добавить трек
-                </a>
+
+                <div class="detail-row">
+                    <div class="detail-label">Альбом:</div>
+                    <div class="detail-value">
+                        <span th:if="${track.album != null}" th:text="${track.album.title}">Альбом</span>
+                        <span th:unless="${track.album != null}" style="color: var(--text-muted);">—</span>
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Жанр:</div>
+                    <div class="detail-value">
+                        <span th:if="${track.genre != null}" th:text="${track.genre.name}">Жанр</span>
+                        <span th:unless="${track.genre != null}" style="color: var(--text-muted);">—</span>
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Длительность:</div>
+                    <div class="detail-value" th:text="${track.formattedDuration}">3:45</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Путь к файлу:</div>
+                    <div class="detail-value" th:text="${track.filePath}">/audio/file.mp3</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Статус:</div>
+                    <div class="detail-value">
+                            <span class="status-badge" th:classappend="${track.moderated} ? 'status-approved' : 'status-pending'"
+                                  th:text="${track.moderated} ? 'Одобрен' : 'На модерации'">Статус</span>
+                    </div>
+                </div>
+
+                <div class="detail-row" th:if="${track.uploadedByUser != null}">
+                    <div class="detail-label">Загрузил:</div>
+                    <div class="detail-value" th:text="${track.uploadedByUser.username}">Пользователь</div>
+                </div>
             </div>
 
-            <!-- Search Info -->
-            <div th:if="${search != null and !search.isEmpty()}" class="alert alert-info">
-                <i class="fas fa-search"></i> Результаты поиска: "<span th:text="${search}"></span>"
-                <a href="/admin/tracks" class="btn btn-sm" style="margin-left: 15px; background-color: var(--secondary-bg);">Сбросить</a>
-            </div>
-
-            <!-- Tracks Table -->
-            <div th:if="${tracks != null and not #lists.isEmpty(tracks)}">
-                <table class="data-table">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Название</th>
-                        <th>Исполнитель</th>
-                        <th>Альбом</th>
-                        <th>Жанр</th>
-                        <th>Длительность</th>
-                        <th>Статус</th>
-                        <th>Действия</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="track : ${tracks}" th:data-track-id="${track.id}" th:data-track-title="${track.title}">
-                        <td th:text="${track.id}">1</td>
-                        <td>
-                            <strong th:text="${track.title}">Название</strong>
-                        </td>
-                        <td th:text="${track.artist != null ? track.artist.name : '—'}">Исполнитель</td>
-                        <td th:text="${track.album != null ? track.album.title : '—'}">Альбом</td>
-                        <td th:text="${track.genre != null ? track.genre.name : '—'}">Жанр</td>
-                        <td th:text="${track.formattedDuration}">3:45</td>
-                        <td>
-                                    <span class="status-badge" th:classappend="${track.moderated} ? 'status-approved' : 'status-pending'"
-                                          th:text="${track.moderated} ? 'Одобрен' : 'На модерации'">
-                                        Статус
-                                    </span>
-                        </td>
-                        <td>
-                            <div style="display: flex; gap: 5px;">
-                                <a th:href="@{'/admin/tracks/' + ${track.id}}" class="btn btn-sm btn-info" title="Просмотр">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a th:href="@{'/admin/tracks/edit/' + ${track.id}}" class="btn btn-sm btn-secondary" title="Редактировать">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form th:action="@{'/admin/tracks/delete/' + ${track.id}}" method="post" style="display: inline;"
-                                      onsubmit="return confirm('Удалить этот трек? Это действие нельзя отменить.');">
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Удалить">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                                <th:block th:if="${!track.moderated}">
-                                    <button class="btn btn-sm btn-success approve-btn" title="Одобрить">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger reject-btn" title="Отклонить">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </th:block>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div th:unless="${tracks != null and not #lists.isEmpty(tracks)}" class="empty-state">
-                <i class="fas fa-music"></i>
-                <h3>Нет треков для отображения</h3>
-                <p th:if="${search != null and !search.isEmpty()}">По запросу "<span th:text="${search}"></span>" ничего не найдено</p>
-                <p th:unless="${search != null and !search.isEmpty()}">Нажмите "Добавить трек" чтобы создать первый трек</p>
-            </div>
-
-            <div style="margin-top: 30px;">
-                <a href="/admin" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Назад к дашборду
-                </a>
+            <!-- Moderation Actions -->
+            <div th:if="${!track.moderated}" class="track-details" style="margin-top: 30px;">
+                <h3 style="margin-bottom: 15px; color: var(--accent);">Модерация</h3>
+                <div style="display: flex; gap: 15px;">
+                    <button class="btn btn-success approve-btn" title="Одобрить">
+                        <i class="fas fa-check"></i> Одобрить
+                    </button>
+                    <button class="btn btn-danger reject-btn" title="Отклонить">
+                        <i class="fas fa-times"></i> Отклонить
+                    </button>
+                </div>
             </div>
         </div>
     </main>
@@ -876,36 +861,28 @@ textarea.form-control {
 <script th:inline="javascript">
     /*<![CDATA[*/
     document.addEventListener('DOMContentLoaded', function() {
-        // Approve buttons
-        document.querySelectorAll('.approve-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const row = this.closest('tr');
-                const trackId = row.dataset.trackId;
-                const trackTitle = row.dataset.trackTitle;
+        const container = document.querySelector('.container');
+        const trackId = container.dataset.trackId;
+        const trackTitle = container.dataset.trackTitle;
 
-                document.getElementById('approveTrackTitle').textContent = trackTitle;
-                document.getElementById('approveTrackId').value = trackId;
-                document.getElementById('approveForm').action = '/admin/tracks/' + trackId + '/approve';
-                document.getElementById('approveModal').classList.add('active');
-                document.body.style.overflow = 'hidden';
-            });
+        // Approve button
+        document.querySelector('.approve-btn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('approveTrackTitle').textContent = trackTitle;
+            document.getElementById('approveTrackId').value = trackId;
+            document.getElementById('approveForm').action = '/admin/tracks/' + trackId + '/approve';
+            document.getElementById('approveModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
         });
 
-        // Reject buttons
-        document.querySelectorAll('.reject-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const row = this.closest('tr');
-                const trackId = row.dataset.trackId;
-                const trackTitle = row.dataset.trackTitle;
-
-                document.getElementById('rejectTrackTitle').textContent = trackTitle;
-                document.getElementById('rejectTrackId').value = trackId;
-                document.getElementById('rejectForm').action = '/admin/tracks/' + trackId + '/reject';
-                document.getElementById('rejectModal').classList.add('active');
-                document.body.style.overflow = 'hidden';
-            });
+        // Reject button
+        document.querySelector('.reject-btn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('rejectTrackTitle').textContent = trackTitle;
+            document.getElementById('rejectTrackId').value = trackId;
+            document.getElementById('rejectForm').action = '/admin/tracks/' + trackId + '/reject';
+            document.getElementById('rejectModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
         });
     });
 

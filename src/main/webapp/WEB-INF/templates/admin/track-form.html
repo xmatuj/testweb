@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Управление треками - MusicStream Admin</title>
+    <title th:if="${track.id == null}">Добавление трека - MusicStream Admin</title>
+    <title th:if="${track.id != null}">Редактирование трека - MusicStream Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/resources/css/admin.css}">
 </head>
@@ -639,7 +640,7 @@ textarea.form-control {
 </style>
 <body>
 <div class="admin-layout">
-    <!-- Sidebar -->
+    <!-- Sidebar (same as tracks.html) -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <div class="logo">
@@ -647,7 +648,6 @@ textarea.form-control {
                 <span class="logo-text">Админ</span>
             </div>
         </div>
-
         <nav class="sidebar-menu">
             <div class="menu-section">
                 <div class="menu-title">Главная</div>
@@ -656,7 +656,6 @@ textarea.form-control {
                     <div class="menu-text">Дашборд</div>
                 </a>
             </div>
-
             <div class="menu-section">
                 <div class="menu-title">Контент</div>
                 <a href="/admin/tracks" class="menu-item active">
@@ -678,10 +677,8 @@ textarea.form-control {
                 <a href="/admin/moderation" class="menu-item">
                     <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
                     <div class="menu-text">Модерация</div>
-                    <div class="menu-badge" th:text="${pendingCount}">0</div>
                 </a>
             </div>
-
             <div class="menu-section">
                 <div class="menu-title">Пользователи</div>
                 <a href="/admin/users" class="menu-item">
@@ -696,15 +693,10 @@ textarea.form-control {
     <main class="main-content">
         <header class="top-bar">
             <div class="container top-bar-content">
-                <h1 class="page-title">Управление треками</h1>
+                <h1 class="page-title" th:if="${track.id == null}">Добавление нового трека</h1>
+                <h1 class="page-title" th:if="${track.id != null}">Редактирование трека</h1>
 
                 <div class="admin-actions">
-                    <div class="search-bar">
-                        <i class="fas fa-search"></i>
-                        <form th:action="@{/admin/tracks}" method="get" style="display: inline;">
-                            <input type="text" name="search" placeholder="Поиск треков..." th:value="${search}">
-                        </form>
-                    </div>
                     <div class="user-info">
                         <div class="user-avatar" th:text="${currentUser != null ? #strings.substring(currentUser.username, 0, 1) : 'A'}">A</div>
                         <span th:text="${currentUser != null ? currentUser.username : 'Admin'}">Admin</span>
@@ -714,226 +706,72 @@ textarea.form-control {
         </header>
 
         <div class="container" style="padding: 30px 20px;">
-            <!-- Alerts -->
-            <div th:if="${success}" class="alert alert-success">
-                <i class="fas fa-check-circle"></i> <span th:text="${success}">Success</span>
-            </div>
-            <div th:if="${error}" class="alert alert-error">
-                <i class="fas fa-exclamation-circle"></i> <span th:text="${error}">Error</span>
-            </div>
+            <div class="form-container">
+                <form th:action="@{/admin/tracks/save}" method="post">
+                    <input type="hidden" name="id" th:value="${track.id}">
 
-            <!-- Action Buttons -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <div class="stats-cards" style="margin: 0; flex: 1;">
-                    <div class="stat-card" style="margin: 0; max-width: 200px;">
-                        <div class="stat-value" th:text="${totalTracks}">0</div>
-                        <div class="stat-label">Всего треков</div>
+                    <div class="form-group">
+                        <label class="form-label">Название трека *</label>
+                        <input type="text" name="title" class="form-control" th:value="${track.title}" required>
                     </div>
-                    <div class="stat-card" style="margin: 0; max-width: 200px;">
-                        <div class="stat-value" th:text="${pendingCount}">0</div>
-                        <div class="stat-label">На модерации</div>
+
+                    <div class="form-group">
+                        <label class="form-label">Путь к файлу *</label>
+                        <input type="text" name="filePath" class="form-control" th:value="${track.filePath}" placeholder="/audio/filename.mp3" required>
+                        <small style="color: var(--text-muted);">Относительный путь к аудиофайлу</small>
                     </div>
-                </div>
-                <a href="/admin/tracks/new" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Добавить трек
-                </a>
-            </div>
 
-            <!-- Search Info -->
-            <div th:if="${search != null and !search.isEmpty()}" class="alert alert-info">
-                <i class="fas fa-search"></i> Результаты поиска: "<span th:text="${search}"></span>"
-                <a href="/admin/tracks" class="btn btn-sm" style="margin-left: 15px; background-color: var(--secondary-bg);">Сбросить</a>
-            </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Длительность (сек) *</label>
+                            <input type="number" name="duration" class="form-control" th:value="${track.duration}" min="1" max="3600" required>
+                        </div>
 
-            <!-- Tracks Table -->
-            <div th:if="${tracks != null and not #lists.isEmpty(tracks)}">
-                <table class="data-table">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Название</th>
-                        <th>Исполнитель</th>
-                        <th>Альбом</th>
-                        <th>Жанр</th>
-                        <th>Длительность</th>
-                        <th>Статус</th>
-                        <th>Действия</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="track : ${tracks}" th:data-track-id="${track.id}" th:data-track-title="${track.title}">
-                        <td th:text="${track.id}">1</td>
-                        <td>
-                            <strong th:text="${track.title}">Название</strong>
-                        </td>
-                        <td th:text="${track.artist != null ? track.artist.name : '—'}">Исполнитель</td>
-                        <td th:text="${track.album != null ? track.album.title : '—'}">Альбом</td>
-                        <td th:text="${track.genre != null ? track.genre.name : '—'}">Жанр</td>
-                        <td th:text="${track.formattedDuration}">3:45</td>
-                        <td>
-                                    <span class="status-badge" th:classappend="${track.moderated} ? 'status-approved' : 'status-pending'"
-                                          th:text="${track.moderated} ? 'Одобрен' : 'На модерации'">
-                                        Статус
-                                    </span>
-                        </td>
-                        <td>
-                            <div style="display: flex; gap: 5px;">
-                                <a th:href="@{'/admin/tracks/' + ${track.id}}" class="btn btn-sm btn-info" title="Просмотр">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a th:href="@{'/admin/tracks/edit/' + ${track.id}}" class="btn btn-sm btn-secondary" title="Редактировать">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form th:action="@{'/admin/tracks/delete/' + ${track.id}}" method="post" style="display: inline;"
-                                      onsubmit="return confirm('Удалить этот трек? Это действие нельзя отменить.');">
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Удалить">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                                <th:block th:if="${!track.moderated}">
-                                    <button class="btn btn-sm btn-success approve-btn" title="Одобрить">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger reject-btn" title="Отклонить">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </th:block>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
+                        <div class="form-group">
+                            <label class="form-label">Исполнитель</label>
+                            <select name="artistId" class="form-control">
+                                <option value="">-- Не указан --</option>
+                                <option th:each="artist : ${artists}" th:value="${artist.id}" th:text="${artist.name}"
+                                        th:selected="${track.artistId != null and track.artistId == artist.id}"></option>
+                            </select>
+                        </div>
+                    </div>
 
-            <div th:unless="${tracks != null and not #lists.isEmpty(tracks)}" class="empty-state">
-                <i class="fas fa-music"></i>
-                <h3>Нет треков для отображения</h3>
-                <p th:if="${search != null and !search.isEmpty()}">По запросу "<span th:text="${search}"></span>" ничего не найдено</p>
-                <p th:unless="${search != null and !search.isEmpty()}">Нажмите "Добавить трек" чтобы создать первый трек</p>
-            </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Альбом</label>
+                            <select name="albumId" class="form-control">
+                                <option value="">-- Не указан --</option>
+                                <option th:each="album : ${albums}" th:value="${album.id}" th:text="${album.title}"
+                                        th:selected="${track.albumId != null and track.albumId == album.id}"></option>
+                            </select>
+                        </div>
 
-            <div style="margin-top: 30px;">
-                <a href="/admin" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Назад к дашборду
-                </a>
+                        <div class="form-group">
+                            <label class="form-label">Жанр</label>
+                            <select name="genreId" class="form-control">
+                                <option value="">-- Не указан --</option>
+                                <option th:each="genre : ${genres}" th:value="${genre.id}" th:text="${genre.name}"
+                                        th:selected="${track.genreId != null and track.genreId == genre.id}"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" name="moderated" th:checked="${track.moderated}">
+                            <span style="margin-left: 8px;">Одобрен (публичный)</span>
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="/admin/tracks" class="btn btn-secondary">Отмена</a>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
             </div>
         </div>
     </main>
 </div>
-
-<!-- Approve Modal -->
-<div class="modal-overlay" id="approveModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 class="modal-title">Одобрить трек</h3>
-            <button class="modal-close" onclick="closeModal('approveModal')">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-content">
-            <p>Вы уверены, что хотите одобрить трек "<span id="approveTrackTitle"></span>"?</p>
-            <form action="#" method="post" id="approveForm">
-                <input type="hidden" name="trackId" id="approveTrackId">
-                <div class="form-group">
-                    <label class="form-label">Комментарий (опционально)</label>
-                    <textarea name="comment" class="form-control" rows="3" placeholder="Добавьте комментарий..."></textarea>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('approveModal')">Отмена</button>
-                    <button type="submit" class="btn btn-success">Одобрить</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Reject Modal -->
-<div class="modal-overlay" id="rejectModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 class="modal-title">Отклонить трек</h3>
-            <button class="modal-close" onclick="closeModal('rejectModal')">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-content">
-            <p>Вы уверены, что хотите отклонить трек "<span id="rejectTrackTitle"></span>"?</p>
-            <form action="#" method="post" id="rejectForm">
-                <input type="hidden" name="trackId" id="rejectTrackId">
-                <div class="form-group">
-                    <label class="form-label">Причина отклонения *</label>
-                    <textarea name="comment" class="form-control" rows="3" placeholder="Укажите причину отклонения..." required></textarea>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('rejectModal')">Отмена</button>
-                    <button type="submit" class="btn btn-danger">Отклонить</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    document.addEventListener('DOMContentLoaded', function() {
-        // Approve buttons
-        document.querySelectorAll('.approve-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const row = this.closest('tr');
-                const trackId = row.dataset.trackId;
-                const trackTitle = row.dataset.trackTitle;
-
-                document.getElementById('approveTrackTitle').textContent = trackTitle;
-                document.getElementById('approveTrackId').value = trackId;
-                document.getElementById('approveForm').action = '/admin/tracks/' + trackId + '/approve';
-                document.getElementById('approveModal').classList.add('active');
-                document.body.style.overflow = 'hidden';
-            });
-        });
-
-        // Reject buttons
-        document.querySelectorAll('.reject-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const row = this.closest('tr');
-                const trackId = row.dataset.trackId;
-                const trackTitle = row.dataset.trackTitle;
-
-                document.getElementById('rejectTrackTitle').textContent = trackTitle;
-                document.getElementById('rejectTrackId').value = trackId;
-                document.getElementById('rejectForm').action = '/admin/tracks/' + trackId + '/reject';
-                document.getElementById('rejectModal').classList.add('active');
-                document.body.style.overflow = 'hidden';
-            });
-        });
-    });
-
-    function closeModal(modalId) {
-        document.getElementById(modalId).classList.remove('active');
-        document.body.style.overflow = 'auto';
-    }
-
-    // Close modal on overlay click
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }
-        });
-    });
-
-    // Close on Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('.modal-overlay.active').forEach(modal => {
-                modal.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            });
-        }
-    });
-    /*]]>*/
-</script>
 </body>
 </html>

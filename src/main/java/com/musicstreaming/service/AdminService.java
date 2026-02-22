@@ -161,4 +161,16 @@ public class AdminService {
     public void deleteGenre(Integer id) {
         genreDAO.delete(id);
     }
+
+    public List<Artist> getAllArtists() {
+        return artistDAO.findAll();
+    }
+
+    public List<Album> getAllAlbums() {
+        return albumDAO.findAll();
+    }
+
+    public List<Genre> getAllGenres() {
+        return genreDAO.findAll();
+    }
 }
