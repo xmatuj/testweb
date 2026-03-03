@@ -44,7 +44,7 @@ public class AlbumService {
     }
 
     public List<Album> search(String query) {
-        return albumRepository.search(query);
+        return albumRepository.searchByCriteria(query);
     }
 
     public List<Album> findNewReleases(int limit) {
