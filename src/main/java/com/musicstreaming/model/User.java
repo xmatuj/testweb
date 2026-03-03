@@ -1,28 +1,48 @@
 package com.musicstreaming.model;
 
+import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
+@Entity
+@Table(name = "Users")
 public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "Id")
     private Integer id;
+
+    @Column(name = "Username", nullable = false, unique = true, length = 50)
     private String username;
+
+    @Column(name = "Email", nullable = false, unique = true, length = 100)
     private String email;
+
+    @Column(name = "PasswordHash", nullable = false)
     private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "Role", nullable = false, length = 20)
     private UserRole role;
+
+    @Column(name = "DateOfCreated", nullable = false)
     private LocalDateTime dateOfCreated;
 
-    // Transient fields for related data
-    private List<Subscription> subscriptions;
-    private List<Playlist> playlists;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Subscription> subscriptions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Playlist> playlists = new ArrayList<>();
 
     public enum UserRole {
         User, Subscriber, Musician, Admin
     }
 
-    // Constructors
     public User() {
-        this.role = UserRole.User;
         this.dateOfCreated = LocalDateTime.now();
+        this.role = UserRole.User;
     }
 
     public User(String username, String email, String passwordHash) {

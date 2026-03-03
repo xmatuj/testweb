@@ -1,25 +1,40 @@
 package com.musicstreaming.model;
 
+import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
+@Entity
+@Table(name = "Albums")
 public class Album {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "Id")
     private Integer id;
+
+    @Column(name = "Title", nullable = false, length = 100)
     private String title;
-    private Integer artistId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ArtistId", nullable = false)
+    private Artist artist;
+
+    @Column(name = "ReleaseDate")
     private LocalDate releaseDate;
+
+    @Column(name = "CoverPath", length = 255)
     private String coverPath;
 
-    // Related objects
-    private Artist artist;
-    private List<Track> tracks;
+    @OneToMany(mappedBy = "album", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Track> tracks = new ArrayList<>();
 
-    // Constructors
     public Album() {}
 
-    public Album(String title, Integer artistId) {
+    public Album(String title, Artist artist) {
         this.title = title;
-        this.artistId = artistId;
+        this.artist = artist;
     }
 
     // Getters and Setters
@@ -29,17 +44,14 @@ public class Album {
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
 
-    public Integer getArtistId() { return artistId; }
-    public void setArtistId(Integer artistId) { this.artistId = artistId; }
+    public Artist getArtist() { return artist; }
+    public void setArtist(Artist artist) { this.artist = artist; }
 
     public LocalDate getReleaseDate() { return releaseDate; }
     public void setReleaseDate(LocalDate releaseDate) { this.releaseDate = releaseDate; }
 
     public String getCoverPath() { return coverPath; }
     public void setCoverPath(String coverPath) { this.coverPath = coverPath; }
-
-    public Artist getArtist() { return artist; }
-    public void setArtist(Artist artist) { this.artist = artist; }
 
     public List<Track> getTracks() { return tracks; }
     public void setTracks(List<Track> tracks) { this.tracks = tracks; }

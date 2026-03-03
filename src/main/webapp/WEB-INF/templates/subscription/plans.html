@@ -620,13 +620,13 @@
                         <li><i class="fas fa-check"></i> Оффлайн прослушивание</li>
                     </ul>
 
-                    <div th:if="${hasActiveSubscription}">
+                    <div th:if="${currentUser != null and currentUser.hasActiveSubscription}">
                         <button class="current-plan" disabled>
                             <i class="fas fa-check-circle"></i>
                             Активна
                         </button>
                     </div>
-                    <div th:unless="${hasActiveSubscription}">
+                    <div th:unless="${currentUser != null and currentUser.hasActiveSubscription}">
                         <a th:href="@{${isAuthenticated} ? '/subscription/create' : '/account/login?redirect=/subscription/create'}" class="plan-button primary choose-plan">
                             <i class="fas fa-crown"></i>
                             Выбрать Премиум

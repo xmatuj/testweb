@@ -1,71 +1,70 @@
 package com.musicstreaming.service;
 
-import com.musicstreaming.dao.UserDAO;
 import com.musicstreaming.model.User;
+import com.musicstreaming.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class UserService {
 
-    private final UserDAO userDAO;
+    private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserDAO userDAO) {
-        this.userDAO = userDAO;
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
     public Optional<User> findById(Integer id) {
-        return userDAO.findById(id);
+        return userRepository.findById(id);
     }
 
     public Optional<User> findByUsername(String username) {
-        return userDAO.findByUsername(username);
+        return userRepository.findByUsername(username);
     }
 
     public Optional<User> findByEmail(String email) {
-        return userDAO.findByEmail(email);
+        return userRepository.findByEmail(email);
     }
 
     public Optional<User> findByUsernameOrEmail(String usernameOrEmail) {
-        return userDAO.findByUsernameOrEmail(usernameOrEmail);
+        return userRepository.findByUsernameOrEmail(usernameOrEmail);
     }
 
     public List<User> findAll() {
-        return userDAO.findAll();
+        return userRepository.findAllOrdered();
     }
 
     public List<User> search(String searchTerm) {
-        return userDAO.search(searchTerm);
+        return userRepository.search(searchTerm);
     }
 
+    @Transactional
     public User registerUser(String username, String email, String password) {
-        // Check if user already exists
-        if (userDAO.existsByUsername(username)) {
+        if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("Username already exists");
         }
-        if (userDAO.existsByEmail(email)) {
+        if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        // Hash password using Spring Security Crypto
         String hashedPassword = passwordEncoder.encode(password);
-
-        // Create user (always as regular User)
         User user = new User(username, email, hashedPassword);
         user.setRole(User.UserRole.User);
 
-        return userDAO.save(user);
+        return userRepository.save(user);
     }
 
     public Optional<User> authenticate(String usernameOrEmail, String password) {
-        Optional<User> userOpt = userDAO.findByUsernameOrEmail(usernameOrEmail);
+        Optional<User> userOpt = userRepository.findByUsernameOrEmail(usernameOrEmail);
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
@@ -77,34 +76,45 @@ public class UserService {
         return Optional.empty();
     }
 
+    @Transactional
     public User updateUser(User user) {
-        return userDAO.save(user);
+        return userRepository.save(user);
     }
 
+    @Transactional
     public void updateRole(Integer userId, User.UserRole newRole) {
-        userDAO.updateRole(userId, newRole);
+        userRepository.findById(userId).ifPresent(user -> {
+            user.setRole(newRole);
+            userRepository.save(user);
+        });
     }
 
     public boolean isUsernameTaken(String username) {
-        return userDAO.existsByUsername(username);
+        return userRepository.existsByUsername(username);
     }
 
     public boolean isEmailTaken(String email) {
-        return userDAO.existsByEmail(email);
+        return userRepository.existsByEmail(email);
     }
 
+    @Transactional
     public void changePassword(Integer userId, String oldPassword, String newPassword) {
-        Optional<User> userOpt = userDAO.findById(userId);
+        Optional<User> userOpt = userRepository.findById(userId);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             if (passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
                 user.setPasswordHash(passwordEncoder.encode(newPassword));
-                userDAO.save(user);
+                userRepository.save(user);
             } else {
                 throw new IllegalArgumentException("Old password is incorrect");
             }
         } else {
             throw new IllegalArgumentException("User not found");
         }
+    }
+
+    // Метод для загрузки пользователя с подписками (если нужно)
+    public Optional<User> findUserWithSubscriptions(Integer userId) {
+        return userRepository.findByIdWithSubscriptions(userId);
     }
 }

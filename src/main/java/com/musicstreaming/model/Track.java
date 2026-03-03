@@ -1,31 +1,57 @@
 package com.musicstreaming.model;
 
-public class Track {
-    private Integer id;
-    private String title;
-    private String filePath;
-    private Integer duration;
-    private Integer genreId;
-    private Integer albumId;
-    private Integer artistId;
-    private boolean isModerated;
-    private Integer uploadedByUserId;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
-    // Related objects
+@Entity
+@Table(name = "Tracks")
+public class Track {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "Id")
+    private Integer id;
+
+    @Column(name = "Title", nullable = false, length = 200)
+    private String title;
+
+    @Column(name = "FilePath", nullable = false, length = 255)
+    private String filePath;
+
+    @Column(name = "Duration")
+    private Integer duration;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "GenreId")
     private Genre genre;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "AlbumId")
     private Album album;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ArtistId")
     private Artist artist;
+
+    @Column(name = "IsModerated", nullable = false)
+    private boolean isModerated;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "UploadedByUserId")
     private User uploadedByUser;
 
-    // Constructors
+    @OneToMany(mappedBy = "track", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PlaylistTrack> playlistTracks = new ArrayList<>();
+
     public Track() {}
 
-    public Track(String title, String filePath, Integer duration, Integer genreId, Integer artistId) {
+    public Track(String title, String filePath, Integer duration, Genre genre, Artist artist) {
         this.title = title;
         this.filePath = filePath;
         this.duration = duration;
-        this.genreId = genreId;
-        this.artistId = artistId;
+        this.genre = genre;
+        this.artist = artist;
         this.isModerated = false;
     }
 
@@ -42,21 +68,6 @@ public class Track {
     public Integer getDuration() { return duration; }
     public void setDuration(Integer duration) { this.duration = duration; }
 
-    public Integer getGenreId() { return genreId; }
-    public void setGenreId(Integer genreId) { this.genreId = genreId; }
-
-    public Integer getAlbumId() { return albumId; }
-    public void setAlbumId(Integer albumId) { this.albumId = albumId; }
-
-    public Integer getArtistId() { return artistId; }
-    public void setArtistId(Integer artistId) { this.artistId = artistId; }
-
-    public boolean isModerated() { return isModerated; }
-    public void setModerated(boolean moderated) { isModerated = moderated; }
-
-    public Integer getUploadedByUserId() { return uploadedByUserId; }
-    public void setUploadedByUserId(Integer uploadedByUserId) { this.uploadedByUserId = uploadedByUserId; }
-
     public Genre getGenre() { return genre; }
     public void setGenre(Genre genre) { this.genre = genre; }
 
@@ -66,10 +77,15 @@ public class Track {
     public Artist getArtist() { return artist; }
     public void setArtist(Artist artist) { this.artist = artist; }
 
+    public boolean isModerated() { return isModerated; }
+    public void setModerated(boolean moderated) { isModerated = moderated; }
+
     public User getUploadedByUser() { return uploadedByUser; }
     public void setUploadedByUser(User uploadedByUser) { this.uploadedByUser = uploadedByUser; }
 
-    // Helper method for cover image
+    public List<PlaylistTrack> getPlaylistTracks() { return playlistTracks; }
+    public void setPlaylistTracks(List<PlaylistTrack> playlistTracks) { this.playlistTracks = playlistTracks; }
+
     public String getCoverImage() {
         if (album != null && album.getCoverPath() != null && !album.getCoverPath().isEmpty()) {
             return album.getCoverPath();

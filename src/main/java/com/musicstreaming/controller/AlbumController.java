@@ -1,10 +1,12 @@
 package com.musicstreaming.controller;
 
+import com.musicstreaming.dto.HomeUserDTO;
 import com.musicstreaming.model.Album;
 import com.musicstreaming.model.Track;
 import com.musicstreaming.model.User;
 import com.musicstreaming.service.AlbumService;
 import com.musicstreaming.service.AuthService;
+import com.musicstreaming.service.SubscriptionService;
 import com.musicstreaming.service.TrackService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,12 +33,14 @@ public class AlbumController {
     private final AlbumService albumService;
     private final TrackService trackService;
     private final AuthService authService;
+    private final SubscriptionService subscriptionService;
 
     @Autowired
-    public AlbumController(AlbumService albumService, TrackService trackService, AuthService authService) {
+    public AlbumController(AlbumService albumService, TrackService trackService, AuthService authService, SubscriptionService subscriptionService) {
         this.albumService = albumService;
         this.trackService = trackService;
         this.authService = authService;
+        this.subscriptionService = subscriptionService;
     }
 
     /**
@@ -54,17 +58,29 @@ public class AlbumController {
         Album album = albumOpt.get();
         List<Track> tracks = albumService.getAlbumTracks(id);
 
-        User currentUser = authService.getCurrentUser(request);
+        User sessionUser = authService.getCurrentUser(request);
+        HomeUserDTO currentUser = null;
+
+        if (sessionUser != null) {
+            boolean hasActiveSubscription = subscriptionService.findActiveByUserId(sessionUser.getId()).isPresent();
+            currentUser = new HomeUserDTO(sessionUser, hasActiveSubscription);
+        }
+
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
         model.addAttribute("album", album);
         model.addAttribute("tracks", tracks);
 
-        // Get similar albums (by same artist or genre)
-        List<Album> similarAlbums = albumService.findByArtistId(album.getArtistId()).stream()
-                .filter(a -> !a.getId().equals(id))
-                .limit(4)
-                .toList();
+        // Get similar albums (by same artist)
+        List<Album> similarAlbums;
+        if (album.getArtist() != null && album.getArtist().getId() != null) {
+            similarAlbums = albumService.findByArtistId(album.getArtist().getId()).stream()
+                    .filter(a -> !a.getId().equals(id))
+                    .limit(4)
+                    .toList();
+        } else {
+            similarAlbums = List.of();
+        }
         model.addAttribute("similarAlbums", similarAlbums);
 
         return "album/view";

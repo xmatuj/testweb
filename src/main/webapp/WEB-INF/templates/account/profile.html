@@ -569,9 +569,9 @@
 
         <div class="profile-badges">
             <span class="badge" th:classappend="${user.role.name()}" th:text="${user.role.name()}">User</span>
-            <span class="badge" style="background-color: var(--success); color: white;" th:if="${user.hasActiveSubscription()}">
-                    <i class="fas fa-crown"></i> Подписка активна
-                </span>
+            <span class="badge" style="background-color: var(--success); color: white;" th:if="${user.hasActiveSubscription}">
+        <i class="fas fa-crown"></i> Подписка активна
+            </span>
         </div>
     </div>
 </header>
@@ -580,7 +580,7 @@
 <main class="main-content">
     <div class="container">
         <!-- Подписка (если есть) -->
-        <section class="subscription-section" th:if="${user.hasActiveSubscription()}">
+        <section class="subscription-section" th:if="${user.hasActiveSubscription}">
             <div class="subscription-card">
                 <div class="subscription-header">
                     <h2 class="subscription-title">Premium Подписка</h2>
@@ -610,7 +610,7 @@
         </section>
 
         <!-- Призыв к подписке (если нет) -->
-        <section class="subscription-section" th:unless="${user.hasActiveSubscription()}">
+        <section class="subscription-section" th:unless="${user.hasActiveSubscription}">
             <div class="subscription-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
                 <div class="subscription-header">
                     <h2 class="subscription-title">Оформите подписку</h2>
@@ -649,7 +649,7 @@
                 </a>
             </div>
 
-            <div class="playlists-grid" th:if="${user.playlists != null and not #lists.isEmpty(user.playlists)}">
+            <div class="playlists-grid" th:if="${not #lists.isEmpty(user.playlists)}">
                 <div class="playlist-card" th:each="playlist : ${user.playlists}" th:onclick="'location.href=\'/playlists/' + ${playlist.id} + '\''">
                     <div class="playlist-image">
                         <i class="fas fa-music"></i>
@@ -661,7 +661,7 @@
                 </div>
             </div>
 
-            <div class="playlists-grid" th:unless="${user.playlists != null and not #lists.isEmpty(user.playlists)}">
+            <div class="playlists-grid" th:unless="${not #lists.isEmpty(user.playlists)}">
                 <div class="playlist-card" onclick="location.href='/playlists/create'">
                     <div class="playlist-image">
                         <i class="fas fa-plus"></i>

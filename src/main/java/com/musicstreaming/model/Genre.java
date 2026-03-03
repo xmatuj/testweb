@@ -1,15 +1,24 @@
 package com.musicstreaming.model;
 
+import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
+@Entity
+@Table(name = "Genres")
 public class Genre {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "Id")
     private Integer id;
+
+    @Column(name = "Name", nullable = false, unique = true, length = 50)
     private String name;
 
-    // Related objects
-    private List<Track> tracks;
+    @OneToMany(mappedBy = "genre", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Track> tracks = new ArrayList<>();
 
-    // Constructors
     public Genre() {}
 
     public Genre(String name) {

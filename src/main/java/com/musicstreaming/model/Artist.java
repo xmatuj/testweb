@@ -1,18 +1,33 @@
 package com.musicstreaming.model;
 
+import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
+@Entity
+@Table(name = "Artists")
 public class Artist {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "Id")
     private Integer id;
+
+    @Column(name = "Name", nullable = false, length = 100)
     private String name;
+
+    @Column(name = "Description", length = 1000)
     private String description;
+
+    @Column(name = "PhotoPath", length = 255)
     private String photoPath;
 
-    // Related objects
-    private List<Album> albums;
-    private List<Track> tracks;
+    @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Album> albums = new ArrayList<>();
 
-    // Constructors
+    @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Track> tracks = new ArrayList<>();
+
     public Artist() {}
 
     public Artist(String name, String description) {

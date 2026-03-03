@@ -1,8 +1,11 @@
 package com.musicstreaming.controller;
 
+import com.musicstreaming.dto.UserProfileDTO;
 import com.musicstreaming.model.User;
 import com.musicstreaming.service.AuthService;
 import com.musicstreaming.service.UserService;
+import com.musicstreaming.service.PlaylistService;
+import com.musicstreaming.service.SubscriptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +28,16 @@ public class AccountController {
 
     private final UserService userService;
     private final AuthService authService;
+    private final PlaylistService playlistService;
+    private final SubscriptionService subscriptionService;
 
     @Autowired
-    public AccountController(UserService userService, AuthService authService) {
+    public AccountController(UserService userService, AuthService authService,
+                             PlaylistService playlistService, SubscriptionService subscriptionService) {
         this.userService = userService;
         this.authService = authService;
+        this.playlistService = playlistService;
+        this.subscriptionService = subscriptionService;
     }
 
     @GetMapping("/login")
@@ -81,7 +89,6 @@ public class AccountController {
                            HttpServletRequest request,
                            Model model) {
 
-        // Validate input
         if (!password.equals(confirmPassword)) {
             model.addAttribute("error", "Passwords do not match");
             return "account/register";
@@ -106,10 +113,17 @@ public class AccountController {
             return "redirect:/account/login";
         }
 
-        model.addAttribute("user", currentUser);
-        model.addAttribute("isAdmin", currentUser.isAdmin());
-        model.addAttribute("isMusician", currentUser.isMusician());
-        model.addAttribute("canUploadTracks", currentUser.canUploadTracks());
+        // Загружаем данные отдельными запросами с использованием DTO
+        UserProfileDTO userProfile = new UserProfileDTO(
+                currentUser,
+                playlistService.findDTOByUserId(currentUser.getId()),
+                subscriptionService.findByUserId(currentUser.getId())
+        );
+
+        model.addAttribute("user", userProfile);
+        model.addAttribute("isAdmin", userProfile.isAdmin());
+        model.addAttribute("isMusician", userProfile.isMusician());
+        model.addAttribute("canUploadTracks", userProfile.canUploadTracks());
 
         return "account/profile";
     }

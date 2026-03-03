@@ -1,5 +1,6 @@
 package com.musicstreaming.controller;
 
+import com.musicstreaming.dto.SubscriptionUserDTO;
 import com.musicstreaming.model.User;
 import com.musicstreaming.service.AuthService;
 import com.musicstreaming.service.SubscriptionService;
@@ -33,7 +34,13 @@ public class SubscriptionController {
 
     @GetMapping("/plans")
     public String plans(Model model, HttpServletRequest request) {
-        User currentUser = authService.getCurrentUser(request);
+        User sessionUser = authService.getCurrentUser(request);
+        SubscriptionUserDTO currentUser = null;
+
+        if (sessionUser != null) {
+            boolean hasActiveSubscription = subscriptionService.findActiveByUserId(sessionUser.getId()).isPresent();
+            currentUser = new SubscriptionUserDTO(sessionUser, hasActiveSubscription);
+        }
 
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
@@ -55,7 +62,10 @@ public class SubscriptionController {
             return "redirect:/account/login";
         }
 
-        User currentUser = authService.getCurrentUser(request);
+        User sessionUser = authService.getCurrentUser(request);
+        boolean hasActiveSubscription = subscriptionService.findActiveByUserId(sessionUser.getId()).isPresent();
+        SubscriptionUserDTO currentUser = new SubscriptionUserDTO(sessionUser, hasActiveSubscription);
+
         model.addAttribute("currentUser", currentUser);
 
         // Default to premium plan
@@ -85,8 +95,7 @@ public class SubscriptionController {
         User currentUser = authService.getCurrentUser(request);
 
         try {
-            // Here you would process the payment and create subscription
-            // For now, we'll just simulate success
+            // симуляция подписки
 
             redirectAttributes.addFlashAttribute("success", "Подписка успешно оформлена!");
             return "redirect:/subscription/success";
@@ -99,7 +108,14 @@ public class SubscriptionController {
 
     @GetMapping("/success")
     public String success(Model model, HttpServletRequest request) {
-        User currentUser = authService.getCurrentUser(request);
+        User sessionUser = authService.getCurrentUser(request);
+        SubscriptionUserDTO currentUser = null;
+
+        if (sessionUser != null) {
+            boolean hasActiveSubscription = subscriptionService.findActiveByUserId(sessionUser.getId()).isPresent();
+            currentUser = new SubscriptionUserDTO(sessionUser, hasActiveSubscription);
+        }
+
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
 
@@ -114,7 +130,10 @@ public class SubscriptionController {
             return "redirect:/account/login";
         }
 
-        User currentUser = authService.getCurrentUser(request);
+        User sessionUser = authService.getCurrentUser(request);
+        boolean hasActiveSubscription = subscriptionService.findActiveByUserId(sessionUser.getId()).isPresent();
+        SubscriptionUserDTO currentUser = new SubscriptionUserDTO(sessionUser, hasActiveSubscription);
+
         model.addAttribute("currentUser", currentUser);
 
         // Get user subscriptions
@@ -122,10 +141,7 @@ public class SubscriptionController {
 
         // Find active subscription
         model.addAttribute("activeSubscription",
-                currentUser.getSubscriptions() != null ?
-                        currentUser.getSubscriptions().stream()
-                                .filter(s -> s.isActivated() && s.getEndDate().isAfter(java.time.LocalDateTime.now()))
-                                .findFirst().orElse(null) : null);
+                subscriptionService.findActiveByUserId(currentUser.getId()).orElse(null));
 
         return "subscription/my";
     }

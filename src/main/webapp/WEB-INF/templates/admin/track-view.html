@@ -784,9 +784,9 @@ textarea.form-control {
                     </div>
                 </div>
 
-                <div class="detail-row" th:if="${track.uploadedByUser != null}">
+                <div class="detail-row">
                     <div class="detail-label">Загрузил:</div>
-                    <div class="detail-value" th:text="${track.uploadedByUser.username}">Пользователь</div>
+                    <div class="detail-value" th:text="${track.uploadedByUsername != null ? track.uploadedByUsername : '—'}">Пользователь</div>
                 </div>
             </div>
 

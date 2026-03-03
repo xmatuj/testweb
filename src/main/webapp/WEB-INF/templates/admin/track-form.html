@@ -732,7 +732,7 @@ textarea.form-control {
                             <select name="artistId" class="form-control">
                                 <option value="">-- Не указан --</option>
                                 <option th:each="artist : ${artists}" th:value="${artist.id}" th:text="${artist.name}"
-                                        th:selected="${track.artistId != null and track.artistId == artist.id}"></option>
+                                        th:selected="${track.artist != null and track.artist.id == artist.id}"></option>
                             </select>
                         </div>
                     </div>
@@ -743,7 +743,7 @@ textarea.form-control {
                             <select name="albumId" class="form-control">
                                 <option value="">-- Не указан --</option>
                                 <option th:each="album : ${albums}" th:value="${album.id}" th:text="${album.title}"
-                                        th:selected="${track.albumId != null and track.albumId == album.id}"></option>
+                                        th:selected="${track.album != null and track.album.id == album.id}"></option>
                             </select>
                         </div>
 
@@ -752,7 +752,7 @@ textarea.form-control {
                             <select name="genreId" class="form-control">
                                 <option value="">-- Не указан --</option>
                                 <option th:each="genre : ${genres}" th:value="${genre.id}" th:text="${genre.name}"
-                                        th:selected="${track.genreId != null and track.genreId == genre.id}"></option>
+                                        th:selected="${track.genre != null and track.genre.id == genre.id}"></option>
                             </select>
                         </div>
                     </div>

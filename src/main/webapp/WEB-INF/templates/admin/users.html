@@ -879,7 +879,7 @@
 
                         <div class="user-meta">
                             <span><i class="fas fa-calendar"></i> <span th:text="${#temporals.format(user.dateOfCreated, 'dd.MM.yyyy')}">01.01.2025</span></span>
-                            <span><i class="fas fa-music"></i> Плейлистов: <span th:text="${user.playlists != null ? #lists.size(user.playlists) : 0}">0</span></span>
+                            <span><i class="fas fa-music"></i> Плейлистов: <span th:text="${user.playlistCount}">0</span></span>
                         </div>
 
                         <div class="user-actions">

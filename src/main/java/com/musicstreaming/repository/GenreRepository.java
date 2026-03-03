@@ -1,0 +1,20 @@
+package com.musicstreaming.repository;
+
+import com.musicstreaming.model.Genre;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface GenreRepository extends JpaRepository<Genre, Integer> {
+
+    Optional<Genre> findByName(String name);
+
+    boolean existsByName(String name);
+
+    @Query("SELECT g FROM Genre g ORDER BY g.name")
+    List<Genre> findAllOrdered();
+}

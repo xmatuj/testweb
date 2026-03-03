@@ -1,12 +1,14 @@
 package com.musicstreaming.service;
 
-import com.musicstreaming.dao.SubscriptionDAO;
 import com.musicstreaming.model.Subscription;
 import com.musicstreaming.model.User;
+import com.musicstreaming.repository.SubscriptionRepository;
+import com.musicstreaming.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,35 +16,40 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class SubscriptionService {
 
     private static final Logger logger = LoggerFactory.getLogger(SubscriptionService.class);
 
-    private final SubscriptionDAO subscriptionDAO;
+    private final SubscriptionRepository subscriptionRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public SubscriptionService(SubscriptionDAO subscriptionDAO) {
-        this.subscriptionDAO = subscriptionDAO;
+    public SubscriptionService(SubscriptionRepository subscriptionRepository,
+                               UserRepository userRepository) {
+        this.subscriptionRepository = subscriptionRepository;
+        this.userRepository = userRepository;
     }
 
     public Optional<Subscription> findById(Integer id) {
-        return subscriptionDAO.findById(id);
+        return subscriptionRepository.findById(id);
     }
 
     public List<Subscription> findByUserId(Integer userId) {
-        return subscriptionDAO.findByUserId(userId);
+        return subscriptionRepository.findByUserIdOrderByStartDateDesc(userId);
     }
 
     public Optional<Subscription> findActiveByUserId(Integer userId) {
-        return subscriptionDAO.findActiveByUserId(userId);
+        return subscriptionRepository.findActiveByUserId(userId, LocalDateTime.now());
     }
 
+    @Transactional
     public Subscription createSubscription(Integer userId, String plan, BigDecimal amount) {
-        Subscription subscription = new Subscription();
-        subscription.setUserId(userId);
-        subscription.setStartDate(LocalDateTime.now());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // Set end date based on plan (1 month for monthly, 1 year for yearly)
+        Subscription subscription = new Subscription(user);
+
         if ("yearly".equals(plan)) {
             subscription.setEndDate(LocalDateTime.now().plusYears(1));
         } else {
@@ -53,43 +60,42 @@ public class SubscriptionService {
         subscription.setStatus("pending");
         subscription.setActivated(false);
 
-        Subscription saved = subscriptionDAO.save(subscription);
+        Subscription saved = subscriptionRepository.save(subscription);
         logger.info("Created subscription for user {}: {}", userId, saved.getId());
 
         return saved;
     }
 
+    @Transactional
     public void activateSubscription(Integer subscriptionId, String transactionId) {
-        Optional<Subscription> opt = subscriptionDAO.findById(subscriptionId);
-        if (opt.isPresent()) {
-            Subscription subscription = opt.get();
+        subscriptionRepository.findById(subscriptionId).ifPresent(subscription -> {
             subscription.setActivated(true);
             subscription.setStatus("active");
             subscription.setTransactionId(transactionId);
-            subscriptionDAO.save(subscription);
+            subscriptionRepository.save(subscription);
             logger.info("Activated subscription: {}", subscriptionId);
-        }
+        });
     }
 
+    @Transactional
     public void cancelSubscription(Integer subscriptionId) {
-        Optional<Subscription> opt = subscriptionDAO.findById(subscriptionId);
-        if (opt.isPresent()) {
-            Subscription subscription = opt.get();
+        subscriptionRepository.findById(subscriptionId).ifPresent(subscription -> {
             subscription.setStatus("cancelled");
-            subscriptionDAO.save(subscription);
+            subscriptionRepository.save(subscription);
             logger.info("Cancelled subscription: {}", subscriptionId);
-        }
+        });
     }
 
+    @Transactional
     public void checkExpiredSubscriptions() {
-        List<Subscription> activeSubscriptions = subscriptionDAO.findActiveSubscriptions();
+        List<Subscription> activeSubscriptions = subscriptionRepository.findActiveSubscriptions(LocalDateTime.now());
         LocalDateTime now = LocalDateTime.now();
 
         for (Subscription sub : activeSubscriptions) {
             if (sub.getEndDate().isBefore(now)) {
                 sub.setStatus("expired");
                 sub.setActivated(false);
-                subscriptionDAO.save(sub);
+                subscriptionRepository.save(sub);
                 logger.info("Subscription {} expired", sub.getId());
             }
         }

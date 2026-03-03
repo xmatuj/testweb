@@ -1,7 +1,7 @@
 package com.musicstreaming.service;
 
-import com.musicstreaming.dao.*;
 import com.musicstreaming.model.*;
+import com.musicstreaming.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,166 +11,175 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@Transactional
 public class AdminService {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminService.class);
 
-    private final UserDAO userDAO;
-    private final TrackDAO trackDAO;
-    private final ArtistDAO artistDAO;
-    private final AlbumDAO albumDAO;
-    private final GenreDAO genreDAO;
-    private final ModerationDAO moderationDAO;
+    private final UserRepository userRepository;
+    private final TrackRepository trackRepository;
+    private final ArtistRepository artistRepository;
+    private final AlbumRepository albumRepository;
+    private final GenreRepository genreRepository;
+    private final ModerationRepository moderationRepository;
 
     @Autowired
-    public AdminService(UserDAO userDAO, TrackDAO trackDAO, ArtistDAO artistDAO,
-                        AlbumDAO albumDAO, GenreDAO genreDAO, ModerationDAO moderationDAO) {
-        this.userDAO = userDAO;
-        this.trackDAO = trackDAO;
-        this.artistDAO = artistDAO;
-        this.albumDAO = albumDAO;
-        this.genreDAO = genreDAO;
-        this.moderationDAO = moderationDAO;
+    public AdminService(UserRepository userRepository, TrackRepository trackRepository,
+                        ArtistRepository artistRepository, AlbumRepository albumRepository,
+                        GenreRepository genreRepository, ModerationRepository moderationRepository) {
+        this.userRepository = userRepository;
+        this.trackRepository = trackRepository;
+        this.artistRepository = artistRepository;
+        this.albumRepository = albumRepository;
+        this.genreRepository = genreRepository;
+        this.moderationRepository = moderationRepository;
     }
 
-    // Dashboard statistics
     public int getTotalUsers() {
-        return userDAO.findAll().size();
+        return (int) userRepository.count();
     }
 
     public int getTotalTracks() {
-        return trackDAO.findAll().size();
+        return (int) trackRepository.count();
     }
 
     public int getTotalArtists() {
-        return artistDAO.findAll().size();
+        return (int) artistRepository.count();
     }
 
     public int getTotalAlbums() {
-        return albumDAO.findAll().size();
+        return (int) albumRepository.count();
     }
 
     public int getTotalGenres() {
-        return genreDAO.findAll().size();
+        return (int) genreRepository.count();
     }
 
     public int getPendingModerationCount() {
-        return moderationDAO.findPendingCount();
+        return (int) moderationRepository.countPending();
     }
 
-    // User management
     public List<User> getAllUsers() {
-        return userDAO.findAll();
+        return userRepository.findAllOrdered();
     }
 
     public List<User> searchUsers(String searchTerm) {
-        return userDAO.search(searchTerm);
+        return userRepository.search(searchTerm);
     }
 
     @Transactional
     public void updateUserRole(Integer userId, User.UserRole newRole) {
-        userDAO.updateRole(userId, newRole);
-        logger.info("User {} role updated to {}", userId, newRole);
+        userRepository.findById(userId).ifPresent(user -> {
+            user.setRole(newRole);
+            userRepository.save(user);
+            logger.info("User {} role updated to {}", userId, newRole);
+        });
     }
 
-    // Track management
     public List<Track> getAllTracks() {
-        return trackDAO.findAll();
+        return trackRepository.findAll();
     }
 
     public List<Track> getPendingTracks() {
-        return trackDAO.findPendingModeration();
+        return trackRepository.findPendingModeration();
     }
 
     @Transactional
     public void approveTrack(Integer trackId, Integer moderatorId, String comment) {
-        trackDAO.updateModerationStatus(trackId, true);
+        trackRepository.updateModerationStatus(trackId, true);
 
-        Moderation moderation = new Moderation();
-        moderation.setTrackId(trackId);
-        moderation.setModeratorId(moderatorId);
-        moderation.setStatus(Moderation.ModerationStatus.Approved);
-        moderation.setComment(comment != null ? comment : "Track approved");
-        moderationDAO.save(moderation);
-
-        logger.info("Track {} approved by moderator {}", trackId, moderatorId);
+        trackRepository.findById(trackId).ifPresent(track -> {
+            Moderation moderation = new Moderation();
+            moderation.setTrack(track);
+            moderation.setModerator(new User());
+            moderation.getModerator().setId(moderatorId);
+            moderation.setStatus(Moderation.ModerationStatus.Approved);
+            moderation.setComment(comment != null ? comment : "Track approved");
+            moderationRepository.save(moderation);
+            logger.info("Track {} approved by moderator {}", trackId, moderatorId);
+        });
     }
 
     @Transactional
     public void rejectTrack(Integer trackId, Integer moderatorId, String comment) {
-        trackDAO.updateModerationStatus(trackId, false);
+        trackRepository.updateModerationStatus(trackId, false);
 
-        Moderation moderation = new Moderation();
-        moderation.setTrackId(trackId);
-        moderation.setModeratorId(moderatorId);
-        moderation.setStatus(Moderation.ModerationStatus.Rejected);
-        moderation.setComment(comment != null ? comment : "Track rejected");
-        moderationDAO.save(moderation);
-
-        logger.info("Track {} rejected by moderator {}", trackId, moderatorId);
+        trackRepository.findById(trackId).ifPresent(track -> {
+            Moderation moderation = new Moderation();
+            moderation.setTrack(track);
+            moderation.setModerator(new User());
+            moderation.getModerator().setId(moderatorId);
+            moderation.setStatus(Moderation.ModerationStatus.Rejected);
+            moderation.setComment(comment != null ? comment : "Track rejected");
+            moderationRepository.save(moderation);
+            logger.info("Track {} rejected by moderator {}", trackId, moderatorId);
+        });
     }
 
-    // Artist management
+    @Transactional
     public Artist createArtist(String name, String description, String photoPath) {
-        Artist artist = new Artist();
-        artist.setName(name);
-        artist.setDescription(description);
+        Artist artist = new Artist(name, description);
         artist.setPhotoPath(photoPath);
-        return artistDAO.save(artist);
+        return artistRepository.save(artist);
     }
 
+    @Transactional
     public void updateArtist(Artist artist) {
-        artistDAO.save(artist);
+        artistRepository.save(artist);
     }
 
+    @Transactional
     public void deleteArtist(Integer id) {
-        artistDAO.delete(id);
+        artistRepository.deleteById(id);
     }
 
-    // Album management
+    @Transactional
     public Album createAlbum(String title, Integer artistId, String coverPath) {
-        Album album = new Album();
-        album.setTitle(title);
-        album.setArtistId(artistId);
+        Artist artist = artistRepository.findById(artistId)
+                .orElseThrow(() -> new IllegalArgumentException("Artist not found"));
+        Album album = new Album(title, artist);
         album.setCoverPath(coverPath);
-        return albumDAO.save(album);
+        return albumRepository.save(album);
     }
 
+    @Transactional
     public void updateAlbum(Album album) {
-        albumDAO.save(album);
+        albumRepository.save(album);
     }
 
+    @Transactional
     public void deleteAlbum(Integer id) {
-        albumDAO.delete(id);
+        albumRepository.deleteById(id);
     }
 
-    // Genre management
+    @Transactional
     public Genre createGenre(String name) {
-        if (genreDAO.existsByName(name)) {
+        if (genreRepository.existsByName(name)) {
             throw new IllegalArgumentException("Genre with name '" + name + "' already exists");
         }
-        Genre genre = new Genre();
-        genre.setName(name);
-        return genreDAO.save(genre);
+        Genre genre = new Genre(name);
+        return genreRepository.save(genre);
     }
 
+    @Transactional
     public void updateGenre(Genre genre) {
-        genreDAO.save(genre);
+        genreRepository.save(genre);
     }
 
+    @Transactional
     public void deleteGenre(Integer id) {
-        genreDAO.delete(id);
+        genreRepository.deleteById(id);
     }
 
     public List<Artist> getAllArtists() {
-        return artistDAO.findAll();
+        return artistRepository.findAllOrdered();
     }
 
     public List<Album> getAllAlbums() {
-        return albumDAO.findAll();
+        return albumRepository.findAllOrdered();
     }
 
     public List<Genre> getAllGenres() {
-        return genreDAO.findAll();
+        return genreRepository.findAllOrdered();
     }
 }

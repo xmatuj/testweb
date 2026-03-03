@@ -1,5 +1,7 @@
 package com.musicstreaming.controller;
 
+import com.musicstreaming.dto.AdminUserDTO;
+import com.musicstreaming.dto.TrackDTO;
 import com.musicstreaming.model.*;
 import com.musicstreaming.service.*;
 import org.slf4j.Logger;
@@ -26,12 +28,13 @@ public class AdminController {
     private final ArtistService artistService;
     private final AlbumService albumService;
     private final GenreService genreService;
+    private final PlaylistService playlistService;
 
     @Autowired
     public AdminController(UserService userService, TrackService trackService,
                            AdminService adminService, AuthService authService,
                            ArtistService artistService, AlbumService albumService,
-                           GenreService genreService) {
+                           GenreService genreService, PlaylistService playlistService) {  // Добавлен параметр
         this.userService = userService;
         this.trackService = trackService;
         this.adminService = adminService;
@@ -39,6 +42,7 @@ public class AdminController {
         this.artistService = artistService;
         this.albumService = albumService;
         this.genreService = genreService;
+        this.playlistService = playlistService;
     }
 
     @GetMapping
@@ -97,28 +101,25 @@ public class AdminController {
             users = userService.findAll();
         }
 
-        // Подсчет статистики по ролям
+        // Конвертируем в DTO с количеством плейлистов
+        List<AdminUserDTO> userDTOs = users.stream()
+                .map(user -> {
+                    int playlistCount = playlistService.countByUserId(user.getId());
+                    return new AdminUserDTO(user, playlistCount);
+                })
+                .toList();
+
         int totalAdmins = 0;
         int totalMusicians = 0;
         int totalSubscribers = 0;
 
-        for (User user : users) {
-            switch (user.getRole()) {
-                case Admin:
-                    totalAdmins++;
-                    break;
-                case Musician:
-                    totalMusicians++;
-                    break;
-                case Subscriber:
-                    totalSubscribers++;
-                    break;
-                default:
-                    break;
-            }
+        for (AdminUserDTO user : userDTOs) {
+            if (user.isAdmin()) totalAdmins++;
+            else if (user.isMusician()) totalMusicians++;
+            else if (user.isSubscriber()) totalSubscribers++;
         }
 
-        model.addAttribute("users", users);
+        model.addAttribute("users", userDTOs);
         model.addAttribute("search", search);
         model.addAttribute("totalAdmins", totalAdmins);
         model.addAttribute("totalMusicians", totalMusicians);
@@ -245,7 +246,6 @@ public class AdminController {
             model.addAttribute("pendingCount", trackService.findPendingModeration().size());
             model.addAttribute("search", search);
 
-            // For create form
             model.addAttribute("artists", artistService.findAll());
             model.addAttribute("albums", albumService.findAll());
             model.addAttribute("genres", genreService.findAll());
@@ -295,7 +295,8 @@ public class AdminController {
         Track track = trackService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid track Id:" + id));
 
-        model.addAttribute("track", track);
+        TrackDTO trackDTO = new TrackDTO(track);
+        model.addAttribute("track", trackDTO);
 
         return "admin/track-view";
     }
@@ -340,14 +341,22 @@ public class AdminController {
         try {
             User currentUser = authService.getCurrentUser(request);
 
-            // Set relationships
-            track.setArtistId(artistId);
-            track.setAlbumId(albumId);
-            track.setGenreId(genreId);
+            // Set relationships using entity objects
+            if (artistId != null && artistId > 0) {
+                artistService.findById(artistId).ifPresent(track::setArtist);
+            }
+
+            if (albumId != null && albumId > 0) {
+                albumService.findById(albumId).ifPresent(track::setAlbum);
+            }
+
+            if (genreId != null && genreId > 0) {
+                genreService.findById(genreId).ifPresent(track::setGenre);
+            }
 
             if (track.getId() == null) {
                 // Create new track
-                track.setUploadedByUserId(currentUser.getId());
+                track.setUploadedByUser(currentUser);
                 trackService.save(track);
                 redirectAttributes.addFlashAttribute("success", "Track created successfully");
             } else {

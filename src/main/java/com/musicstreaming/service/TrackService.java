@@ -1,83 +1,138 @@
 package com.musicstreaming.service;
 
-import com.musicstreaming.dao.TrackDAO;
-import com.musicstreaming.model.Track;
+import com.musicstreaming.model.*;
+import com.musicstreaming.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class TrackService {
 
-    private final TrackDAO trackDAO;
+    private final TrackRepository trackRepository;
+    private final ModerationRepository moderationRepository;
+    private final ArtistRepository artistRepository;
+    private final AlbumRepository albumRepository;
+    private final GenreRepository genreRepository;
 
     @Autowired
-    public TrackService(TrackDAO trackDAO) {
-        this.trackDAO = trackDAO;
+    public TrackService(TrackRepository trackRepository,
+                        ModerationRepository moderationRepository,
+                        ArtistRepository artistRepository,
+                        AlbumRepository albumRepository,
+                        GenreRepository genreRepository) {
+        this.trackRepository = trackRepository;
+        this.moderationRepository = moderationRepository;
+        this.artistRepository = artistRepository;
+        this.albumRepository = albumRepository;
+        this.genreRepository = genreRepository;
     }
 
     public Optional<Track> findById(Integer id) {
-        return trackDAO.findById(id);
+        return trackRepository.findById(id);
     }
 
     public List<Track> findAll() {
-        return trackDAO.findAll();
+        return trackRepository.findAll();
     }
 
     public List<Track> findModerated() {
-        return trackDAO.findModerated();
+        return trackRepository.findByIsModeratedTrueOrderByIdDesc();
     }
 
     public List<Track> findPendingModeration() {
-        return trackDAO.findPendingModeration();
+        return trackRepository.findPendingModeration();
     }
 
     public List<Track> findByArtistId(Integer artistId) {
-        return trackDAO.findByArtistId(artistId);
+        return trackRepository.findByArtistId(artistId);
     }
 
     public List<Track> findByAlbumId(Integer albumId) {
-        return trackDAO.findByAlbumId(albumId);
+        return trackRepository.findByAlbumId(albumId);
     }
 
     public List<Track> findByGenreId(Integer genreId) {
-        return trackDAO.findByGenreId(genreId);
+        return trackRepository.findByGenreId(genreId);
     }
 
     public List<Track> findByUploaderId(Integer userId) {
-        return trackDAO.findByUploaderId(userId);
+        return trackRepository.findByUploaderId(userId);
     }
 
     public List<Track> search(String query) {
-        return trackDAO.search(query);
+        return trackRepository.search(query);
     }
 
     public List<Track> findSimilar(Integer genreId, Integer excludeTrackId, int limit) {
-        return trackDAO.findSimilar(genreId, excludeTrackId, limit);
+        return trackRepository.findSimilar(genreId, excludeTrackId, PageRequest.of(0, limit));
     }
 
     public List<Track> findPopularTracks(int limit) {
-        // This would normally use statistics, for now just return latest moderated tracks
-        return trackDAO.findModerated().stream().limit(limit).toList();
+        return trackRepository.findByIsModeratedTrueOrderByIdDesc()
+                .stream()
+                .limit(limit)
+                .toList();
     }
 
+    @Transactional
     public Track save(Track track) {
-        return trackDAO.save(track);
+        // Load relationships if IDs are set via entity objects
+        if (track.getArtist() != null && track.getArtist().getId() != null) {
+            artistRepository.findById(track.getArtist().getId()).ifPresent(track::setArtist);
+        }
+        if (track.getAlbum() != null && track.getAlbum().getId() != null) {
+            albumRepository.findById(track.getAlbum().getId()).ifPresent(track::setAlbum);
+        }
+        if (track.getGenre() != null && track.getGenre().getId() != null) {
+            genreRepository.findById(track.getGenre().getId()).ifPresent(track::setGenre);
+        }
+        return trackRepository.save(track);
     }
 
+    @Transactional
     public void approveTrack(Integer trackId, Integer moderatorId, String comment) {
-        trackDAO.updateModerationStatus(trackId, true);
-        // Here you would also create a moderation record
+        int updated = trackRepository.updateModerationStatus(trackId, true);
+
+        if (updated > 0) {
+            trackRepository.findById(trackId).ifPresent(track -> {
+                Moderation moderation = new Moderation();
+                moderation.setTrack(track);
+                User moderator = new User();
+                moderator.setId(moderatorId);
+                moderation.setModerator(moderator);
+                moderation.setStatus(Moderation.ModerationStatus.Approved);
+                moderation.setComment(comment != null ? comment : "Track approved");
+                moderationRepository.save(moderation);
+            });
+        }
     }
 
+    @Transactional
     public void rejectTrack(Integer trackId, Integer moderatorId, String comment) {
-        trackDAO.updateModerationStatus(trackId, false);
-        // Here you would also create a moderation record with rejection comment
+        int updated = trackRepository.updateModerationStatus(trackId, false);
+
+        if (updated > 0) {
+            trackRepository.findById(trackId).ifPresent(track -> {
+                Moderation moderation = new Moderation();
+                moderation.setTrack(track);
+                User moderator = new User();
+                moderator.setId(moderatorId);
+                moderation.setModerator(moderator);
+                moderation.setStatus(Moderation.ModerationStatus.Rejected);
+                moderation.setComment(comment != null ? comment : "Track rejected");
+                moderationRepository.save(moderation);
+            });
+        }
     }
 
+    @Transactional
     public void delete(Integer id) {
-        trackDAO.delete(id);
+        trackRepository.deleteById(id);
     }
 }
