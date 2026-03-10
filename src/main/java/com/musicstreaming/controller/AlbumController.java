@@ -1,126 +1,85 @@
 package com.musicstreaming.controller;
 
-import com.musicstreaming.dto.HomeUserDTO;
 import com.musicstreaming.model.Album;
-import com.musicstreaming.model.Track;
-import com.musicstreaming.model.User;
 import com.musicstreaming.service.AlbumService;
+import com.musicstreaming.service.ArtistService;
 import com.musicstreaming.service.AuthService;
-import com.musicstreaming.service.SubscriptionService;
-import com.musicstreaming.service.TrackService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Controller
-@RequestMapping("/album")
+@RequestMapping("/admin/albums")
 public class AlbumController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AlbumController.class);
-
-    private final AlbumService albumService;
-    private final TrackService trackService;
-    private final AuthService authService;
-    private final SubscriptionService subscriptionService;
+    @Autowired
+    private AlbumService albumService;
 
     @Autowired
-    public AlbumController(AlbumService albumService, TrackService trackService, AuthService authService, SubscriptionService subscriptionService) {
-        this.albumService = albumService;
-        this.trackService = trackService;
-        this.authService = authService;
-        this.subscriptionService = subscriptionService;
+    private ArtistService artistService;
+
+    @Autowired
+    private AuthService authService;
+
+    @GetMapping
+    public String listAlbums(Model model, HttpServletRequest request) {
+        if (!authService.isAdmin(request)) return "redirect:/";
+
+        model.addAttribute("albums", albumService.findAll());
+        model.addAttribute("artists", artistService.findAll());
+        model.addAttribute("currentUser", authService.getCurrentUser(request));
+        return "admin/albums/list";
     }
 
-    /**
-     * View album details page
-     */
-    @GetMapping("/{id}")
-    public String viewAlbum(@PathVariable Integer id, Model model, HttpServletRequest request) {
-        logger.info("Viewing album with ID: {}", id);
+    @GetMapping("/new")
+    public String newAlbumForm(Model model, HttpServletRequest request) {
+        if (!authService.isAdmin(request)) return "redirect:/";
 
-        Optional<Album> albumOpt = albumService.findById(id);
-        if (albumOpt.isEmpty()) {
-            return "redirect:/?error=Album not found";
-        }
+        model.addAttribute("album", new Album());
+        model.addAttribute("artists", artistService.findAll());
+        model.addAttribute("currentUser", authService.getCurrentUser(request));
+        return "admin/albums/form";
+    }
 
-        Album album = albumOpt.get();
-        List<Track> tracks = albumService.getAlbumTracks(id);
+    @PostMapping("/save")
+    public String saveAlbum(@ModelAttribute Album album,
+                            @RequestParam Integer artistId,
+                            HttpServletRequest request,
+                            RedirectAttributes redirectAttributes) {
+        if (!authService.isAdmin(request)) return "redirect:/";
 
-        User sessionUser = authService.getCurrentUser(request);
-        HomeUserDTO currentUser = null;
+        album.setArtist(artistService.findById(artistId).orElse(null));
+        albumService.save(album);
+        redirectAttributes.addFlashAttribute("success", "Альбом сохранен");
+        return "redirect:/admin/albums";
+    }
 
-        if (sessionUser != null) {
-            boolean hasActiveSubscription = subscriptionService.findActiveByUserId(sessionUser.getId()).isPresent();
-            currentUser = new HomeUserDTO(sessionUser, hasActiveSubscription);
-        }
+    @GetMapping("/edit/{id}")
+    public String editAlbumForm(@PathVariable Integer id, Model model,
+                                HttpServletRequest request) {
+        if (!authService.isAdmin(request)) return "redirect:/";
 
-        model.addAttribute("currentUser", currentUser);
-        model.addAttribute("isAuthenticated", currentUser != null);
+        Album album = albumService.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid album Id"));
+
         model.addAttribute("album", album);
-        model.addAttribute("tracks", tracks);
-
-        // Get similar albums (by same artist)
-        List<Album> similarAlbums;
-        if (album.getArtist() != null && album.getArtist().getId() != null) {
-            similarAlbums = albumService.findByArtistId(album.getArtist().getId()).stream()
-                    .filter(a -> !a.getId().equals(id))
-                    .limit(4)
-                    .toList();
-        } else {
-            similarAlbums = List.of();
-        }
-        model.addAttribute("similarAlbums", similarAlbums);
-
-        return "album/view";
+        model.addAttribute("artists", artistService.findAll());
+        model.addAttribute("currentUser", authService.getCurrentUser(request));
+        return "admin/albums/form";
     }
 
-    /**
-     * API endpoint to get album data (for AJAX)
-     */
-    @GetMapping("/api/{id}")
-    @ResponseBody
-    public Map<String, Object> getAlbumApi(@PathVariable Integer id) {
-        Map<String, Object> response = new HashMap<>();
+    @PostMapping("/delete/{id}")
+    public String deleteAlbum(@PathVariable Integer id,
+                              HttpServletRequest request,
+                              RedirectAttributes redirectAttributes) {
+        if (!authService.isAdmin(request)) return "redirect:/";
 
-        Optional<Album> albumOpt = albumService.findById(id);
-        if (albumOpt.isPresent()) {
-            Album album = albumOpt.get();
-            List<Track> tracks = albumService.getAlbumTracks(id);
-
-            response.put("success", true);
-            response.put("album", album);
-            response.put("tracks", tracks);
-            response.put("trackCount", tracks.size());
-        } else {
-            response.put("success", false);
-            response.put("message", "Album not found");
-        }
-
-        return response;
-    }
-
-    /**
-     * Play first track of album
-     */
-    @GetMapping("/{id}/play")
-    public String playAlbum(@PathVariable Integer id) {
-        List<Track> tracks = albumService.getAlbumTracks(id);
-        if (!tracks.isEmpty()) {
-            // Redirect to first track
-            return "redirect:/tracks/" + tracks.get(0).getId();
-        }
-        return "redirect:/album/" + id + "?error=No tracks available";
+        albumService.deleteAlbum(id);
+        redirectAttributes.addFlashAttribute("success", "Альбом удален");
+        return "redirect:/admin/albums";
     }
 }

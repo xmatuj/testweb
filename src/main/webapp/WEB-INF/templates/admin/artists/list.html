@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление исполнителями - MusicStream Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/resources/css/admin.css}">
+</head>
+<body>
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-crown"></i>
+                <span class="logo-text">Админ</span>
+            </div>
+        </div>
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <div class="menu-title">Главная</div>
+                <a href="/admin" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <div class="menu-text">Дашборд</div>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-title">Контент</div>
+                <a href="/admin/tracks" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-music"></i></div>
+                    <div class="menu-text">Треки</div>
+                </a>
+                <a href="/admin/albums" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-compact-disc"></i></div>
+                    <div class="menu-text">Альбомы</div>
+                </a>
+                <a href="/admin/artists" class="menu-item active">
+                    <div class="menu-icon"><i class="fas fa-user"></i></div>
+                    <div class="menu-text">Исполнители</div>
+                </a>
+                <a href="/admin/genres" class="menu-item">
+                    <div class="menu-icon"><i class="fas fa-tags"></i></div>
+                    <div class="menu-text">Жанры</div>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="container top-bar-content">
+                <h1 class="page-title">Управление исполнителями</h1>
+                <div class="admin-actions">
+                    <div class="user-info">
+                        <div class="user-avatar" th:text="${#strings.substring(currentUser.username, 0, 1)}">A</div>
+                        <span th:text="${currentUser.username}">Admin</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container" style="padding: 30px 20px;">
+            <!-- Alerts -->
+            <div th:if="${success}" class="alert alert-success">
+                <i class="fas fa-check-circle"></i> <span th:text="${success}">Success</span>
+            </div>
+            <div th:if="${error}" class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i> <span th:text="${error}">Error</span>
+            </div>
+
+            <!-- Action Button -->
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                <a href="/admin/artists/new" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Добавить исполнителя
+                </a>
+            </div>
+
+            <!-- Artists Grid - ИСПРАВЛЕНО: используем artist.albumCount и artist.trackCount -->
+            <div th:if="${artists != null and not #lists.isEmpty(artists)}">
+                <div class="stats-cards">
+                    <div class="stat-card" th:each="artist : ${artists}">
+                        <div class="stat-value" style="font-size: 24px;" th:text="${artist.name}">Исполнитель</div>
+                        <div class="stat-label">
+                            <!-- ВАЖНО: Используем поля DTO, а не #lists.size() -->
+                            <span th:text="${artist.albumCount} + ' альбомов'">5 альбомов</span> |
+                            <span th:text="${artist.trackCount} + ' треков'">15 треков</span>
+                        </div>
+                        <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
+                            <a th:href="@{'/admin/artists/' + ${artist.id}}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a th:href="@{'/admin/artists/edit/' + ${artist.id}}" class="btn btn-sm btn-secondary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form th:action="@{'/admin/artists/delete/' + ${artist.id}}" method="post"
+                                  onsubmit="return confirm('Удалить исполнителя? Все связанные альбомы и треки также будут удалены.');">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:unless="${artists != null and not #lists.isEmpty(artists)}" class="empty-state">
+                <i class="fas fa-user"></i>
+                <h3>Нет исполнителей</h3>
+                <p>Нажмите "Добавить исполнителя" чтобы создать первого исполнителя</p>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

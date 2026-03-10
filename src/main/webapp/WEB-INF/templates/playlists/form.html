@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:if="${playlist.id == null}">Создание плейлиста - MusicStream</title>
+    <title th:if="${playlist.id != null}">Редактирование плейлиста - MusicStream</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #181818;
+            --card-bg: #1e1e1e;
+            --hover-bg: #282828;
+            --accent: #ffdb4d;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --border-color: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .main-content {
+            padding-top: 70px;
+            padding-bottom: 80px;
+        }
+
+        .form-container {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 40px;
+            margin-top: 30px;
+        }
+
+        .form-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--accent);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s;
+            font-size: 16px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: var(--primary-bg);
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background-color: #ffcc00;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="container navbar-content">
+        <a href="/" class="logo">
+            <i class="fas fa-music"></i>
+            MusicStream
+        </a>
+        <a href="/playlists" class="back-link">
+            <i class="fas fa-arrow-left"></i> Назад к плейлистам
+        </a>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main class="main-content">
+    <div class="container">
+        <div class="form-container">
+            <h1 class="form-title" th:text="${playlist.id == null} ? 'Создание плейлиста' : 'Редактирование плейлиста'">
+                Создание плейлиста
+            </h1>
+
+            <form th:action="@{/playlists/save}" method="post">
+                <input type="hidden" name="id" th:value="${playlist.id}">
+
+                <div class="form-group">
+                    <label class="form-label">Название плейлиста *</label>
+                    <input type="text" name="title" class="form-control"
+                           th:value="${playlist.title}" required
+                           placeholder="Например: Любимые треки, Для тренировки">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Описание</label>
+                    <textarea name="description" class="form-control"
+                              placeholder="Краткое описание плейлиста...">${playlist.description}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Видимость</label>
+                    <select name="visibility" class="form-control">
+                        <option value="Public" th:selected="${playlist.visibility == T(com.musicstreaming.model.Playlist.PlaylistVisibility).Public}">
+                            Публичный - виден всем
+                        </option>
+                        <option value="Private" th:selected="${playlist.visibility == T(com.musicstreaming.model.Playlist.PlaylistVisibility).Private}">
+                            Приватный - виден только вам
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <a href="/playlists" class="btn btn-secondary">
+                        Отмена
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        <span th:text="${playlist.id == null} ? 'Создать' : 'Сохранить'">
+                                Создать
+                            </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+</body>
+</html>

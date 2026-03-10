@@ -71,6 +71,17 @@ public class AlbumService {
     }
 
     @Transactional
+    public Album save(Album album) {
+        if (album.getId() == null) {
+            // Новый альбом
+            return albumRepository.save(album);
+        } else {
+            // Существующий альбом
+            return albumRepository.save(album);
+        }
+    }
+
+    @Transactional
     public Album updateAlbum(Album album) {
         return albumRepository.save(album);
     }

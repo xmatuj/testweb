@@ -25,5 +25,5 @@ public interface PlaylistTrackRepository extends JpaRepository<PlaylistTrack, Pl
     void deleteByPlaylistIdAndTrackId(@Param("playlistId") Integer playlistId, @Param("trackId") Integer trackId);
 
     @Query("SELECT COUNT(pt) FROM PlaylistTrack pt WHERE pt.playlist.id = :playlistId")
-    long countByPlaylistId(@Param("playlistId") Integer playlistId);
+    int countByPlaylistId(@Param("playlistId") Integer playlistId);
 }

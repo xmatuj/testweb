@@ -116,7 +116,7 @@ public class AccountController {
         // Загружаем данные отдельными запросами с использованием DTO
         UserProfileDTO userProfile = new UserProfileDTO(
                 currentUser,
-                playlistService.findDTOByUserId(currentUser.getId()),
+                playlistService.findByUserId(currentUser.getId()),
                 subscriptionService.findByUserId(currentUser.getId())
         );
 

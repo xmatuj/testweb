@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:if="${artist.id == null}">Добавление исполнителя - MusicStream Admin</title>
+    <title th:if="${artist.id != null}">Редактирование исполнителя - MusicStream Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/resources/css/admin.css}">
+</head>
+<body>
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-crown"></i>
+                <span class="logo-text">Админ</span>
+            </div>
+        </div>
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <div class="menu-title">Контент</div>
+                <a href="/admin/artists" class="menu-item active">
+                    <div class="menu-icon"><i class="fas fa-user"></i></div>
+                    <div class="menu-text">Исполнители</div>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="container top-bar-content">
+                <h1 class="page-title" th:text="${artist.id == null} ? 'Добавление исполнителя' : 'Редактирование исполнителя'">
+                    Добавление исполнителя
+                </h1>
+                <div class="user-info">
+                    <div class="user-avatar" th:text="${#strings.substring(currentUser.username, 0, 1)}">A</div>
+                    <span th:text="${currentUser.username}">Admin</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="container" style="padding: 30px 20px;">
+            <div class="form-container">
+                <form th:action="@{/admin/artists/save}" method="post">
+                    <input type="hidden" name="id" th:value="${artist.id}">
+
+                    <div class="form-group">
+                        <label class="form-label">Имя исполнителя *</label>
+                        <input type="text" name="name" class="form-control"
+                               th:value="${artist.name}" required
+                               placeholder="Например: Queen, The Beatles">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Описание</label>
+                        <textarea name="description" class="form-control"
+                                  rows="4" placeholder="Информация об исполнителе...">${artist.description}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Путь к фото</label>
+                        <input type="text" name="photoPath" class="form-control"
+                               th:value="${artist.photoPath}"
+                               placeholder="/images/artists/queen.jpg">
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="/admin/artists" class="btn btn-secondary">Отмена</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Сохранить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

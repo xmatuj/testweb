@@ -443,54 +443,54 @@ public class AdminController {
 
     // ==================== OTHER MANAGEMENT PAGES ====================
 
-    @GetMapping("/albums")
-    public String albums(Model model, HttpServletRequest request,
-                         RedirectAttributes redirectAttributes) {
+//    @GetMapping("/albums")
+//    public String albums(Model model, HttpServletRequest request,
+//                         RedirectAttributes redirectAttributes) {
+//
+//        if (!authService.isAdmin(request)) {
+//            redirectAttributes.addFlashAttribute("error", "Access denied");
+//            return "redirect:/";
+//        }
+//
+//        User currentUser = authService.getCurrentUser(request);
+//        model.addAttribute("currentUser", currentUser);
+//        model.addAttribute("albums", albumService.findAll());
+//        model.addAttribute("artists", artistService.findAll());
+//
+//        return "admin/albums";
+//    }
 
-        if (!authService.isAdmin(request)) {
-            redirectAttributes.addFlashAttribute("error", "Access denied");
-            return "redirect:/";
-        }
+//    @GetMapping("/artists")
+//    public String artists(Model model, HttpServletRequest request,
+//                          RedirectAttributes redirectAttributes) {
+//
+//        if (!authService.isAdmin(request)) {
+//            redirectAttributes.addFlashAttribute("error", "Access denied");
+//            return "redirect:/";
+//        }
+//
+//        User currentUser = authService.getCurrentUser(request);
+//        model.addAttribute("currentUser", currentUser);
+//        model.addAttribute("artists", artistService.findAll());
+//
+//        return "admin/artists";
+//    }
 
-        User currentUser = authService.getCurrentUser(request);
-        model.addAttribute("currentUser", currentUser);
-        model.addAttribute("albums", albumService.findAll());
-        model.addAttribute("artists", artistService.findAll());
-
-        return "admin/albums";
-    }
-
-    @GetMapping("/artists")
-    public String artists(Model model, HttpServletRequest request,
-                          RedirectAttributes redirectAttributes) {
-
-        if (!authService.isAdmin(request)) {
-            redirectAttributes.addFlashAttribute("error", "Access denied");
-            return "redirect:/";
-        }
-
-        User currentUser = authService.getCurrentUser(request);
-        model.addAttribute("currentUser", currentUser);
-        model.addAttribute("artists", artistService.findAll());
-
-        return "admin/artists";
-    }
-
-    @GetMapping("/genres")
-    public String genres(Model model, HttpServletRequest request,
-                         RedirectAttributes redirectAttributes) {
-
-        if (!authService.isAdmin(request)) {
-            redirectAttributes.addFlashAttribute("error", "Access denied");
-            return "redirect:/";
-        }
-
-        User currentUser = authService.getCurrentUser(request);
-        model.addAttribute("currentUser", currentUser);
-        model.addAttribute("genres", genreService.findAll());
-
-        return "admin/genres";
-    }
+//    @GetMapping("/genres")
+//    public String genres(Model model, HttpServletRequest request,
+//                         RedirectAttributes redirectAttributes) {
+//
+//        if (!authService.isAdmin(request)) {
+//            redirectAttributes.addFlashAttribute("error", "Access denied");
+//            return "redirect:/";
+//        }
+//
+//        User currentUser = authService.getCurrentUser(request);
+//        model.addAttribute("currentUser", currentUser);
+//        model.addAttribute("genres", genreService.findAll());
+//
+//        return "admin/genres";
+//    }
 
     @GetMapping("/moderation")
     public String moderation(Model model, HttpServletRequest request,
