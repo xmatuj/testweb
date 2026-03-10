@@ -113,7 +113,7 @@ public class UserService {
         }
     }
 
-    // Метод для загрузки пользователя с подписками (если нужно)
+    // Метод для загрузки пользователя с подписками
     public Optional<User> findUserWithSubscriptions(Integer userId) {
         return userRepository.findByIdWithSubscriptions(userId);
     }

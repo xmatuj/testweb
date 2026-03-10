@@ -66,12 +66,12 @@ public class HomeController {
         }
 
         try {
-            // Get popular tracks (with artists loaded)
+            // Популярные треки
             List<Track> popularTracks = trackService.findPopularTracks(10);
             logger.info("Loaded {} popular tracks", popularTracks.size());
             model.addAttribute("popularTracks", popularTracks);
 
-            // Get new releases (with artists loaded)
+            // Новые релизы
             List<Album> newReleases = albumService.findNewReleases(8);
             logger.info("Loaded {} new releases", newReleases.size());
             model.addAttribute("newReleases", newReleases);

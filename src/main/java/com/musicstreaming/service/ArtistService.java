@@ -1,5 +1,6 @@
 package com.musicstreaming.service;
 
+import com.musicstreaming.dto.ArtistDTO;
 import com.musicstreaming.model.Artist;
 import com.musicstreaming.repository.ArtistRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ public class ArtistService {
         this.artistRepository = artistRepository;
     }
 
+    // Существующие методы для работы с сущностями
     public List<Artist> findAll() {
         return artistRepository.findAllOrdered();
     }
@@ -44,5 +46,31 @@ public class ArtistService {
     @Transactional
     public void delete(Integer id) {
         artistRepository.deleteById(id);
+    }
+
+    // НОВЫЕ МЕТОДЫ для работы с DTO (без LazyInitializationException)
+
+    public List<ArtistDTO> findAllDTOs() {
+        return artistRepository.findAllArtistDTOs();
+    }
+
+    public List<ArtistDTO> searchDTOs(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return findAllDTOs();
+        }
+        return artistRepository.searchArtistDTOs(query);
+    }
+
+    // Метод для получения одного исполнителя с подсчетами
+    public ArtistDTO findDTOById(Integer id) {
+        return artistRepository.findById(id)
+                .map(artist -> new ArtistDTO(
+                        artist.getId(),
+                        artist.getName(),
+                        artist.getDescription(),
+                        artist.getAlbums().size(),
+                        artist.getTracks().size()
+                ))
+                .orElse(null);
     }
 }

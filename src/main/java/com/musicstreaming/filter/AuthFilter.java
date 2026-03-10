@@ -35,13 +35,13 @@ public class AuthFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // Allow public paths
+        // Разрешить публичные пути
         if (isPublicPath(path)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Check authentication
+        // Чек аутентификацию
         User currentUser = authService.getCurrentUser(request);
 
         if (currentUser == null) {
@@ -49,7 +49,7 @@ public class AuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Check admin access
+        // Чек админский доступ
         if (isAdminPath(path) && !currentUser.isAdmin()) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return;

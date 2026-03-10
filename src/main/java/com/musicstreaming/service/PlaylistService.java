@@ -28,18 +28,18 @@ public class PlaylistService {
     @Autowired
     private TrackRepository trackRepository;
 
-    // CREATE
+    // Создать
     @Transactional
     public Playlist save(Playlist playlist) {
         return playlistRepository.save(playlist);
     }
 
-    // READ ALL
+    // Вывести все
     public List<Playlist> findAll() {
         return playlistRepository.findAll();
     }
 
-    // READ BY USER
+    // Вывести по юзеру
     public List<PlaylistDTO> findByUserId(Integer userId) {
         return playlistRepository.findByUserIdOrderByCreatedDateDesc(userId)
                 .stream()
@@ -47,12 +47,12 @@ public class PlaylistService {
                 .collect(Collectors.toList());
     }
 
-    // READ ONE
+    // Вывести по айди
     public Optional<Playlist> findById(Integer id) {
         return playlistRepository.findById(id);
     }
 
-    // GET TRACKS FOR PLAYLIST (связь Many-to-Many)
+    // Получить треки по плейлисту
     public List<Track> getTracks(Integer playlistId) {
         return playlistTrackRepository.findByPlaylistIdOrdered(playlistId)
                 .stream()
@@ -60,7 +60,7 @@ public class PlaylistService {
                 .collect(Collectors.toList());
     }
 
-    // ADD TRACK TO PLAYLIST (CREATE связь Many-to-Many)
+    // Добавить треки в плейлист
     @Transactional
     public void addTrack(Integer playlistId, Integer trackId) {
         Playlist playlist = playlistRepository.findById(playlistId)
@@ -83,7 +83,7 @@ public class PlaylistService {
         }
     }
 
-    // REMOVE TRACK FROM PLAYLIST (DELETE связь Many-to-Many)
+    // Удалить трек из плейлиста
     @Transactional
     public void removeTrack(Integer playlistId, Integer trackId) {
         playlistTrackRepository.deleteByPlaylistIdAndTrackId(playlistId, trackId);
@@ -97,14 +97,14 @@ public class PlaylistService {
         }
     }
 
-    // DELETE PLAYLIST (каскадное удаление связей)
+    // Удалить плейлист
     @Transactional
     public void delete(Integer id) {
         playlistTrackRepository.deleteByPlaylistId(id); // Сначала удаляем связи
         playlistRepository.deleteById(id); // Потом сам плейлист
     }
 
-    // PUBLIC PLAYLISTS
+    // Публичные плейлисты
     public List<PlaylistDTO> findPublicPlaylistsDTO() {
         return playlistRepository.findPublicPlaylists()
                 .stream()
@@ -112,13 +112,13 @@ public class PlaylistService {
                 .collect(Collectors.toList());
     }
 
-    // CONVERT TO DTO
+    // Конвертация в DTO
     private PlaylistDTO convertToDTO(Playlist playlist) {
         List<PlaylistTrack> tracks = playlistTrackRepository.findByPlaylistIdOrdered(playlist.getId());
         return new PlaylistDTO(playlist, tracks);
     }
 
-    // COUNT BY USER
+    // Подсчет по юзеру
     public int countByUserId(Integer userId) {
         return playlistRepository.countByUserId(userId);
     }

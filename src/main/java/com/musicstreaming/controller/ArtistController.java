@@ -12,7 +12,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/artists")
@@ -24,42 +23,50 @@ public class ArtistController {
     @Autowired
     private AuthService authService;
 
-    // READ ALL - Список всех исполнителей (ИСПРАВЛЕНО)
+    // Список всех исполнителей
     @GetMapping
-    public String listArtists(Model model, HttpServletRequest request) {
+    public String listArtists(@RequestParam(required = false) String search,
+                              Model model,
+                              HttpServletRequest request) {
         if (!authService.isAdmin(request)) {
             return "redirect:/";
         }
 
-        // ВАЖНО: Конвертируем в DTO, чтобы избежать LazyInitializationException
-        List<ArtistDTO> artistDTOs = artistService.findAll()
-                .stream()
-                .map(ArtistDTO::new)
-                .collect(Collectors.toList());
+        List<ArtistDTO> artistDTOs;
+        if (search != null && !search.trim().isEmpty()) {
+            artistDTOs = artistService.searchDTOs(search);
+            model.addAttribute("search", search);
+        } else {
+            artistDTOs = artistService.findAllDTOs();
+        }
 
         model.addAttribute("artists", artistDTOs);
         model.addAttribute("currentUser", authService.getCurrentUser(request));
         return "admin/artists/list";
     }
 
-    // READ ONE - Просмотр деталей (ИСПРАВЛЕНО)
+    // Просмотр деталей
     @GetMapping("/{id}")
-    public String viewArtist(@PathVariable Integer id, Model model,
-                             HttpServletRequest request) {
+    public String viewArtist(@PathVariable Integer id,
+                             Model model,
+                             HttpServletRequest request,
+                             RedirectAttributes redirectAttributes) {
         if (!authService.isAdmin(request)) {
             return "redirect:/";
         }
 
-        Artist artist = artistService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid artist Id"));
+        ArtistDTO artistDTO = artistService.findDTOById(id);
+        if (artistDTO == null) {
+            redirectAttributes.addFlashAttribute("error", "Исполнитель не найден");
+            return "redirect:/admin/artists";
+        }
 
-        // ВАЖНО: Используем DTO для безопасного отображения
-        model.addAttribute("artist", new ArtistDTO(artist));
+        model.addAttribute("artist", artistDTO);
         model.addAttribute("currentUser", authService.getCurrentUser(request));
         return "admin/artists/view";
     }
 
-    // CREATE - Форма создания
+    // Форма создания
     @GetMapping("/new")
     public String newArtistForm(Model model, HttpServletRequest request) {
         if (!authService.isAdmin(request)) {
@@ -71,7 +78,7 @@ public class ArtistController {
         return "admin/artists/form";
     }
 
-    // CREATE/UPDATE - Сохранение
+    // Сохранение
     @PostMapping("/save")
     public String saveArtist(@ModelAttribute Artist artist,
                              HttpServletRequest request,
@@ -80,15 +87,21 @@ public class ArtistController {
             return "redirect:/";
         }
 
-        artistService.save(artist);
-        redirectAttributes.addFlashAttribute("success", "Исполнитель сохранен");
+        try {
+            artistService.save(artist);
+            redirectAttributes.addFlashAttribute("success", "Исполнитель сохранен");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при сохранении: " + e.getMessage());
+        }
         return "redirect:/admin/artists";
     }
 
-    // UPDATE - Форма редактирования
+    // Форма редактирования
     @GetMapping("/edit/{id}")
-    public String editArtistForm(@PathVariable Integer id, Model model,
-                                 HttpServletRequest request) {
+    public String editArtistForm(@PathVariable Integer id,
+                                 Model model,
+                                 HttpServletRequest request,
+                                 RedirectAttributes redirectAttributes) {
         if (!authService.isAdmin(request)) {
             return "redirect:/";
         }
@@ -101,7 +114,7 @@ public class ArtistController {
         return "admin/artists/form";
     }
 
-    // DELETE - Удаление
+    // Удаление
     @PostMapping("/delete/{id}")
     public String deleteArtist(@PathVariable Integer id,
                                HttpServletRequest request,
@@ -110,8 +123,12 @@ public class ArtistController {
             return "redirect:/";
         }
 
-        artistService.delete(id);
-        redirectAttributes.addFlashAttribute("success", "Исполнитель удален");
+        try {
+            artistService.delete(id);
+            redirectAttributes.addFlashAttribute("success", "Исполнитель удален");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при удалении: " + e.getMessage());
+        }
         return "redirect:/admin/artists";
     }
 }

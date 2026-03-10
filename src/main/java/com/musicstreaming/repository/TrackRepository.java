@@ -53,11 +53,16 @@ public interface TrackRepository extends JpaRepository<Track, Integer> {
     @Query("UPDATE Track t SET t.isModerated = :moderated WHERE t.id = :trackId")
     int updateModerationStatus(@Param("trackId") Integer trackId, @Param("moderated") boolean moderated);
 
-    @EntityGraph(attributePaths = {"artist", "album", "genre"})
+    @EntityGraph(attributePaths = {"artist", "album", "genre", "uploadedByUser"})
     @Override
     Optional<Track> findById(Integer id);
 
-    @EntityGraph(attributePaths = {"artist", "album", "genre"})
+    @EntityGraph(attributePaths = {"artist", "album", "genre", "uploadedByUser"})
+    @Query("SELECT t FROM Track t WHERE t.id = :id")
+    Optional<Track> findByIdWithUser(@Param("id") Integer id);
+
+    // Для поиска всех треков с пользователем
+    @EntityGraph(attributePaths = {"artist", "album", "genre", "uploadedByUser"})
     @Override
     List<Track> findAll();
 }

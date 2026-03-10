@@ -131,6 +131,10 @@ public class TrackService {
         }
     }
 
+    public Optional<Track> findByIdWithUser(Integer id) {
+        return trackRepository.findByIdWithUser(id);
+    }
+
     @Transactional
     public void delete(Integer id) {
         trackRepository.deleteById(id);

@@ -218,7 +218,7 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
-    // ==================== TRACK MANAGEMENT (FULL CRUD) ====================
+    // ==================== TRACK MANAGEMENT ====================
 
     @GetMapping("/tracks")
     public String tracks(@RequestParam(required = false) String search,
@@ -292,7 +292,7 @@ public class AdminController {
         User currentUser = authService.getCurrentUser(request);
         model.addAttribute("currentUser", currentUser);
 
-        Track track = trackService.findById(id)
+        Track track = trackService.findByIdWithUser(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid track Id:" + id));
 
         TrackDTO trackDTO = new TrackDTO(track);
@@ -341,7 +341,6 @@ public class AdminController {
         try {
             User currentUser = authService.getCurrentUser(request);
 
-            // Set relationships using entity objects
             if (artistId != null && artistId > 0) {
                 artistService.findById(artistId).ifPresent(track::setArtist);
             }
@@ -355,12 +354,12 @@ public class AdminController {
             }
 
             if (track.getId() == null) {
-                // Create new track
+
                 track.setUploadedByUser(currentUser);
                 trackService.save(track);
                 redirectAttributes.addFlashAttribute("success", "Track created successfully");
             } else {
-                // Update existing track
+
                 trackService.save(track);
                 redirectAttributes.addFlashAttribute("success", "Track updated successfully");
             }

@@ -68,7 +68,6 @@ public class SubscriptionController {
 
         model.addAttribute("currentUser", currentUser);
 
-        // Default to premium plan
         String selectedPlan = plan != null ? plan : "premium";
         model.addAttribute("selectedPlan", selectedPlan);
         model.addAttribute("planName", selectedPlan.equals("premium") ? "Премиум" : "Семейный");
@@ -136,10 +135,8 @@ public class SubscriptionController {
 
         model.addAttribute("currentUser", currentUser);
 
-        // Get user subscriptions
         model.addAttribute("subscriptions", subscriptionService.findByUserId(currentUser.getId()));
 
-        // Find active subscription
         model.addAttribute("activeSubscription",
                 subscriptionService.findActiveByUserId(currentUser.getId()).orElse(null));
 
