@@ -362,12 +362,15 @@ public class AdminController {
 
             // Обработка загрузки файла
             if (audioFile != null && !audioFile.isEmpty()) {
-                logger.info("Processing uploaded file: {}", audioFile.getOriginalFilename());
+                logger.info("Processing uploaded file: {}, size: {} bytes",
+                        audioFile.getOriginalFilename(), audioFile.getSize());
 
-                // Получаем путь к папке uploads/music
-                String rootPath = request.getServletContext().getRealPath("/");
-                Path projectRoot = Paths.get(rootPath).getParent().getParent().getParent();
-                Path uploadDir = projectRoot.resolve("uploads").resolve("music");
+                // Используем абсолютный путь через user.dir
+                String userDir = System.getProperty("user.dir");
+                Path uploadDir = Paths.get(userDir, "uploads", "music");
+
+                logger.info("Project root (user.dir): {}", userDir);
+                logger.info("Upload directory: {}", uploadDir.toAbsolutePath());
 
                 // Создаём папку если её нет
                 if (!Files.exists(uploadDir)) {
@@ -388,29 +391,33 @@ public class AdminController {
                 audioFile.transferTo(destFile.toFile());
 
                 logger.info("Saved audio file to: {}", destFile.toAbsolutePath());
+                logger.info("File exists after save: {}", Files.exists(destFile));
+                logger.info("File size after save: {} bytes", Files.size(destFile));
 
-                // Сохраняем имя файла в БД
+                // Сохраняем только имя файла в БД (не полный путь)
                 track.setFilePath(filename);
 
                 // Пытаемся определить длительность (опционально)
                 try {
-                    // Здесь можно добавить библиотеку для определения длительности MP3
-                    // Пока ставим значение по умолчанию
                     if (track.getDuration() == null || track.getDuration() == 0) {
                         track.setDuration(180); // 3 минуты по умолчанию
                     }
                 } catch (Exception e) {
                     logger.warn("Could not determine duration", e);
                 }
+            } else {
+                logger.info("No audio file provided, keeping existing file path: {}", track.getFilePath());
             }
 
             if (track.getId() == null) {
                 track.setUploadedByUser(currentUser);
                 trackService.save(track);
                 redirectAttributes.addFlashAttribute("success", "Трек успешно создан");
+                logger.info("Created new track with id: {}", track.getId());
             } else {
                 trackService.save(track);
                 redirectAttributes.addFlashAttribute("success", "Трек успешно обновлён");
+                logger.info("Updated track with id: {}", track.getId());
             }
 
         } catch (Exception e) {

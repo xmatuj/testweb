@@ -47,11 +47,9 @@ public class TrackStreamController {
      * Получение пути к папке uploads/music
      */
     private Path getUploadPath() {
-        // Получаем путь к папке проекта
-        String rootPath = servletContext.getRealPath("/");
-        // Поднимаемся от target/.../webapp к корню проекта
-        Path projectRoot = Paths.get(rootPath).getParent().getParent().getParent();
-        Path uploadPath = projectRoot.resolve("uploads").resolve("music");
+        // Используем абсолютный путь к директории проекта через системное свойство
+        String userDir = System.getProperty("user.dir");
+        Path uploadPath = Paths.get(userDir, "uploads", "music");
 
         // Создаём папку если её нет
         try {
@@ -63,6 +61,7 @@ public class TrackStreamController {
             logger.error("Failed to create upload directory", e);
         }
 
+        logger.info("Upload path resolved to: {}", uploadPath.toAbsolutePath());
         return uploadPath;
     }
 
@@ -83,18 +82,56 @@ public class TrackStreamController {
             return ResponseEntity.notFound().build();
         }
 
-        Path uploadPath = getUploadPath();
-        File audioFile = uploadPath.resolve(filePath).toFile();
+        // Проверяем, не является ли filePath уже абсолютным путем
+        Path audioFilePath;
+        File audioFile;
+
+        if (filePath.contains(File.separator) || filePath.contains("/")) {
+            // Если путь выглядит как абсолютный или относительный с папками
+            audioFile = new File(filePath);
+            if (!audioFile.exists()) {
+                // Пробуем найти файл в стандартной директории
+                Path uploadPath = getUploadPath();
+                String fileName = Paths.get(filePath).getFileName().toString();
+                audioFilePath = uploadPath.resolve(fileName);
+                audioFile = audioFilePath.toFile();
+            }
+        } else {
+            // Просто имя файла, ищем в uploads/music
+            Path uploadPath = getUploadPath();
+            audioFilePath = uploadPath.resolve(filePath);
+            audioFile = audioFilePath.toFile();
+        }
 
         logger.info("Looking for file: {}", audioFile.getAbsolutePath());
 
         if (!audioFile.exists()) {
             logger.error("Audio file not found: {}", audioFile.getAbsolutePath());
+            // Выведем содержимое папки для диагностики
+            try {
+                Path uploadPath = getUploadPath();
+                if (Files.exists(uploadPath)) {
+                    Files.list(uploadPath).forEach(f -> logger.info("File in upload dir: {}", f.getFileName()));
+                }
+            } catch (IOException e) {
+                logger.error("Error listing upload directory", e);
+            }
             return ResponseEntity.notFound().build();
         }
 
         long fileSize = audioFile.length();
         logger.info("File size: {} bytes", fileSize);
+
+        // Определяем MIME тип по расширению
+        String contentType = "audio/mpeg";
+        String fileName = audioFile.getName().toLowerCase();
+        if (fileName.endsWith(".wav")) {
+            contentType = "audio/wav";
+        } else if (fileName.endsWith(".ogg")) {
+            contentType = "audio/ogg";
+        } else if (fileName.endsWith(".m4a")) {
+            contentType = "audio/mp4";
+        }
 
         // Поддержка Range запросов для перемотки
         String rangeHeader = request.getHeader("Range");
@@ -122,8 +159,11 @@ public class TrackStreamController {
 
         logger.info("Streaming bytes {}-{}/{}", finalRangeStart, finalRangeEnd, fileSize);
 
+        final File finalAudioFile = audioFile;
+        final String finalContentType = contentType;
+
         StreamingResponseBody responseBody = outputStream -> {
-            try (RandomAccessFile file = new RandomAccessFile(audioFile, "r")) {
+            try (RandomAccessFile file = new RandomAccessFile(finalAudioFile, "r")) {
                 byte[] buffer = new byte[8192];
                 file.seek(finalRangeStart);
                 long bytesRemaining = contentLength;
@@ -141,13 +181,7 @@ public class TrackStreamController {
         };
 
         HttpHeaders headers = new HttpHeaders();
-
-        // Определяем MIME тип
-        String contentType = "audio/mpeg";
-        if (filePath.endsWith(".wav")) {
-            contentType = "audio/wav";
-        }
-        headers.add(HttpHeaders.CONTENT_TYPE, contentType);
+        headers.add(HttpHeaders.CONTENT_TYPE, finalContentType);
         headers.add(HttpHeaders.ACCEPT_RANGES, "bytes");
         headers.add(HttpHeaders.CACHE_CONTROL, "no-cache");
 
