@@ -1,6 +1,7 @@
 package com.musicstreaming.controller;
 
 import com.musicstreaming.model.Album;
+import com.musicstreaming.model.Track;
 import com.musicstreaming.service.AlbumService;
 import com.musicstreaming.service.ArtistService;
 import com.musicstreaming.service.AuthService;
@@ -11,6 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/albums")
@@ -70,6 +75,23 @@ public class AlbumController {
         model.addAttribute("artists", artistService.findAll());
         model.addAttribute("currentUser", authService.getCurrentUser(request));
         return "admin/albums/form";
+    }
+
+    @GetMapping("/{id}/tracks")
+    @ResponseBody
+    public List<Map<String, Object>> getAlbumTracks(@PathVariable Integer id) {
+        List<Track> tracks = albumService.getAlbumTracks(id);
+        return tracks.stream().map(track -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", track.getId());
+            map.put("title", track.getTitle());
+            map.put("artistName", track.getArtist() != null ? track.getArtist().getName() :
+                    (track.getAlbum() != null && track.getAlbum().getArtist() != null ?
+                            track.getAlbum().getArtist().getName() : "Неизвестный"));
+            map.put("duration", track.getDuration());
+            map.put("formattedDuration", track.getFormattedDuration());
+            return map;
+        }).collect(Collectors.toList());
     }
 
     @PostMapping("/delete/{id}")

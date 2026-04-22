@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="player">
+    <!-- Глобальный плеер -->
+    <div class="global-player" id="globalPlayer" style="display: none;">
+        <div class="player-container">
+            <div class="player-track">
+                <div class="player-cover" id="playerCover">
+                    <i class="fas fa-music"></i>
+                </div>
+                <div class="player-info">
+                    <div class="player-track-name" id="playerTrackName">Название трека</div>
+                    <div class="player-track-artist" id="playerTrackArtist">Исполнитель</div>
+                </div>
+            </div>
+
+            <div class="player-controls">
+                <button class="control-btn" id="playerPrevBtn" title="Предыдущий">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button class="control-btn play-btn" id="playerPlayPauseBtn">
+                    <i class="fas fa-play" id="playerPlayPauseIcon"></i>
+                </button>
+                <button class="control-btn" id="playerNextBtn" title="Следующий">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+                <button class="control-btn" id="playerShuffleBtn" title="Случайный порядок">
+                    <i class="fas fa-random"></i>
+                </button>
+                <button class="control-btn" id="playerRepeatBtn" title="Повтор">
+                    <i class="fas fa-redo"></i>
+                </button>
+            </div>
+
+            <div class="player-progress-container">
+                <span class="time-current" id="playerTimeCurrent">0:00</span>
+                <div class="progress-bar" id="playerProgressBar">
+                    <div class="progress-filled" id="playerProgressFilled"></div>
+                </div>
+                <span class="time-total" id="playerTimeTotal">0:00</span>
+            </div>
+
+            <div class="player-volume">
+                <i class="fas fa-volume-up" id="playerVolumeIcon"></i>
+                <input type="range" id="playerVolumeSlider" min="0" max="1" step="0.01" value="0.8">
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .global-player {
+            position: fixed;
+            bottom: 70px;
+            left: 0;
+            right: 0;
+            background-color: var(--secondary-bg, #181818);
+            border-top: 1px solid var(--border-color, #333333);
+            padding: 8px 20px;
+            z-index: 999;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.3);
+        }
+
+        .player-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .player-track {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .player-cover {
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            background: linear-gradient(135deg, var(--accent, #ffdb4d), #ffcc00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 20px;
+        }
+
+        .player-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .player-track-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-track-artist {
+            font-size: 12px;
+            color: var(--text-secondary, #b3b3b3);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary, #fff);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .control-btn:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .control-btn.play-btn {
+            width: 44px;
+            height: 44px;
+            background-color: var(--accent, #ffdb4d);
+            color: #000;
+        }
+
+        .control-btn.play-btn:hover {
+            background-color: #ffcc00;
+        }
+
+        .player-progress-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 2;
+            min-width: 300px;
+        }
+
+        .time-current, .time-total {
+            font-size: 12px;
+            color: var(--text-secondary, #b3b3b3);
+            min-width: 40px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background-color: var(--border-color, #333);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .progress-filled {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0%;
+            background-color: var(--accent, #ffdb4d);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        .player-volume {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+        }
+
+        .player-volume i {
+            color: var(--text-secondary, #b3b3b3);
+            width: 20px;
+        }
+
+        #playerVolumeSlider {
+            width: 80px;
+            accent-color: var(--accent, #ffdb4d);
+        }
+
+        @media (max-width: 900px) {
+            .player-progress-container {
+                min-width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .player-container {
+                flex-wrap: wrap;
+            }
+            .player-progress-container {
+                order: 3;
+                width: 100%;
+                min-width: auto;
+            }
+            .player-volume {
+                display: none;
+            }
+        }
+    </style>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        (function() {
+            // Предотвращаем двойную инициализацию
+            if (window.MusicPlayer && window.MusicPlayer.initialized) return;
+
+            // Глобальный объект плеера
+            window.MusicPlayer = {
+                audio: null,
+                currentTrack: null,
+                playlist: [],
+                playlistIndex: -1,
+                isPlaying: false,
+                shuffle: false,
+                repeat: false,
+                volume: 0.8,
+                savedTime: 0,
+                initialized: false,
+
+                init: function() {
+                    if (this.initialized) return;
+
+                    this.audio = new Audio();
+                    this.audio.volume = this.volume;
+                    this.audio.crossOrigin = 'anonymous';
+
+                    // Загружаем состояние из localStorage
+                    this.loadState();
+
+                    // Привязка событий
+                    this.bindEvents();
+
+                    // Если был сохранён трек, отображаем плеер и загружаем метаданные
+                    if (this.currentTrack) {
+                        this.showPlayer();
+                        this.updateTrackInfo(this.currentTrack);
+                        this.audio.src = '/tracks/stream/' + this.currentTrack.id;
+                        this.audio.load();
+                        if (this.savedTime > 0) {
+                            this.audio.currentTime = this.savedTime;
+                        }
+                    }
+
+                    // Сохраняем состояние перед уходом со страницы
+                    window.addEventListener('beforeunload', () => this.saveState());
+
+                    this.initialized = true;
+                },
+
+                bindEvents: function() {
+                    const playPauseBtn = document.getElementById('playerPlayPauseBtn');
+                    const prevBtn = document.getElementById('playerPrevBtn');
+                    const nextBtn = document.getElementById('playerNextBtn');
+                    const shuffleBtn = document.getElementById('playerShuffleBtn');
+                    const repeatBtn = document.getElementById('playerRepeatBtn');
+                    const progressBar = document.getElementById('playerProgressBar');
+                    const volumeSlider = document.getElementById('playerVolumeSlider');
+
+                    if (playPauseBtn) playPauseBtn.addEventListener('click', () => this.togglePlay());
+                    if (prevBtn) prevBtn.addEventListener('click', () => this.playPrevious());
+                    if (nextBtn) nextBtn.addEventListener('click', () => this.playNext());
+                    if (shuffleBtn) shuffleBtn.addEventListener('click', () => this.toggleShuffle());
+                    if (repeatBtn) repeatBtn.addEventListener('click', () => this.toggleRepeat());
+                    if (progressBar) progressBar.addEventListener('click', (e) => this.seek(e));
+                    if (volumeSlider) volumeSlider.addEventListener('input', (e) => this.setVolume(e.target.value));
+
+                    this.audio.addEventListener('timeupdate', () => this.updateProgress());
+                    this.audio.addEventListener('loadedmetadata', () => this.updateDuration());
+                    this.audio.addEventListener('ended', () => this.onTrackEnded());
+                    this.audio.addEventListener('play', () => this.setPlayingState(true));
+                    this.audio.addEventListener('pause', () => this.setPlayingState(false));
+                    this.audio.addEventListener('volumechange', () => this.updateVolumeIcon());
+                },
+
+                // Публичные методы для вызова с других страниц
+                playTrack: function(track, playlist) {
+                    if (!track) return;
+
+                    if (playlist && playlist.length > 0) {
+                        this.playlist = playlist;
+                        this.playlistIndex = playlist.findIndex(t => t.id == track.id);
+                        if (this.playlistIndex === -1) this.playlistIndex = 0;
+                    } else {
+                        this.playlist = [track];
+                        this.playlistIndex = 0;
+                    }
+
+                    this.currentTrack = track;
+                    this.audio.src = '/tracks/stream/' + track.id;
+                    this.audio.play().catch(e => {
+                        console.warn('Autoplay blocked, user interaction required');
+                        // Показываем плеер, но не воспроизводим
+                        this.showPlayer();
+                        this.updateTrackInfo(track);
+                    });
+                    this.showPlayer();
+                    this.updateTrackInfo(track);
+                    this.saveState();
+
+                    // Отправляем статистику
+                    fetch('/tracks/record/' + track.id, { method: 'POST' }).catch(() => {});
+                },
+
+                playPlaylist: function(tracks, startIndex = 0) {
+                    if (!tracks || tracks.length === 0) return;
+                    this.playlist = tracks;
+                    this.playTrack(tracks[startIndex], tracks);
+                },
+
+                togglePlay: function() {
+                    if (!this.currentTrack) return;
+
+                    if (this.audio.paused) {
+                        this.audio.play().catch(e => console.warn('Playback failed'));
+                    } else {
+                        this.audio.pause();
+                    }
+                },
+
+                playPrevious: function() {
+                    if (this.playlist.length === 0) return;
+                    let newIndex;
+                    if (this.shuffle) {
+                        newIndex = Math.floor(Math.random() * this.playlist.length);
+                    } else {
+                        newIndex = this.playlistIndex - 1;
+                        if (newIndex < 0) newIndex = this.playlist.length - 1;
+                    }
+                    this.playTrack(this.playlist[newIndex], this.playlist);
+                },
+
+                playNext: function() {
+                    if (this.playlist.length === 0) return;
+                    let newIndex;
+                    if (this.shuffle) {
+                        newIndex = Math.floor(Math.random() * this.playlist.length);
+                    } else {
+                        newIndex = (this.playlistIndex + 1) % this.playlist.length;
+                    }
+                    this.playTrack(this.playlist[newIndex], this.playlist);
+                },
+
+                onTrackEnded: function() {
+                    if (this.repeat) {
+                        this.audio.currentTime = 0;
+                        this.audio.play().catch(() => {});
+                    } else {
+                        this.playNext();
+                    }
+                },
+
+                toggleShuffle: function() {
+                    this.shuffle = !this.shuffle;
+                    const btn = document.getElementById('playerShuffleBtn');
+                    if (btn) btn.style.color = this.shuffle ? 'var(--accent)' : '';
+                    this.saveState();
+                },
+
+                toggleRepeat: function() {
+                    this.repeat = !this.repeat;
+                    const btn = document.getElementById('playerRepeatBtn');
+                    if (btn) btn.style.color = this.repeat ? 'var(--accent)' : '';
+                    this.saveState();
+                },
+
+                setVolume: function(val) {
+                    this.volume = parseFloat(val);
+                    this.audio.volume = this.volume;
+                    this.saveState();
+                },
+
+                updateVolumeIcon: function() {
+                    const icon = document.getElementById('playerVolumeIcon');
+                    if (icon) {
+                        const vol = this.audio.volume;
+                        if (vol === 0) icon.className = 'fas fa-volume-mute';
+                        else if (vol < 0.5) icon.className = 'fas fa-volume-down';
+                        else icon.className = 'fas fa-volume-up';
+                    }
+                },
+
+                seek: function(e) {
+                    if (!this.currentTrack || isNaN(this.audio.duration)) return;
+                    const bar = document.getElementById('playerProgressBar');
+                    const rect = bar.getBoundingClientRect();
+                    const percent = (e.clientX - rect.left) / rect.width;
+                    this.audio.currentTime = percent * this.audio.duration;
+                },
+
+                updateProgress: function() {
+                    const filled = document.getElementById('playerProgressFilled');
+                    const current = document.getElementById('playerTimeCurrent');
+                    if (filled && current && !isNaN(this.audio.duration)) {
+                        const percent = (this.audio.currentTime / this.audio.duration) * 100;
+                        filled.style.width = percent + '%';
+                        current.textContent = this.formatTime(this.audio.currentTime);
+                    }
+                },
+
+                updateDuration: function() {
+                    const total = document.getElementById('playerTimeTotal');
+                    if (total && !isNaN(this.audio.duration)) {
+                        total.textContent = this.formatTime(this.audio.duration);
+                    }
+                },
+
+                formatTime: function(seconds) {
+                    if (isNaN(seconds)) return '0:00';
+                    const mins = Math.floor(seconds / 60);
+                    const secs = Math.floor(seconds % 60);
+                    return mins + ':' + (secs < 10 ? '0' : '') + secs;
+                },
+
+                setPlayingState: function(playing) {
+                    this.isPlaying = playing;
+                    const icon = document.getElementById('playerPlayPauseIcon');
+                    if (icon) {
+                        icon.className = playing ? 'fas fa-pause' : 'fas fa-play';
+                    }
+                    this.saveState();
+                },
+
+                showPlayer: function() {
+                    const player = document.getElementById('globalPlayer');
+                    if (player) player.style.display = 'block';
+                },
+
+                updateTrackInfo: function(track) {
+                    const nameEl = document.getElementById('playerTrackName');
+                    const artistEl = document.getElementById('playerTrackArtist');
+                    if (nameEl) nameEl.textContent = track.title || 'Неизвестный трек';
+                    if (artistEl) artistEl.textContent = track.artistName || 'Неизвестный исполнитель';
+                },
+
+                saveState: function() {
+                    const state = {
+                        currentTrack: this.currentTrack,
+                        playlist: this.playlist,
+                        playlistIndex: this.playlistIndex,
+                        currentTime: this.audio ? this.audio.currentTime : 0,
+                        volume: this.volume,
+                        shuffle: this.shuffle,
+                        repeat: this.repeat,
+                        isPlaying: this.audio ? !this.audio.paused : false
+                    };
+                    localStorage.setItem('musicPlayerState', JSON.stringify(state));
+                },
+
+                loadState: function() {
+                    const saved = localStorage.getItem('musicPlayerState');
+                    if (saved) {
+                        try {
+                            const state = JSON.parse(saved);
+                            this.currentTrack = state.currentTrack;
+                            this.playlist = state.playlist || [];
+                            this.playlistIndex = state.playlistIndex || 0;
+                            this.savedTime = state.currentTime || 0;
+                            this.volume = state.volume || 0.8;
+                            this.shuffle = state.shuffle || false;
+                            this.repeat = state.repeat || false;
+                            this.audio.volume = this.volume;
+
+                            // Восстанавливаем визуальное состояние кнопок
+                            if (this.shuffle) {
+                                const btn = document.getElementById('playerShuffleBtn');
+                                if (btn) btn.style.color = 'var(--accent)';
+                            }
+                            if (this.repeat) {
+                                const btn = document.getElementById('playerRepeatBtn');
+                                if (btn) btn.style.color = 'var(--accent)';
+                            }
+                        } catch(e) {
+                            console.error('Failed to load player state', e);
+                        }
+                    }
+                }
+            };
+
+            // Инициализация после загрузки DOM
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => window.MusicPlayer.init());
+            } else {
+                window.MusicPlayer.init();
+            }
+        })();
+        /*]]>*/
+    </script>
+</div>
+</body>
+</html>

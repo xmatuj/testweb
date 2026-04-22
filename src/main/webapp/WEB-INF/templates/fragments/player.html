@@ -1,0 +1,53 @@
+<!-- src/main/webapp/WEB-INF/templates/fragments/player.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="player">
+    <!-- Глобальный плеер -->
+    <div class="global-player" id="globalPlayer" style="display: none;">
+        <div class="player-container">
+            <div class="player-track">
+                <div class="player-cover" id="playerCover">
+                    <i class="fas fa-music"></i>
+                </div>
+                <div class="player-info">
+                    <div class="player-track-name" id="playerTrackName">Название трека</div>
+                    <div class="player-track-artist" id="playerTrackArtist">Исполнитель</div>
+                </div>
+            </div>
+
+            <div class="player-controls">
+                <button class="control-btn" id="playerPrevBtn" title="Предыдущий">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button class="control-btn play-btn" id="playerPlayPauseBtn">
+                    <i class="fas fa-play" id="playerPlayPauseIcon"></i>
+                </button>
+                <button class="control-btn" id="playerNextBtn" title="Следующий">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+                <button class="control-btn" id="playerShuffleBtn" title="Случайный порядок">
+                    <i class="fas fa-random"></i>
+                </button>
+                <button class="control-btn" id="playerRepeatBtn" title="Повтор">
+                    <i class="fas fa-redo"></i>
+                </button>
+            </div>
+
+            <div class="player-progress-container">
+                <span class="time-current" id="playerTimeCurrent">0:00</span>
+                <div class="progress-bar" id="playerProgressBar">
+                    <div class="progress-filled" id="playerProgressFilled"></div>
+                </div>
+                <span class="time-total" id="playerTimeTotal">0:00</span>
+            </div>
+
+            <div class="player-volume">
+                <i class="fas fa-volume-up" id="playerVolumeIcon"></i>
+                <input type="range" id="playerVolumeSlider" min="0" max="1" step="0.01" value="0.8">
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

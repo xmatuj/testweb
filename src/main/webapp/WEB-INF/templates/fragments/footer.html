@@ -1,0 +1,43 @@
+<!-- src/main/webapp/WEB-INF/templates/fragments/footer.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer th:fragment="footer">
+    <nav class="bottom-nav">
+        <div class="nav-items">
+            <a href="/" class="nav-item" th:classappend="${activePage == 'home' ? 'active' : ''}">
+                <i class="fas fa-home nav-icon"></i>
+                <span class="nav-label">Главная</span>
+            </a>
+
+            <a href="/search" class="nav-item" th:classappend="${activePage == 'search' ? 'active' : ''}">
+                <i class="fas fa-search nav-icon"></i>
+                <span class="nav-label">Поиск</span>
+            </a>
+
+            <th:block th:if="${isAuthenticated}">
+                <a href="/playlists" class="nav-item" th:classappend="${activePage == 'playlists' ? 'active' : ''}">
+                    <i class="fas fa-list nav-icon"></i>
+                    <span class="nav-label">Библиотека</span>
+                </a>
+                <a href="/account/profile" class="nav-item" th:classappend="${activePage == 'profile' ? 'active' : ''}">
+                    <i class="fas fa-user nav-icon"></i>
+                    <span class="nav-label">Профиль</span>
+                </a>
+            </th:block>
+
+            <th:block th:unless="${isAuthenticated}">
+                <a href="/playlists" class="nav-item" onclick="alert('Пожалуйста, войдите в систему'); return false;">
+                    <i class="fas fa-list nav-icon"></i>
+                    <span class="nav-label">Библиотека</span>
+                </a>
+                <a href="/account/login" class="nav-item">
+                    <i class="fas fa-sign-in-alt nav-icon"></i>
+                    <span class="nav-label">Вход</span>
+                </a>
+            </th:block>
+        </div>
+    </nav>
+</footer>
+</body>
+</html>

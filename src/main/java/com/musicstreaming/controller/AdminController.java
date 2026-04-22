@@ -1,5 +1,11 @@
 package com.musicstreaming.controller;
 
+import org.springframework.web.multipart.MultipartFile;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 import com.musicstreaming.dto.AdminUserDTO;
 import com.musicstreaming.dto.TrackDTO;
 import com.musicstreaming.model.*;
@@ -330,6 +336,7 @@ public class AdminController {
                             @RequestParam(required = false) Integer artistId,
                             @RequestParam(required = false) Integer albumId,
                             @RequestParam(required = false) Integer genreId,
+                            @RequestParam(value = "audioFile", required = false) MultipartFile audioFile,
                             HttpServletRequest request,
                             RedirectAttributes redirectAttributes) {
 
@@ -353,20 +360,62 @@ public class AdminController {
                 genreService.findById(genreId).ifPresent(track::setGenre);
             }
 
-            if (track.getId() == null) {
+            // Обработка загрузки файла
+            if (audioFile != null && !audioFile.isEmpty()) {
+                logger.info("Processing uploaded file: {}", audioFile.getOriginalFilename());
 
+                // Получаем путь к папке uploads/music
+                String rootPath = request.getServletContext().getRealPath("/");
+                Path projectRoot = Paths.get(rootPath).getParent().getParent().getParent();
+                Path uploadDir = projectRoot.resolve("uploads").resolve("music");
+
+                // Создаём папку если её нет
+                if (!Files.exists(uploadDir)) {
+                    Files.createDirectories(uploadDir);
+                    logger.info("Created upload directory: {}", uploadDir.toAbsolutePath());
+                }
+
+                // Генерируем уникальное имя файла
+                String originalFilename = audioFile.getOriginalFilename();
+                String extension = ".mp3";
+                if (originalFilename != null && originalFilename.contains(".")) {
+                    extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                }
+                String filename = UUID.randomUUID().toString() + extension;
+
+                // Сохраняем файл
+                Path destFile = uploadDir.resolve(filename);
+                audioFile.transferTo(destFile.toFile());
+
+                logger.info("Saved audio file to: {}", destFile.toAbsolutePath());
+
+                // Сохраняем имя файла в БД
+                track.setFilePath(filename);
+
+                // Пытаемся определить длительность (опционально)
+                try {
+                    // Здесь можно добавить библиотеку для определения длительности MP3
+                    // Пока ставим значение по умолчанию
+                    if (track.getDuration() == null || track.getDuration() == 0) {
+                        track.setDuration(180); // 3 минуты по умолчанию
+                    }
+                } catch (Exception e) {
+                    logger.warn("Could not determine duration", e);
+                }
+            }
+
+            if (track.getId() == null) {
                 track.setUploadedByUser(currentUser);
                 trackService.save(track);
-                redirectAttributes.addFlashAttribute("success", "Track created successfully");
+                redirectAttributes.addFlashAttribute("success", "Трек успешно создан");
             } else {
-
                 trackService.save(track);
-                redirectAttributes.addFlashAttribute("success", "Track updated successfully");
+                redirectAttributes.addFlashAttribute("success", "Трек успешно обновлён");
             }
 
         } catch (Exception e) {
             logger.error("Error saving track", e);
-            redirectAttributes.addFlashAttribute("error", "Error saving track: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Ошибка при сохранении: " + e.getMessage());
             return "redirect:/admin/tracks/edit/" + (track.getId() != null ? track.getId() : "");
         }
 

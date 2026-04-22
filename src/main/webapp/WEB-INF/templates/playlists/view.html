@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${playlist.title} + ' - MusicStream'">Плейлист</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
+    <style th:inline="css">
         :root {
             --primary-bg: #121212;
             --secondary-bg: #181818;
@@ -15,6 +15,8 @@
             --text-primary: #ffffff;
             --text-secondary: #b3b3b3;
             --border-color: #333333;
+            --success: #1db954;
+            --danger: #e22134;
         }
 
         * {
@@ -28,6 +30,23 @@
             background-color: var(--primary-bg);
             color: var(--text-primary);
             min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.15) 0%, transparent 50%);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+            font-size: inherit;
         }
 
         .container {
@@ -60,7 +79,6 @@
             font-size: 24px;
             font-weight: 700;
             color: var(--accent);
-            text-decoration: none;
         }
 
         .nav-actions {
@@ -70,7 +88,6 @@
 
         .nav-btn {
             color: var(--text-secondary);
-            text-decoration: none;
             padding: 8px 15px;
             border-radius: 20px;
             transition: background-color 0.2s;
@@ -83,7 +100,7 @@
 
         .main-content {
             padding-top: 70px;
-            padding-bottom: 80px;
+            padding-bottom: 100px;
         }
 
         /* Заголовок плейлиста */
@@ -115,6 +132,7 @@
             justify-content: center;
             font-size: 60px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            color: #000;
         }
 
         .playlist-details {
@@ -165,7 +183,6 @@
             padding: 10px 20px;
             border-radius: 20px;
             font-weight: 600;
-            text-decoration: none;
             cursor: pointer;
             border: none;
             transition: background-color 0.2s;
@@ -186,17 +203,9 @@
             border: 1px solid var(--border-color);
         }
 
-        .btn-secondary:hover {
-            background-color: var(--hover-bg);
-        }
-
         .btn-danger {
-            background-color: #e22134;
+            background-color: var(--danger);
             color: white;
-        }
-
-        .btn-danger:hover {
-            background-color: #c21825;
         }
 
         /* Список треков */
@@ -229,6 +238,7 @@
             padding: 12px 16px;
             border-bottom: 1px solid var(--border-color);
             transition: background-color 0.2s;
+            cursor: pointer;
         }
 
         .track-item:hover {
@@ -268,11 +278,11 @@
 
         .action-btn {
             color: var(--text-secondary);
-            transition: color 0.2s;
             background: none;
             border: none;
             cursor: pointer;
             font-size: 16px;
+            transition: color 0.2s;
         }
 
         .action-btn:hover {
@@ -297,10 +307,26 @@
             flex: 1;
         }
 
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
         }
 
         .bottom-nav {
@@ -311,7 +337,7 @@
             background-color: var(--primary-bg);
             border-top: 1px solid var(--border-color);
             padding: 10px 0;
-            z-index: 1000;
+            z-index: 998;
         }
 
         .nav-items {
@@ -324,7 +350,6 @@
             flex-direction: column;
             align-items: center;
             color: var(--text-secondary);
-            text-decoration: none;
             font-size: 12px;
         }
 
@@ -345,14 +370,21 @@
 
         .alert-success {
             background-color: rgba(29, 185, 84, 0.1);
-            border: 1px solid #1db954;
-            color: #1db954;
+            border: 1px solid var(--success);
+            color: var(--success);
         }
 
         .alert-error {
             background-color: rgba(226, 33, 52, 0.1);
-            border: 1px solid #e22134;
-            color: #e22134;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        @media (max-width: 576px) {
+            .track-item {
+                grid-template-columns: 40px 1fr 60px 60px;
+                padding: 10px 12px;
+            }
         }
     </style>
 </head>
@@ -381,26 +413,29 @@
             </div>
             <div class="playlist-details">
                 <div class="playlist-type">
-                        <span th:text="${playlist.visibility.name() == 'Public' ? 'Публичный плейлист' : 'Приватный плейлист'}">
-                            Публичный плейлист
-                        </span>
+                    <span th:text="${playlist.visibility.name() == 'Public' ? 'Публичный плейлист' : 'Приватный плейлист'}">Плейлист</span>
                 </div>
                 <h1 class="playlist-title" th:text="${playlist.title}">Название плейлиста</h1>
                 <div class="playlist-creator">
                     <i class="fas fa-user"></i> <span th:text="${playlist.user.username}">User</span>
                 </div>
                 <div class="playlist-meta">
-                    <span th:text="${#lists.size(tracks)} + ' треков'">12 треков</span>
+                    <span th:text="${#lists.size(tracks)} + ' треков'">0 треков</span>
                     <span>•</span>
-                    <span th:text="${playlist.totalDuration / 60} + ' мин'">45 мин</span>
+                    <span th:text="${playlist.totalDuration / 60} + ' мин'">0 мин</span>
                     <span>•</span>
                     <span th:text="${#temporals.format(playlist.createdDate, 'dd.MM.yyyy')}">01.01.2025</span>
                 </div>
-                <div class="playlist-actions" th:if="${currentUser != null and (currentUser.id == playlist.user.id or currentUser.isAdmin())}">
-                    <a th:href="@{'/playlists/edit/' + ${playlist.id}}" class="btn btn-secondary">
+                <div class="playlist-actions">
+                    <button class="btn btn-primary" id="playPlaylistBtn" th:if="${not #lists.isEmpty(tracks)}">
+                        <i class="fas fa-play"></i> Слушать
+                    </button>
+                    <a th:href="@{'/playlists/edit/' + ${playlist.id}}" class="btn btn-secondary"
+                       th:if="${currentUser != null and (currentUser.id == playlist.user.id or currentUser.isAdmin())}">
                         <i class="fas fa-edit"></i> Редактировать
                     </a>
-                    <form th:action="@{'/playlists/delete/' + ${playlist.id}}" method="post" style="display: inline;">
+                    <form th:action="@{'/playlists/delete/' + ${playlist.id}}" method="post" style="display: inline;"
+                          th:if="${currentUser != null and (currentUser.id == playlist.user.id or currentUser.isAdmin())}">
                         <button type="submit" class="btn btn-danger"
                                 onclick="return confirm('Удалить плейлист? Это действие нельзя отменить.');">
                             <i class="fas fa-trash"></i> Удалить
@@ -415,7 +450,7 @@
 <!-- Main Content -->
 <main class="main-content">
     <div class="container">
-        <!-- Success/Error Messages -->
+        <!-- Messages -->
         <div th:if="${success}" class="alert alert-success">
             <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
         </div>
@@ -427,11 +462,14 @@
         <section class="tracks-section">
             <div class="section-header">
                 <h2 class="section-title">Треки в плейлисте</h2>
-                <span class="track-count" th:text="${#lists.size(tracks)} + ' треков'">12 треков</span>
+                <span class="track-count" th:text="${#lists.size(tracks)} + ' треков'">0 треков</span>
             </div>
 
             <div th:if="${not #lists.isEmpty(tracks)}" class="tracks-list">
-                <div class="track-item" th:each="track, iterStat : ${tracks}">
+                <div class="track-item" th:each="track, iterStat : ${tracks}"
+                     th:data-track-id="${track.id}"
+                     th:data-track-title="${track.title}"
+                     th:data-track-artist="${track.artist != null ? track.artist.name : 'Неизвестный'}">
                     <div class="track-number" th:text="${iterStat.index + 1}">1</div>
                     <div class="track-info">
                         <div class="track-title" th:text="${track.title}">Название трека</div>
@@ -440,9 +478,10 @@
                     <div class="track-duration" th:text="${track.formattedDuration}">3:45</div>
                     <div class="track-actions">
                         <form th:action="@{'/playlists/' + ${playlist.id} + '/remove-track'}" method="post"
-                              onsubmit="return confirm('Удалить трек из плейлиста?');">
+                              onsubmit="return confirm('Удалить трек из плейлиста?');"
+                              th:if="${currentUser != null and (currentUser.id == playlist.user.id or currentUser.isAdmin())}">
                             <input type="hidden" name="trackId" th:value="${track.id}">
-                            <button type="submit" class="action-btn" title="Удалить из плейлиста">
+                            <button type="submit" class="action-btn" title="Удалить из плейлиста" onclick="event.stopPropagation()">
                                 <i class="fas fa-times"></i>
                             </button>
                         </form>
@@ -457,15 +496,14 @@
             </div>
         </section>
 
-        <!-- Add Track Section (only for playlist owner) -->
+        <!-- Add Track Section -->
         <section class="add-track-section"
                  th:if="${currentUser != null and (currentUser.id == playlist.user.id or currentUser.isAdmin()) and not #lists.isEmpty(availableTracks)}">
             <h3 style="margin-bottom: 20px; color: var(--accent);">Добавить трек в плейлист</h3>
 
             <form class="add-track-form" th:action="@{'/playlists/' + ${playlist.id} + '/add-track'}" method="post">
                 <div class="select-track">
-                    <label class="form-label">Выберите трек</label>
-                    <select name="trackId" class="form-control" required style="width: 100%; padding: 10px;">
+                    <select name="trackId" class="form-control" required>
                         <option value="">-- Выберите трек --</option>
                         <option th:each="track : ${availableTracks}"
                                 th:value="${track.id}"
@@ -503,5 +541,57 @@
         </a>
     </div>
 </nav>
+
+<!-- Глобальный плеер -->
+<div th:replace="fragments/player-fragment :: player"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        // Собираем треки плейлиста
+        const tracks = [];
+        document.querySelectorAll('[data-track-id]').forEach(el => {
+            tracks.push({
+                id: el.dataset.trackId,
+                title: el.dataset.trackTitle || el.querySelector('.track-title')?.textContent || 'Трек',
+                artistName: el.dataset.trackArtist || el.querySelector('.track-artist')?.textContent || ''
+            });
+        });
+
+        // Воспроизведение трека
+        window.playTrack = function(trackId, trackTitle, trackArtist) {
+            const track = {
+                id: trackId,
+                title: trackTitle,
+                artistName: trackArtist
+            };
+
+            if (window.MusicPlayer) {
+                window.MusicPlayer.playTrack(track, tracks);
+            }
+        };
+
+        // Воспроизведение всего плейлиста
+        document.getElementById('playPlaylistBtn')?.addEventListener('click', function() {
+            if (tracks.length > 0 && window.MusicPlayer) {
+                window.MusicPlayer.playPlaylist(tracks);
+            }
+        });
+
+        // Обработка кликов по трекам
+        document.querySelectorAll('[data-track-id]').forEach(el => {
+            el.addEventListener('click', function(e) {
+                if (e.target.closest('.track-actions, .action-btn, button')) return;
+
+                const trackId = this.dataset.trackId;
+                const trackTitle = this.dataset.trackTitle || this.querySelector('.track-title')?.textContent || 'Трек';
+                const trackArtist = this.dataset.trackArtist || this.querySelector('.track-artist')?.textContent || '';
+
+                playTrack(trackId, trackTitle, trackArtist);
+            });
+        });
+    });
+    /*]]>*/
+</script>
 </body>
 </html>
