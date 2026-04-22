@@ -5,241 +5,110 @@
 <div th:fragment="scripts">
     <script th:inline="javascript">
         /*<![CDATA[*/
-        // Глобальный плеер
-        (function() {
-            if (window.MusicPlayer) return;
-
-            window.MusicPlayer = {
-                audio: new Audio(),
-                currentTrack: null,
-                playlist: [],
-                playlistIndex: -1,
-                shuffle: false,
-                repeat: false,
-                volume: 0.8,
-
-                init: function() {
-                    this.audio.volume = this.volume;
-                    this.audio.crossOrigin = 'anonymous';
-                    this.bindEvents();
-                    this.loadState();
-
-                    // Восстанавливаем визуальное состояние кнопок
-                    document.getElementById('playerShuffleBtn').style.color = this.shuffle ? 'var(--accent)' : '';
-                    document.getElementById('playerRepeatBtn').style.color = this.repeat ? 'var(--accent)' : '';
-                    document.getElementById('playerVolumeSlider').value = this.volume;
-                },
-
-                bindEvents: function() {
-                    document.getElementById('playerPlayPauseBtn')?.addEventListener('click', () => this.togglePlay());
-                    document.getElementById('playerPrevBtn')?.addEventListener('click', () => this.playPrevious());
-                    document.getElementById('playerNextBtn')?.addEventListener('click', () => this.playNext());
-                    document.getElementById('playerShuffleBtn')?.addEventListener('click', () => this.toggleShuffle());
-                    document.getElementById('playerRepeatBtn')?.addEventListener('click', () => this.toggleRepeat());
-                    document.getElementById('playerProgressBar')?.addEventListener('click', (e) => this.seek(e));
-                    document.getElementById('playerVolumeSlider')?.addEventListener('input', (e) => this.setVolume(e.target.value));
-
-                    this.audio.addEventListener('timeupdate', () => this.updateProgress());
-                    this.audio.addEventListener('loadedmetadata', () => this.updateDuration());
-                    this.audio.addEventListener('ended', () => this.onTrackEnded());
-                    this.audio.addEventListener('play', () => this.setPlayingState(true));
-                    this.audio.addEventListener('pause', () => this.setPlayingState(false));
-
-                    window.addEventListener('beforeunload', () => this.saveState());
-                },
-
-                playTrack: function(track, playlist) {
-                    if (!track) return;
-
-                    if (playlist && playlist.length) {
-                        this.playlist = playlist;
-                        this.playlistIndex = playlist.findIndex(t => t.id == track.id);
-                        if (this.playlistIndex === -1) this.playlistIndex = 0;
-                    } else {
-                        this.playlist = [track];
-                        this.playlistIndex = 0;
-                    }
-
-                    this.currentTrack = track;
-                    this.audio.src = '/tracks/stream/' + track.id;
-                    this.audio.play().catch(e => console.warn('Playback error:', e));
-
-                    document.getElementById('globalPlayer').style.display = 'block';
-                    document.getElementById('playerTrackName').textContent = track.title || 'Трек';
-                    document.getElementById('playerTrackArtist').textContent = track.artistName || 'Исполнитель';
-
-                    fetch('/tracks/record/' + track.id, { method: 'POST' }).catch(() => {});
-                    this.saveState();
-                },
-
-                playPlaylist: function(tracks) {
-                    if (tracks && tracks.length) {
-                        this.playTrack(tracks[0], tracks);
-                    }
-                },
-
-                togglePlay: function() {
-                    if (this.audio.paused) {
-                        this.audio.play().catch(() => {});
-                    } else {
-                        this.audio.pause();
-                    }
-                },
-
-                playPrevious: function() {
-                    if (!this.playlist.length) return;
-                    let idx;
-                    if (this.shuffle) {
-                        idx = Math.floor(Math.random() * this.playlist.length);
-                    } else {
-                        idx = this.playlistIndex - 1;
-                        if (idx < 0) idx = this.playlist.length - 1;
-                    }
-                    this.playTrack(this.playlist[idx], this.playlist);
-                },
-
-                playNext: function() {
-                    if (!this.playlist.length) return;
-                    let idx;
-                    if (this.shuffle) {
-                        idx = Math.floor(Math.random() * this.playlist.length);
-                    } else {
-                        idx = (this.playlistIndex + 1) % this.playlist.length;
-                    }
-                    this.playTrack(this.playlist[idx], this.playlist);
-                },
-
-                onTrackEnded: function() {
-                    if (this.repeat) {
-                        this.audio.currentTime = 0;
-                        this.audio.play().catch(() => {});
-                    } else {
-                        this.playNext();
-                    }
-                },
-
-                toggleShuffle: function() {
-                    this.shuffle = !this.shuffle;
-                    document.getElementById('playerShuffleBtn').style.color = this.shuffle ? 'var(--accent)' : '';
-                    this.saveState();
-                },
-
-                toggleRepeat: function() {
-                    this.repeat = !this.repeat;
-                    document.getElementById('playerRepeatBtn').style.color = this.repeat ? 'var(--accent)' : '';
-                    this.saveState();
-                },
-
-                setVolume: function(val) {
-                    this.volume = parseFloat(val);
-                    this.audio.volume = this.volume;
-                    this.saveState();
-                },
-
-                seek: function(e) {
-                    if (!this.audio.duration) return;
-                    const bar = document.getElementById('playerProgressBar');
-                    const rect = bar.getBoundingClientRect();
-                    const percent = (e.clientX - rect.left) / rect.width;
-                    this.audio.currentTime = percent * this.audio.duration;
-                },
-
-                updateProgress: function() {
-                    if (!this.audio.duration) return;
-                    const percent = (this.audio.currentTime / this.audio.duration) * 100;
-                    document.getElementById('playerProgressFilled').style.width = percent + '%';
-                    document.getElementById('playerTimeCurrent').textContent = this.formatTime(this.audio.currentTime);
-                },
-
-                updateDuration: function() {
-                    document.getElementById('playerTimeTotal').textContent = this.formatTime(this.audio.duration);
-                },
-
-                setPlayingState: function(playing) {
-                    document.getElementById('playerPlayPauseIcon').className = playing ? 'fas fa-pause' : 'fas fa-play';
-                },
-
-                formatTime: function(s) {
-                    if (isNaN(s)) return '0:00';
-                    const m = Math.floor(s / 60);
-                    const sec = Math.floor(s % 60);
-                    return m + ':' + (sec < 10 ? '0' : '') + sec;
-                },
-
-                saveState: function() {
-                    if (!this.currentTrack) return;
-                    localStorage.setItem('playerState', JSON.stringify({
-                        track: this.currentTrack,
-                        playlist: this.playlist,
-                        index: this.playlistIndex,
-                        time: this.audio.currentTime,
-                        volume: this.volume,
-                        shuffle: this.shuffle,
-                        repeat: this.repeat
-                    }));
-                },
-
-                loadState: function() {
-                    try {
-                        const state = JSON.parse(localStorage.getItem('playerState'));
-                        if (state && state.track) {
-                            this.currentTrack = state.track;
-                            this.playlist = state.playlist || [];
-                            this.playlistIndex = state.index || 0;
-                            this.volume = state.volume || 0.8;
-                            this.shuffle = state.shuffle || false;
-                            this.repeat = state.repeat || false;
-
-                            this.audio.volume = this.volume;
-                            this.audio.src = '/tracks/stream/' + state.track.id;
-                            this.audio.currentTime = state.time || 0;
-
-                            document.getElementById('globalPlayer').style.display = 'block';
-                            document.getElementById('playerTrackName').textContent = state.track.title || 'Трек';
-                            document.getElementById('playerTrackArtist').textContent = state.track.artistName || '';
-                        }
-                    } catch(e) {
-                        console.error('Failed to load player state', e);
-                    }
-                }
-            };
-
-            document.addEventListener('DOMContentLoaded', () => window.MusicPlayer.init());
-        })();
-
         // Поиск
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && this.value.trim()) {
-                    window.location.href = '/search?query=' + encodeURIComponent(this.value.trim());
-                }
-            });
-        });
-
-        // Вспомогательные функции
-        window.playTrack = function(trackId, title, artist, playlistData) {
-            const playlist = playlistData || [];
-            if (!playlist.length) {
-                document.querySelectorAll('[data-track-id]').forEach(el => {
-                    playlist.push({
-                        id: el.dataset.trackId,
-                        title: el.dataset.trackTitle || el.querySelector('.track-name, .card-title')?.textContent || '',
-                        artistName: el.dataset.trackArtist || el.querySelector('.track-artist, .card-subtitle')?.textContent || ''
-                    });
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && this.value.trim()) {
+                        window.location.href = '/search?query=' + encodeURIComponent(this.value.trim());
+                    }
                 });
             }
-            window.MusicPlayer.playTrack({ id: trackId, title: title, artistName: artist }, playlist);
+
+            // Настройка кнопок воспроизведения на странице
+            setupPlayButtons();
+        });
+
+        function setupPlayButtons() {
+            // Собираем все треки на странице для плейлиста
+            const playlist = [];
+            document.querySelectorAll('[data-track-id]').forEach(el => {
+                playlist.push({
+                    id: el.dataset.trackId,
+                    title: el.dataset.trackTitle || el.querySelector('.track-name, .card-title, .track-title')?.textContent || 'Трек',
+                    artistName: el.dataset.trackArtist || el.querySelector('.track-artist, .card-subtitle, .track-features')?.textContent || 'Исполнитель'
+                });
+            });
+
+            // Настройка обработчиков для треков
+            document.querySelectorAll('[data-track-id]').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    // Игнорируем клики по кнопкам действий
+                    if (e.target.closest('.track-actions, .action-btn, .like-btn, button')) return;
+
+                    const trackId = this.dataset.trackId;
+                    const trackTitle = this.dataset.trackTitle || this.querySelector('.track-name, .card-title, .track-title')?.textContent || 'Трек';
+                    const trackArtist = this.dataset.trackArtist || this.querySelector('.track-artist, .card-subtitle, .track-features')?.textContent || 'Исполнитель';
+
+                    if (window.MusicPlayer) {
+                        window.MusicPlayer.playTrack({ id: trackId, title: trackTitle, artistName: trackArtist }, playlist);
+                    }
+                });
+            });
+
+            // Настройка кнопок play на карточках
+            document.querySelectorAll('.play-button').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const card = this.closest('[data-track-id], .track-card, .card');
+                    if (card) {
+                        const trackId = card.dataset.trackId;
+                        const trackTitle = card.dataset.trackTitle || card.querySelector('.track-title, .card-title')?.textContent || 'Трек';
+                        const trackArtist = card.dataset.trackArtist || card.querySelector('.track-artist, .card-subtitle')?.textContent || 'Исполнитель';
+
+                        if (trackId && window.MusicPlayer) {
+                            window.MusicPlayer.playTrack({ id: trackId, title: trackTitle, artistName: trackArtist }, playlist);
+                        }
+                    }
+                });
+            });
+
+            // Настройка кнопок лайка
+            document.querySelectorAll('.like-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        if (icon.classList.contains('far')) {
+                            icon.classList.remove('far');
+                            icon.classList.add('fas');
+                            icon.style.color = 'var(--accent)';
+                        } else {
+                            icon.classList.remove('fas');
+                            icon.classList.add('far');
+                            icon.style.color = '';
+                        }
+                    }
+                });
+            });
+        }
+
+        // Глобальная функция для воспроизведения трека
+        window.playTrack = function(trackId, title, artist) {
+            const playlist = [];
+            document.querySelectorAll('[data-track-id]').forEach(el => {
+                playlist.push({
+                    id: el.dataset.trackId,
+                    title: el.dataset.trackTitle || el.querySelector('.track-name, .card-title')?.textContent || '',
+                    artistName: el.dataset.trackArtist || el.querySelector('.track-artist, .card-subtitle')?.textContent || ''
+                });
+            });
+
+            if (window.MusicPlayer) {
+                window.MusicPlayer.playTrack({ id: trackId, title: title, artistName: artist }, playlist);
+            }
         };
 
         window.playAlbum = function(albumId) {
-            fetch('/album/' + albumId + '/tracks')
+            fetch('/admin/albums/' + albumId + '/tracks')
                 .then(r => r.json())
                 .then(tracks => {
-                    if (tracks && tracks.length) {
+                    if (tracks && tracks.length && window.MusicPlayer) {
                         window.MusicPlayer.playPlaylist(tracks);
                     }
                 })
-                .catch(e => console.error('Error:', e));
+                .catch(e => console.error('Error loading album tracks:', e));
         };
         /*]]>*/
     </script>

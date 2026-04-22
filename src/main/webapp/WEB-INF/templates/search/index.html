@@ -580,6 +580,8 @@
 <!-- Глобальный плеер -->
 <div th:replace="fragments/player-fragment :: player"></div>
 
+<div th:replace="~{fragments/scripts :: scripts}"></div>
+
 <script th:inline="javascript">
     /*<![CDATA[*/
     document.addEventListener('DOMContentLoaded', function() {

@@ -57,7 +57,7 @@
             background-color: var(--secondary-bg, #181818);
             border-top: 1px solid var(--border-color, #333333);
             padding: 8px 20px;
-            z-index: 999;
+            z-index: 9999;
             box-shadow: 0 -4px 10px rgba(0,0,0,0.3);
         }
 
@@ -221,8 +221,18 @@
     <script th:inline="javascript">
         /*<![CDATA[*/
         (function() {
-            // Предотвращаем двойную инициализацию
-            if (window.MusicPlayer && window.MusicPlayer.initialized) return;
+            // Проверяем, не инициализирован ли уже плеер
+            if (window.MusicPlayerInitialized) {
+                // Плеер уже инициализирован, просто восстанавливаем UI
+                setTimeout(() => {
+                    if (window.MusicPlayer) {
+                        window.MusicPlayer.restoreUI();
+                    }
+                }, 100);
+                return;
+            }
+
+            window.MusicPlayerInitialized = true;
 
             // Глобальный объект плеера
             window.MusicPlayer = {
@@ -240,6 +250,7 @@
                 init: function() {
                     if (this.initialized) return;
 
+                    // Создаем новый аудио элемент или используем существующий
                     this.audio = new Audio();
                     this.audio.volume = this.volume;
                     this.audio.crossOrigin = 'anonymous';
@@ -250,21 +261,15 @@
                     // Привязка событий
                     this.bindEvents();
 
-                    // Если был сохранён трек, отображаем плеер и загружаем метаданные
-                    if (this.currentTrack) {
-                        this.showPlayer();
-                        this.updateTrackInfo(this.currentTrack);
-                        this.audio.src = '/tracks/stream/' + this.currentTrack.id;
-                        this.audio.load();
-                        if (this.savedTime > 0) {
-                            this.audio.currentTime = this.savedTime;
-                        }
-                    }
+                    // Восстанавливаем UI из сохраненного состояния
+                    this.restoreUI();
 
-                    // Сохраняем состояние перед уходом со страницы
+                    // Сохраняем состояние периодически и перед уходом со страницы
+                    setInterval(() => this.saveState(), 1000);
                     window.addEventListener('beforeunload', () => this.saveState());
 
                     this.initialized = true;
+                    console.log('MusicPlayer initialized');
                 },
 
                 bindEvents: function() {
@@ -290,11 +295,61 @@
                     this.audio.addEventListener('play', () => this.setPlayingState(true));
                     this.audio.addEventListener('pause', () => this.setPlayingState(false));
                     this.audio.addEventListener('volumechange', () => this.updateVolumeIcon());
+                    this.audio.addEventListener('canplay', () => {
+                        console.log('Audio can play');
+                        // Если трек должен играть, запускаем
+                        if (this.isPlaying) {
+                            this.audio.play().catch(e => console.warn('Auto-play failed:', e));
+                        }
+                    });
+                    this.audio.addEventListener('error', (e) => {
+                        console.error('Audio error:', e);
+                    });
+                },
+
+                restoreUI: function() {
+                    // Показываем плеер если есть текущий трек
+                    if (this.currentTrack) {
+                        document.getElementById('globalPlayer').style.display = 'block';
+                        document.getElementById('playerTrackName').textContent = this.currentTrack.title || 'Неизвестный трек';
+                        document.getElementById('playerTrackArtist').textContent = this.currentTrack.artistName || 'Неизвестный исполнитель';
+
+                        // Восстанавливаем прогресс
+                        if (this.audio && !isNaN(this.audio.duration)) {
+                            this.updateDuration();
+                            this.updateProgress();
+                        }
+                    }
+
+                    // Восстанавливаем состояние кнопок
+                    const playIcon = document.getElementById('playerPlayPauseIcon');
+                    if (playIcon) {
+                        playIcon.className = this.isPlaying ? 'fas fa-pause' : 'fas fa-play';
+                    }
+
+                    const shuffleBtn = document.getElementById('playerShuffleBtn');
+                    if (shuffleBtn) {
+                        shuffleBtn.style.color = this.shuffle ? 'var(--accent)' : '';
+                    }
+
+                    const repeatBtn = document.getElementById('playerRepeatBtn');
+                    if (repeatBtn) {
+                        repeatBtn.style.color = this.repeat ? 'var(--accent)' : '';
+                    }
+
+                    const volumeSlider = document.getElementById('playerVolumeSlider');
+                    if (volumeSlider) {
+                        volumeSlider.value = this.volume;
+                    }
+
+                    this.updateVolumeIcon();
                 },
 
                 // Публичные методы для вызова с других страниц
                 playTrack: function(track, playlist) {
                     if (!track) return;
+
+                    console.log('Playing track:', track);
 
                     if (playlist && playlist.length > 0) {
                         this.playlist = playlist;
@@ -306,13 +361,21 @@
                     }
 
                     this.currentTrack = track;
-                    this.audio.src = '/tracks/stream/' + track.id;
-                    this.audio.play().catch(e => {
-                        console.warn('Autoplay blocked, user interaction required');
-                        // Показываем плеер, но не воспроизводим
-                        this.showPlayer();
-                        this.updateTrackInfo(track);
+
+                    // Устанавливаем источник только если он изменился
+                    const newSrc = '/tracks/stream/' + track.id;
+                    if (this.audio.src !== newSrc) {
+                        this.audio.src = newSrc;
+                        this.audio.load();
+                    }
+
+                    // Запускаем воспроизведение
+                    this.audio.play().then(() => {
+                        console.log('Playback started');
+                    }).catch(e => {
+                        console.warn('Playback failed, will retry on user interaction', e);
                     });
+
                     this.showPlayer();
                     this.updateTrackInfo(track);
                     this.saveState();
@@ -328,7 +391,10 @@
                 },
 
                 togglePlay: function() {
-                    if (!this.currentTrack) return;
+                    if (!this.currentTrack) {
+                        console.log('No track to play');
+                        return;
+                    }
 
                     if (this.audio.paused) {
                         this.audio.play().catch(e => console.warn('Playback failed'));
@@ -453,6 +519,8 @@
                 },
 
                 saveState: function() {
+                    if (!this.currentTrack) return;
+
                     const state = {
                         currentTrack: this.currentTrack,
                         playlist: this.playlist,
@@ -464,6 +532,7 @@
                         isPlaying: this.audio ? !this.audio.paused : false
                     };
                     localStorage.setItem('musicPlayerState', JSON.stringify(state));
+                    console.log('State saved, isPlaying:', state.isPlaying, 'time:', state.currentTime);
                 },
 
                 loadState: function() {
@@ -471,6 +540,8 @@
                     if (saved) {
                         try {
                             const state = JSON.parse(saved);
+                            console.log('Loading saved state:', state);
+
                             this.currentTrack = state.currentTrack;
                             this.playlist = state.playlist || [];
                             this.playlistIndex = state.playlistIndex || 0;
@@ -478,7 +549,32 @@
                             this.volume = state.volume || 0.8;
                             this.shuffle = state.shuffle || false;
                             this.repeat = state.repeat || false;
+                            this.isPlaying = state.isPlaying || false;
+
                             this.audio.volume = this.volume;
+
+                            // Если был активный трек, восстанавливаем его
+                            if (this.currentTrack) {
+                                this.audio.src = '/tracks/stream/' + this.currentTrack.id;
+                                this.audio.load();
+
+                                // Устанавливаем текущее время после загрузки метаданных
+                                const setTime = () => {
+                                    if (!isNaN(this.audio.duration) && this.savedTime > 0) {
+                                        this.audio.currentTime = this.savedTime;
+                                    }
+                                    this.audio.removeEventListener('loadedmetadata', setTime);
+                                };
+                                this.audio.addEventListener('loadedmetadata', setTime);
+
+                                // Если трек должен играть, запускаем
+                                if (this.isPlaying) {
+                                    this.audio.play().catch(e => {
+                                        console.warn('Auto-play blocked, will play on user interaction');
+                                        this.isPlaying = false;
+                                    });
+                                }
+                            }
 
                             // Восстанавливаем визуальное состояние кнопок
                             if (this.shuffle) {
@@ -502,6 +598,33 @@
             } else {
                 window.MusicPlayer.init();
             }
+
+            // Экспортируем функции для глобального использования
+            window.playTrack = function(trackId, title, artist, playlistData) {
+                const playlist = playlistData || [];
+                if (!playlist.length) {
+                    // Собираем плейлист из data-атрибутов на странице
+                    document.querySelectorAll('[data-track-id]').forEach(el => {
+                        playlist.push({
+                            id: el.dataset.trackId,
+                            title: el.dataset.trackTitle || el.querySelector('.track-name, .card-title, .track-title')?.textContent || '',
+                            artistName: el.dataset.trackArtist || el.querySelector('.track-artist, .card-subtitle')?.textContent || ''
+                        });
+                    });
+                }
+                window.MusicPlayer.playTrack({ id: trackId, title: title, artistName: artist }, playlist);
+            };
+
+            window.playAlbum = function(albumId) {
+                fetch('/admin/albums/' + albumId + '/tracks')
+                    .then(r => r.json())
+                    .then(tracks => {
+                        if (tracks && tracks.length) {
+                            window.MusicPlayer.playPlaylist(tracks);
+                        }
+                    })
+                    .catch(e => console.error('Error:', e));
+            };
         })();
         /*]]>*/
     </script>
