@@ -40,6 +40,7 @@ public class PlaylistService {
     }
 
     // Вывести по юзеру
+    @Transactional(readOnly = true)
     public List<PlaylistDTO> findByUserId(Integer userId) {
         return playlistRepository.findByUserIdOrderByCreatedDateDesc(userId)
                 .stream()
@@ -47,17 +48,34 @@ public class PlaylistService {
                 .collect(Collectors.toList());
     }
 
-    // Вывести по айди
+    // Вывести по айди (обычный, без eager loading)
     public Optional<Playlist> findById(Integer id) {
         return playlistRepository.findById(id);
     }
 
-    // Получить треки по плейлисту
+    // Найти плейлист с пользователем и треками (все связи загружены eagerly)
+    @Transactional(readOnly = true)
+    public Optional<Playlist> findByIdWithUser(Integer id) {
+        return playlistRepository.findByIdWithUser(id);
+    }
+
+    // Получить треки плейлиста (с загруженными связями)
+    @Transactional(readOnly = true)
     public List<Track> getTracks(Integer playlistId) {
-        return playlistTrackRepository.findByPlaylistIdOrdered(playlistId)
-                .stream()
+        List<PlaylistTrack> playlistTracks = playlistTrackRepository.findByPlaylistIdOrdered(playlistId);
+        return playlistTracks.stream()
                 .map(PlaylistTrack::getTrack)
                 .collect(Collectors.toList());
+    }
+
+    // Получить DTO плейлиста с полностью загруженными данными
+    @Transactional(readOnly = true)
+    public Optional<PlaylistDTO> findDTOById(Integer id) {
+        return playlistRepository.findByIdWithUser(id)
+                .map(playlist -> {
+                    List<PlaylistTrack> tracks = playlistTrackRepository.findByPlaylistIdOrdered(id);
+                    return new PlaylistDTO(playlist, tracks);
+                });
     }
 
     // Добавить треки в плейлист
@@ -100,11 +118,12 @@ public class PlaylistService {
     // Удалить плейлист
     @Transactional
     public void delete(Integer id) {
-        playlistTrackRepository.deleteByPlaylistId(id); // Сначала удаляем связи
-        playlistRepository.deleteById(id); // Потом сам плейлист
+        playlistTrackRepository.deleteByPlaylistId(id);
+        playlistRepository.deleteById(id);
     }
 
     // Публичные плейлисты
+    @Transactional(readOnly = true)
     public List<PlaylistDTO> findPublicPlaylistsDTO() {
         return playlistRepository.findPublicPlaylists()
                 .stream()

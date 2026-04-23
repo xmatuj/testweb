@@ -2,6 +2,7 @@ package com.musicstreaming.repository;
 
 import com.musicstreaming.model.PlaylistTrack;
 import com.musicstreaming.model.PlaylistTrack.PlaylistTrackId;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +14,8 @@ import java.util.List;
 @Repository
 public interface PlaylistTrackRepository extends JpaRepository<PlaylistTrack, PlaylistTrackId> {
 
+    // Загружаем треки вместе с artist, album, genre чтобы избежать LazyInitializationException
+    @EntityGraph(attributePaths = {"track", "track.artist", "track.album", "track.genre"})
     @Query("SELECT pt FROM PlaylistTrack pt WHERE pt.playlist.id = :playlistId ORDER BY pt.position ASC, pt.addedDate ASC")
     List<PlaylistTrack> findByPlaylistIdOrdered(@Param("playlistId") Integer playlistId);
 

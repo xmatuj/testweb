@@ -1,5 +1,6 @@
 package com.musicstreaming.controller;
 
+import com.musicstreaming.dto.PlaylistDTO;
 import com.musicstreaming.model.Playlist;
 import com.musicstreaming.model.Track;
 import com.musicstreaming.model.User;
@@ -80,21 +81,23 @@ public class PlaylistController {
                                RedirectAttributes redirectAttributes) {
         User currentUser = authService.getCurrentUser(request);
 
-        Playlist playlist = playlistService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid playlist Id"));
+        // Получаем DTO с полностью загруженными данными
+        PlaylistDTO playlistDTO = playlistService.findDTOById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Неверный ID плейлиста: " + id));
 
         // Проверка доступа к приватному плейлисту
-        if (playlist.getVisibility() == Playlist.PlaylistVisibility.Private) {
-            if (currentUser == null || !currentUser.getId().equals(playlist.getUser().getId())) {
+        if (!playlistDTO.isPublic()) {
+            if (currentUser == null || !currentUser.getId().equals(playlistDTO.getUserId())) {
                 redirectAttributes.addFlashAttribute("error", "У вас нет доступа к этому плейлисту");
                 return "redirect:/playlists";
             }
         }
 
+        // Получаем треки плейлиста
         List<Track> tracks = playlistService.getTracks(id);
         List<Track> availableTracks = trackService.findModerated();
 
-        model.addAttribute("playlist", playlist);
+        model.addAttribute("playlist", playlistDTO);
         model.addAttribute("tracks", tracks);
         model.addAttribute("availableTracks", availableTracks);
         model.addAttribute("currentUser", currentUser);
@@ -154,8 +157,8 @@ public class PlaylistController {
             return "redirect:/account/login";
         }
 
-        Playlist playlist = playlistService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid playlist Id"));
+        Playlist playlist = playlistService.findByIdWithUser(id)
+                .orElseThrow(() -> new IllegalArgumentException("Неверный ID плейлиста: " + id));
 
         if (!currentUser.getId().equals(playlist.getUser().getId()) && !currentUser.isAdmin()) {
             redirectAttributes.addFlashAttribute("error", "Вы не можете редактировать этот плейлист");
@@ -177,10 +180,10 @@ public class PlaylistController {
             return "redirect:/account/login";
         }
 
-        Playlist playlist = playlistService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid playlist Id"));
+        PlaylistDTO playlistDTO = playlistService.findDTOById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Неверный ID плейлиста: " + id));
 
-        if (!currentUser.getId().equals(playlist.getUser().getId()) && !currentUser.isAdmin()) {
+        if (!currentUser.getId().equals(playlistDTO.getUserId()) && !currentUser.isAdmin()) {
             redirectAttributes.addFlashAttribute("error", "Вы не можете удалить этот плейлист");
             return "redirect:/playlists";
         }

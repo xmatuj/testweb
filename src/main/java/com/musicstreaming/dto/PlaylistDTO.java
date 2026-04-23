@@ -10,6 +10,7 @@ public class PlaylistDTO {
     private Integer id;
     private String title;
     private String description;
+    private Integer userId;
     private String username;
     private Playlist.PlaylistVisibility visibility;
     private LocalDateTime createdDate;
@@ -22,21 +23,23 @@ public class PlaylistDTO {
         this.id = playlist.getId();
         this.title = playlist.getTitle();
         this.description = playlist.getDescription();
+        this.userId = playlist.getUser() != null ? playlist.getUser().getId() : null;
         this.username = playlist.getUser() != null ? playlist.getUser().getUsername() : null;
         this.visibility = playlist.getVisibility();
         this.createdDate = playlist.getCreatedDate();
         this.updatedDate = playlist.getUpdatedDate();
         this.coverImagePath = playlist.getCoverImagePath();
-        this.trackCount = tracks.size();
-        this.totalDuration = tracks.stream()
+        this.trackCount = tracks != null ? tracks.size() : 0;
+        this.totalDuration = tracks != null ? tracks.stream()
                 .mapToInt(pt -> pt.getTrack() != null ? pt.getTrack().getDuration() : 0)
-                .sum();
+                .sum() : 0;
     }
 
     // Getters
     public Integer getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
+    public Integer getUserId() { return userId; }
     public String getUsername() { return username; }
     public Playlist.PlaylistVisibility getVisibility() { return visibility; }
     public LocalDateTime getCreatedDate() { return createdDate; }
@@ -47,5 +50,11 @@ public class PlaylistDTO {
 
     public boolean isPublic() {
         return visibility == Playlist.PlaylistVisibility.Public;
+    }
+
+    // Для форматированного отображения длительности
+    public String getFormattedTotalDuration() {
+        int minutes = totalDuration / 60;
+        return minutes + " мин";
     }
 }
