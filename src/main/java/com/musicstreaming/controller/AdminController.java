@@ -62,6 +62,8 @@ public class AdminController {
 
         User currentUser = authService.getCurrentUser(request);
         model.addAttribute("currentUser", currentUser);
+        model.addAttribute("pageTitle", "Панель управления");
+        model.addAttribute("activePage", "dashboard");
 
         try {
             List<User> allUsers = userService.findAll();
@@ -99,6 +101,8 @@ public class AdminController {
 
         User currentUser = authService.getCurrentUser(request);
         model.addAttribute("currentUser", currentUser);
+        model.addAttribute("pageTitle", "Управление пользователями");
+        model.addAttribute("activePage", "users");
 
         List<User> users;
         if (search != null && !search.isEmpty()) {
@@ -238,6 +242,8 @@ public class AdminController {
 
         User currentUser = authService.getCurrentUser(request);
         model.addAttribute("currentUser", currentUser);
+        model.addAttribute("pageTitle", "Управление треками");
+        model.addAttribute("activePage", "tracks");
 
         try {
             List<Track> tracks;
@@ -337,6 +343,7 @@ public class AdminController {
                             @RequestParam(required = false) Integer albumId,
                             @RequestParam(required = false) Integer genreId,
                             @RequestParam(value = "audioFile", required = false) MultipartFile audioFile,
+                            @RequestParam(required = false) Boolean moderated,
                             HttpServletRequest request,
                             RedirectAttributes redirectAttributes) {
 
@@ -348,6 +355,23 @@ public class AdminController {
         try {
             User currentUser = authService.getCurrentUser(request);
 
+            // Если это существующий трек (редактирование), загружаем его из базы
+            if (track.getId() != null) {
+                Track existingTrack = trackService.findById(track.getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Трек не найден: " + track.getId()));
+
+                // Сохраняем filePath из существующего трека, если не загружен новый файл
+                if (audioFile == null || audioFile.isEmpty()) {
+                    track.setFilePath(existingTrack.getFilePath());
+                }
+
+                // Сохраняем uploadedByUser из существующего трека
+                if (track.getUploadedByUser() == null) {
+                    track.setUploadedByUser(existingTrack.getUploadedByUser());
+                }
+            }
+
+            // Установка связей
             if (artistId != null && artistId > 0) {
                 artistService.findById(artistId).ifPresent(track::setArtist);
             }
@@ -360,7 +384,7 @@ public class AdminController {
                 genreService.findById(genreId).ifPresent(track::setGenre);
             }
 
-            // Обработка загрузки файла
+            // Обработка загрузки нового файла
             if (audioFile != null && !audioFile.isEmpty()) {
                 logger.info("Processing uploaded file: {}, size: {} bytes",
                         audioFile.getOriginalFilename(), audioFile.getSize());
@@ -396,34 +420,41 @@ public class AdminController {
 
                 // Сохраняем только имя файла в БД (не полный путь)
                 track.setFilePath(filename);
-
-                // Пытаемся определить длительность (опционально)
-                try {
-                    if (track.getDuration() == null || track.getDuration() == 0) {
-                        track.setDuration(180); // 3 минуты по умолчанию
-                    }
-                } catch (Exception e) {
-                    logger.warn("Could not determine duration", e);
-                }
-            } else {
-                logger.info("No audio file provided, keeping existing file path: {}", track.getFilePath());
             }
 
-            if (track.getId() == null) {
+            // Устанавливаем длительность по умолчанию, если не задана
+            if (track.getDuration() == null || track.getDuration() == 0) {
+                track.setDuration(180); // 3 минуты по умолчанию
+            }
+
+            // Обработка статуса модерации
+            if (moderated != null) {
+                track.setModerated(moderated);
+            }
+
+            if (track.getUploadedByUser() == null && currentUser != null) {
                 track.setUploadedByUser(currentUser);
-                trackService.save(track);
-                redirectAttributes.addFlashAttribute("success", "Трек успешно создан");
-                logger.info("Created new track with id: {}", track.getId());
-            } else {
-                trackService.save(track);
+            }
+
+            // Сохраняем трек
+            trackService.save(track);
+
+            if (track.getId() != null) {
                 redirectAttributes.addFlashAttribute("success", "Трек успешно обновлён");
                 logger.info("Updated track with id: {}", track.getId());
+            } else {
+                redirectAttributes.addFlashAttribute("success", "Трек успешно создан");
+                logger.info("Created new track with id: {}", track.getId());
             }
 
         } catch (Exception e) {
             logger.error("Error saving track", e);
             redirectAttributes.addFlashAttribute("error", "Ошибка при сохранении: " + e.getMessage());
-            return "redirect:/admin/tracks/edit/" + (track.getId() != null ? track.getId() : "");
+
+            if (track.getId() != null) {
+                return "redirect:/admin/tracks/edit/" + track.getId();
+            }
+            return "redirect:/admin/tracks/new";
         }
 
         return "redirect:/admin/tracks";
@@ -560,6 +591,8 @@ public class AdminController {
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("pendingTracks", trackService.findPendingModeration());
         model.addAttribute("pendingCount", trackService.findPendingModeration().size());
+        model.addAttribute("pageTitle", "Модерация контента");
+        model.addAttribute("activePage", "moderation");
 
         return "admin/moderation";
     }

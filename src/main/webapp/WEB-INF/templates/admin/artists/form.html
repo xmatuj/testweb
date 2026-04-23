@@ -11,23 +11,7 @@
 <body>
 <div class="admin-layout">
     <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <i class="fas fa-crown"></i>
-                <span class="logo-text">Админ</span>
-            </div>
-        </div>
-        <nav class="sidebar-menu">
-            <div class="menu-section">
-                <div class="menu-title">Контент</div>
-                <a href="/admin/artists" class="menu-item active">
-                    <div class="menu-icon"><i class="fas fa-user"></i></div>
-                    <div class="menu-text">Исполнители</div>
-                </a>
-            </div>
-        </nav>
-    </aside>
+    <div th:replace="admin/fragments/sidebar :: sidebar"></div>
 
     <!-- Main Content -->
     <main class="main-content">

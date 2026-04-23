@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="topbar" class="top-bar">
+    <div class="container top-bar-content">
+        <h1 class="page-title" th:text="${pageTitle}">Панель управления</h1>
+        <div class="user-info">
+            <div class="user-avatar" th:text="${currentUser != null ? #strings.substring(currentUser.username, 0, 1) : 'A'}">A</div>
+            <span th:text="${currentUser != null ? currentUser.username : 'Admin'}">Admin</span>
+        </div>
+    </div>
+</header>
+</body>
+</html>

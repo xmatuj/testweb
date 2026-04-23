@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside th:fragment="sidebar" class="sidebar">
+    <div class="sidebar-header">
+        <a href="/admin" class="logo">
+            <i class="fas fa-crown"></i>
+            <span class="logo-text">Админ</span>
+        </a>
+    </div>
+
+    <nav class="sidebar-menu">
+        <div class="menu-section">
+            <div class="menu-title">Главная</div>
+            <a href="/admin" class="menu-item" th:classappend="${activePage == 'dashboard' ? 'active' : ''}">
+                <span class="menu-icon"><i class="fas fa-tachometer-alt"></i></span>
+                <span class="menu-text">Дашборд</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-title">Контент</div>
+            <a href="/admin/tracks" class="menu-item" th:classappend="${activePage == 'tracks' ? 'active' : ''}">
+                <span class="menu-icon"><i class="fas fa-music"></i></span>
+                <span class="menu-text">Треки</span>
+            </a>
+            <a href="/admin/albums" class="menu-item" th:classappend="${activePage == 'albums' ? 'active' : ''}">
+                <span class="menu-icon"><i class="fas fa-compact-disc"></i></span>
+                <span class="menu-text">Альбомы</span>
+            </a>
+            <a href="/admin/artists" class="menu-item" th:classappend="${activePage == 'artists' ? 'active' : ''}">
+                <span class="menu-icon"><i class="fas fa-user"></i></span>
+                <span class="menu-text">Исполнители</span>
+            </a>
+            <a href="/admin/genres" class="menu-item" th:classappend="${activePage == 'genres' ? 'active' : ''}">
+                <span class="menu-icon"><i class="fas fa-tags"></i></span>
+                <span class="menu-text">Жанры</span>
+            </a>
+            <a href="/admin/moderation" class="menu-item" th:classappend="${activePage == 'moderation' ? 'active' : ''}">
+                <span class="menu-icon"><i class="fas fa-check-circle"></i></span>
+                <span class="menu-text">Модерация</span>
+                <span class="menu-badge" th:text="${pendingCount}">0</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-title">Пользователи</div>
+            <a href="/admin/users" class="menu-item" th:classappend="${activePage == 'users' ? 'active' : ''}">
+                <span class="menu-icon"><i class="fas fa-users"></i></span>
+                <span class="menu-text">Пользователи</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-title">Навигация</div>
+            <a href="/" class="menu-item">
+                <span class="menu-icon"><i class="fas fa-arrow-left"></i></span>
+                <span class="menu-text">На сайт</span>
+            </a>
+            <a href="/account/profile" class="menu-item">
+                <span class="menu-icon"><i class="fas fa-user-circle"></i></span>
+                <span class="menu-text">Мой профиль</span>
+            </a>
+            <form th:action="@{/account/logout}" method="post">
+                <button type="submit" class="menu-item logout-btn">
+                    <span class="menu-icon"><i class="fas fa-sign-out-alt"></i></span>
+                    <span class="menu-text">Выйти</span>
+                </button>
+            </form>
+        </div>
+    </nav>
+</aside>
+</body>
+</html>
