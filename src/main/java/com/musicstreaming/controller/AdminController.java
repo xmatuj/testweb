@@ -1,3 +1,4 @@
+// src/main/java/com/musicstreaming/controller/AdminController.java
 package com.musicstreaming.controller;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -13,13 +14,18 @@ import com.musicstreaming.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -40,7 +46,7 @@ public class AdminController {
     public AdminController(UserService userService, TrackService trackService,
                            AdminService adminService, AuthService authService,
                            ArtistService artistService, AlbumService albumService,
-                           GenreService genreService, PlaylistService playlistService) {  // Добавлен параметр
+                           GenreService genreService, PlaylistService playlistService) {
         this.userService = userService;
         this.trackService = trackService;
         this.adminService = adminService;
@@ -227,6 +233,7 @@ public class AdminController {
 
         return "redirect:/admin/users";
     }
+
 
     // ==================== TRACK MANAGEMENT ====================
 
@@ -527,56 +534,282 @@ public class AdminController {
         return "redirect:/admin/tracks";
     }
 
-    // ==================== OTHER MANAGEMENT PAGES ====================
+    // ==================== ALBUM MANAGEMENT ====================
 
-//    @GetMapping("/albums")
-//    public String albums(Model model, HttpServletRequest request,
-//                         RedirectAttributes redirectAttributes) {
-//
-//        if (!authService.isAdmin(request)) {
-//            redirectAttributes.addFlashAttribute("error", "Access denied");
-//            return "redirect:/";
-//        }
-//
-//        User currentUser = authService.getCurrentUser(request);
-//        model.addAttribute("currentUser", currentUser);
-//        model.addAttribute("albums", albumService.findAll());
-//        model.addAttribute("artists", artistService.findAll());
-//
-//        return "admin/albums";
-//    }
+    @GetMapping("/albums")
+    public String albums(Model model, HttpServletRequest request,
+                         RedirectAttributes redirectAttributes) {
 
-//    @GetMapping("/artists")
-//    public String artists(Model model, HttpServletRequest request,
-//                          RedirectAttributes redirectAttributes) {
-//
-//        if (!authService.isAdmin(request)) {
-//            redirectAttributes.addFlashAttribute("error", "Access denied");
-//            return "redirect:/";
-//        }
-//
-//        User currentUser = authService.getCurrentUser(request);
-//        model.addAttribute("currentUser", currentUser);
-//        model.addAttribute("artists", artistService.findAll());
-//
-//        return "admin/artists";
-//    }
+        if (!authService.isAdmin(request)) {
+            redirectAttributes.addFlashAttribute("error", "Access denied");
+            return "redirect:/";
+        }
 
-//    @GetMapping("/genres")
-//    public String genres(Model model, HttpServletRequest request,
-//                         RedirectAttributes redirectAttributes) {
-//
-//        if (!authService.isAdmin(request)) {
-//            redirectAttributes.addFlashAttribute("error", "Access denied");
-//            return "redirect:/";
-//        }
-//
-//        User currentUser = authService.getCurrentUser(request);
-//        model.addAttribute("currentUser", currentUser);
-//        model.addAttribute("genres", genreService.findAll());
-//
-//        return "admin/genres";
-//    }
+        User currentUser = authService.getCurrentUser(request);
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("albums", albumService.findAll());
+        model.addAttribute("artists", artistService.findAll());
+        model.addAttribute("pageTitle", "Управление альбомами");
+        model.addAttribute("activePage", "albums");
+
+        return "admin/albums/list";
+    }
+
+    @GetMapping("/albums/new")
+    public String newAlbumForm(Model model, HttpServletRequest request,
+                               RedirectAttributes redirectAttributes) {
+
+        if (!authService.isAdmin(request)) {
+            redirectAttributes.addFlashAttribute("error", "Access denied");
+            return "redirect:/";
+        }
+
+        User currentUser = authService.getCurrentUser(request);
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("album", new Album());
+        model.addAttribute("artists", artistService.findAll());
+        model.addAttribute("pageTitle", "Добавление альбома");
+        model.addAttribute("activePage", "albums");
+
+        return "admin/album-form";
+    }
+
+    @PostMapping("/albums/save")
+    public String saveAlbum(@RequestParam(required = false) Integer id,
+                            @RequestParam String title,
+                            @RequestParam Integer artistId,
+                            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate releaseDate,
+                            @RequestParam(required = false) String coverPath,
+                            HttpServletRequest request,
+                            RedirectAttributes redirectAttributes) {
+
+        if (!authService.isAdmin(request)) {
+            redirectAttributes.addFlashAttribute("error", "Access denied");
+            return "redirect:/";
+        }
+
+        try {
+            Album album;
+
+            if (id != null) {
+                album = albumService.findById(id)
+                        .orElseThrow(() -> new IllegalArgumentException("Album not found: " + id));
+            } else {
+                album = new Album();
+            }
+
+            album.setTitle(title);
+            album.setReleaseDate(releaseDate);
+            album.setCoverPath(coverPath);
+
+            artistService.findById(artistId).ifPresent(album::setArtist);
+
+            albumService.save(album);
+
+            if (id != null) {
+                redirectAttributes.addFlashAttribute("success", "Альбом успешно обновлен");
+                logger.info("Updated album with id: {}", album.getId());
+            } else {
+                redirectAttributes.addFlashAttribute("success", "Альбом успешно создан");
+                logger.info("Created new album with id: {}", album.getId());
+            }
+
+        } catch (Exception e) {
+            logger.error("Error saving album", e);
+            redirectAttributes.addFlashAttribute("error", "Ошибка при сохранении: " + e.getMessage());
+
+            if (id != null) {
+                return "redirect:/admin/albums/edit/" + id;
+            }
+            return "redirect:/admin/albums/new";
+        }
+        return "redirect:/admin/albums";
+    }
+
+    @GetMapping("/albums/edit/{id}")
+    public String editAlbumForm(@PathVariable Integer id, Model model,
+                                HttpServletRequest request,
+                                RedirectAttributes redirectAttributes) {
+
+        if (!authService.isAdmin(request)) {
+            redirectAttributes.addFlashAttribute("error", "Access denied");
+            return "redirect:/";
+        }
+
+        User currentUser = authService.getCurrentUser(request);
+        Album album = albumService.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid album Id: " + id));
+
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("album", album);
+        model.addAttribute("artists", artistService.findAll());
+        model.addAttribute("pageTitle", "Редактирование альбома");
+        model.addAttribute("activePage", "albums");
+
+        return "admin/album-form";
+    }
+
+    @GetMapping("/albums/{id}")
+    public String viewAlbum(@PathVariable Integer id, Model model,
+                            HttpServletRequest request,
+                            RedirectAttributes redirectAttributes) {
+
+        if (!authService.isAdmin(request)) {
+            redirectAttributes.addFlashAttribute("error", "Access denied");
+            return "redirect:/";
+        }
+
+        User currentUser = authService.getCurrentUser(request);
+        Album album = albumService.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid album Id: " + id));
+
+        // Записываем прослушивание альбома
+        albumService.recordAlbumPlay(id);
+
+        List<Track> tracks = albumService.getAlbumTracks(id);
+        Long totalListens = albumService.getTotalListenCount(id);
+        int totalDuration = tracks.stream()
+                .mapToInt(track -> track.getDuration() != null ? track.getDuration() : 0)
+                .sum();
+
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("album", album);
+        model.addAttribute("tracks", tracks);
+        model.addAttribute("totalListens", totalListens);
+        model.addAttribute("totalDuration", totalDuration);
+        model.addAttribute("pageTitle", album.getTitle());
+        model.addAttribute("activePage", "albums");
+
+        return "admin/albums/view";
+    }
+
+    @PostMapping("/albums/delete/{id}")
+    public String deleteAlbum(@PathVariable Integer id,
+                              HttpServletRequest request,
+                              RedirectAttributes redirectAttributes) {
+
+        if (!authService.isAdmin(request)) {
+            redirectAttributes.addFlashAttribute("error", "Access denied");
+            return "redirect:/";
+        }
+
+        try {
+            albumService.deleteAlbum(id);
+            redirectAttributes.addFlashAttribute("success", "Альбом удален");
+        } catch (Exception e) {
+            logger.error("Error deleting album", e);
+            redirectAttributes.addFlashAttribute("error", "Ошибка при удалении: " + e.getMessage());
+        }
+
+        return "redirect:/admin/albums";
+    }
+
+    // ==================== GENRE MANAGEMENT ====================
+
+    @GetMapping("/genres")
+    public String genres(Model model, HttpServletRequest request,
+                         RedirectAttributes redirectAttributes) {
+
+        if (!authService.isAdmin(request)) {
+            redirectAttributes.addFlashAttribute("error", "Access denied");
+            return "redirect:/";
+        }
+
+        User currentUser = authService.getCurrentUser(request);
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("genres", genreService.findAllDTOs());
+        model.addAttribute("pageTitle", "Управление жанрами");
+        model.addAttribute("activePage", "genres");
+
+        return "admin/genres/list";
+    }
+
+    @GetMapping("/genres/new")
+    public String newGenreForm(Model model, HttpServletRequest request,
+                               RedirectAttributes redirectAttributes) {
+
+        if (!authService.isAdmin(request)) {
+            redirectAttributes.addFlashAttribute("error", "Access denied");
+            return "redirect:/";
+        }
+
+        User currentUser = authService.getCurrentUser(request);
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("genre", new Genre());
+        model.addAttribute("pageTitle", "Добавление жанра");
+        model.addAttribute("activePage", "genres");
+
+        return "admin/genres/form";
+    }
+
+    @PostMapping("/genres/save")
+    public String saveGenre(@ModelAttribute Genre genre,
+                            HttpServletRequest request,
+                            RedirectAttributes redirectAttributes) {
+
+        if (!authService.isAdmin(request)) {
+            redirectAttributes.addFlashAttribute("error", "Access denied");
+            return "redirect:/";
+        }
+
+        try {
+            genreService.save(genre);
+            redirectAttributes.addFlashAttribute("success", "Жанр сохранен");
+        } catch (Exception e) {
+            logger.error("Error saving genre", e);
+            redirectAttributes.addFlashAttribute("error", "Ошибка при сохранении: " + e.getMessage());
+        }
+
+        return "redirect:/admin/genres";
+    }
+
+    @GetMapping("/genres/edit/{id}")
+    public String editGenreForm(@PathVariable Integer id, Model model,
+                                HttpServletRequest request,
+                                RedirectAttributes redirectAttributes) {
+
+        if (!authService.isAdmin(request)) {
+            redirectAttributes.addFlashAttribute("error", "Access denied");
+            return "redirect:/";
+        }
+
+        User currentUser = authService.getCurrentUser(request);
+        Genre genre = genreService.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid genre Id: " + id));
+
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("genre", genre);
+        model.addAttribute("pageTitle", "Редактирование жанра");
+        model.addAttribute("activePage", "genres");
+
+        return "admin/genre-form";
+    }
+
+    @PostMapping("/genres/delete/{id}")
+    public String deleteGenre(@PathVariable Integer id,
+                              HttpServletRequest request,
+                              RedirectAttributes redirectAttributes) {
+
+        if (!authService.isAdmin(request)) {
+            redirectAttributes.addFlashAttribute("error", "Access denied");
+            return "redirect:/";
+        }
+
+        try {
+            genreService.delete(id);
+            redirectAttributes.addFlashAttribute("success", "Жанр удален");
+        } catch (Exception e) {
+            logger.error("Error deleting genre", e);
+            redirectAttributes.addFlashAttribute("error", "Ошибка при удалении: " + e.getMessage());
+        }
+
+        return "redirect:/admin/genres";
+    }
+
+    // ==================== ARTIST MANAGEMENT ====================
+
+
+    // ==================== MODERATION ====================
 
     @GetMapping("/moderation")
     public String moderation(Model model, HttpServletRequest request,

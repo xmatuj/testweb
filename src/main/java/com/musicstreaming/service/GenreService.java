@@ -1,5 +1,6 @@
 package com.musicstreaming.service;
 
+import com.musicstreaming.dto.GenreDTO;
 import com.musicstreaming.model.Genre;
 import com.musicstreaming.repository.GenreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -22,6 +24,16 @@ public class GenreService {
 
     public List<Genre> findAll() {
         return genreRepository.findAllOrdered();
+    }
+
+    public List<GenreDTO> findAllDTOs() {
+        return genreRepository.findAllWithTrackCount().stream()
+                .map(row -> new GenreDTO(
+                        (Integer) row[0],
+                        (String) row[1],
+                        (Long) row[2]
+                ))
+                .collect(Collectors.toList());
     }
 
     public Optional<Genre> findById(Integer id) {

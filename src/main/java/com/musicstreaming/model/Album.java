@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 @Entity
 @Table(name = "Albums")
 public class Album {
@@ -22,6 +24,7 @@ public class Album {
     private Artist artist;
 
     @Column(name = "ReleaseDate")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate releaseDate;
 
     @Column(name = "CoverPath", length = 255)

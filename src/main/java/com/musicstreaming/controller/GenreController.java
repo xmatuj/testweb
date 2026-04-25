@@ -1,76 +1,36 @@
 package com.musicstreaming.controller;
 
 import com.musicstreaming.model.Genre;
+import com.musicstreaming.model.Track;
 import com.musicstreaming.service.GenreService;
-import com.musicstreaming.service.AuthService;
+import com.musicstreaming.service.TrackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @Controller
-@RequestMapping("/admin/genres")
+@RequestMapping("/genre")
 public class GenreController {
 
     @Autowired
     private GenreService genreService;
 
     @Autowired
-    private AuthService authService;
+    private TrackService trackService;
 
-    @GetMapping
-    public String listGenres(Model model, HttpServletRequest request) {
-        if (!authService.isAdmin(request)) return "redirect:/";
-
-        model.addAttribute("genres", genreService.findAll());
-        model.addAttribute("currentUser", authService.getCurrentUser(request));
-        return "admin/genres/list";
-    }
-
-    @GetMapping("/new")
-    public String newGenreForm(Model model, HttpServletRequest request) {
-        if (!authService.isAdmin(request)) return "redirect:/";
-
-        model.addAttribute("genre", new Genre());
-        model.addAttribute("currentUser", authService.getCurrentUser(request));
-        return "admin/genres/form";
-    }
-
-    @PostMapping("/save")
-    public String saveGenre(@ModelAttribute Genre genre,
-                            HttpServletRequest request,
-                            RedirectAttributes redirectAttributes) {
-        if (!authService.isAdmin(request)) return "redirect:/";
-
-        genreService.save(genre);
-        redirectAttributes.addFlashAttribute("success", "Жанр сохранен");
-        return "redirect:/admin/genres";
-    }
-
-    @GetMapping("/edit/{id}")
-    public String editGenreForm(@PathVariable Integer id, Model model,
-                                HttpServletRequest request) {
-        if (!authService.isAdmin(request)) return "redirect:/";
-
+    @GetMapping("/{id}")
+    public String viewGenre(@PathVariable Integer id, Model model) {
         Genre genre = genreService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid genre Id"));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid genre Id: " + id));
+
+        List<Track> tracks = trackService.findByGenreId(id);
 
         model.addAttribute("genre", genre);
-        model.addAttribute("currentUser", authService.getCurrentUser(request));
-        return "admin/genres/form";
-    }
+        model.addAttribute("tracks", tracks);
 
-    @PostMapping("/delete/{id}")
-    public String deleteGenre(@PathVariable Integer id,
-                              HttpServletRequest request,
-                              RedirectAttributes redirectAttributes) {
-        if (!authService.isAdmin(request)) return "redirect:/";
-
-        genreService.delete(id);
-        redirectAttributes.addFlashAttribute("success", "Жанр удален");
-        return "redirect:/admin/genres";
+        return "genre/view";
     }
 }
