@@ -5,6 +5,7 @@ import com.musicstreaming.model.Track;
 import com.musicstreaming.model.TrackStatistics;
 import com.musicstreaming.repository.TrackRepository;
 import com.musicstreaming.repository.TrackStatisticsRepository;
+import com.musicstreaming.service.AlbumService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,9 @@ public class TrackStreamController {
         this.statsRepository = statsRepository;
         this.servletContext = servletContext;
     }
+
+    @Autowired
+    private AlbumService albumService;
 
     /**
      * Получение пути к папке uploads/music

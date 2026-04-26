@@ -571,7 +571,7 @@ public class AdminController {
         model.addAttribute("pageTitle", "Добавление альбома");
         model.addAttribute("activePage", "albums");
 
-        return "admin/album-form";
+        return "admin/albums/form";
     }
 
     @PostMapping("/albums/save")
@@ -646,7 +646,7 @@ public class AdminController {
         model.addAttribute("pageTitle", "Редактирование альбома");
         model.addAttribute("activePage", "albums");
 
-        return "admin/album-form";
+        return "admin/albums/form";
     }
 
     @GetMapping("/albums/{id}")
@@ -782,7 +782,7 @@ public class AdminController {
         model.addAttribute("pageTitle", "Редактирование жанра");
         model.addAttribute("activePage", "genres");
 
-        return "admin/genre-form";
+        return "admin/genres/form";
     }
 
     @PostMapping("/genres/delete/{id}")
