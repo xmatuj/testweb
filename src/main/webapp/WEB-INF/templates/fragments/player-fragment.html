@@ -48,6 +48,44 @@
         </div>
     </div>
 
+    <!-- Модальное окно рекламы -->
+    <div class="ad-modal" id="adModal" style="display: none;">
+        <div class="ad-modal-overlay"></div>
+        <div class="ad-modal-content">
+            <div class="ad-modal-header">
+                <div class="ad-sponsor-label">Реклама</div>
+                <button class="ad-close-btn" id="adCloseBtn" style="display: none;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="ad-body">
+                <div class="ad-image" id="adImage">
+                    <i class="fas fa-ad"></i>
+                </div>
+                <div class="ad-info">
+                    <h3 id="adTitle">Специальное предложение!</h3>
+                    <p id="adMessage">Оформите подписку и слушайте без рекламы</p>
+                </div>
+                <div class="ad-timer" id="adTimer">
+                    <svg class="ad-timer-circle" viewBox="0 0 40 40">
+                        <circle class="ad-timer-circle-bg" r="18" cx="20" cy="20"></circle>
+                        <circle class="ad-timer-circle-progress" r="18" cx="20" cy="20"
+                                stroke-dasharray="113.097" stroke-dashoffset="0"></circle>
+                    </svg>
+                    <span class="ad-timer-seconds" id="adTimerSeconds">5</span>
+                </div>
+            </div>
+            <div class="ad-actions">
+                <button class="ad-action-btn ad-subscribe-btn" id="adSubscribeBtn">
+                    <i class="fas fa-crown"></i> Оформить подписку
+                </button>
+            </div>
+            <div class="ad-skip-text" id="adSkipText" style="display: none;">
+                <i class="fas fa-forward"></i> Пропустить рекламу
+            </div>
+        </div>
+    </div>
+
     <style>
         .global-player {
             position: fixed;
@@ -197,6 +235,192 @@
             accent-color: var(--accent, #ffdb4d);
         }
 
+        /* Стили для модального окна рекламы */
+        .ad-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ad-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+        }
+
+        .ad-modal-content {
+            position: relative;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            overflow: hidden;
+            animation: adSlideIn 0.4s ease;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 219, 77, 0.3);
+        }
+
+        @keyframes adSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .ad-modal-header {
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ad-sponsor-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .ad-close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ad-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .ad-body {
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .ad-image {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--accent), #ffcc00);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #000;
+        }
+
+        .ad-info h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .ad-info p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .ad-timer {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .ad-timer-circle {
+            width: 70px;
+            height: 70px;
+            transform: rotate(-90deg);
+        }
+
+        .ad-timer-circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.2);
+            stroke-width: 3;
+        }
+
+        .ad-timer-circle-progress {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 3;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s linear;
+        }
+
+        .ad-timer-seconds {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .ad-actions {
+            padding: 0 20px 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .ad-action-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 14px;
+        }
+
+        .ad-subscribe-btn {
+            background: linear-gradient(135deg, var(--accent), #ffcc00);
+            color: #000;
+        }
+
+        .ad-subscribe-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 219, 77, 0.3);
+        }
+
+        .ad-skip-text {
+            text-align: center;
+            padding: 15px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: color 0.2s;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ad-skip-text:hover {
+            color: var(--accent);
+        }
+
         @media (max-width: 900px) {
             .player-progress-container {
                 min-width: 200px;
@@ -223,7 +447,6 @@
         (function() {
             // Проверяем, не инициализирован ли уже плеер
             if (window.MusicPlayerInitialized) {
-                // Плеер уже инициализирован, просто восстанавливаем UI
                 setTimeout(() => {
                     if (window.MusicPlayer) {
                         window.MusicPlayer.restoreUI();
@@ -246,30 +469,43 @@
                 volume: 0.8,
                 savedTime: 0,
                 initialized: false,
+                pendingTrack: null,      // Трек, ожидающий воспроизведения после рекламы
+                pendingPlaylist: null,   // Плейлист, ожидающий воспроизведения
+                adActive: false,         // Флаг показа рекламы
+                adTimerInterval: null,   // Таймер рекламы
+                adRemainingTime: 0,      // Оставшееся время рекламы
+                shouldShowAds: false,    // Флаг, показывать ли рекламу этому пользователю
 
                 init: function() {
                     if (this.initialized) return;
 
-                    // Создаем новый аудио элемент или используем существующий
                     this.audio = new Audio();
                     this.audio.volume = this.volume;
                     this.audio.crossOrigin = 'anonymous';
 
-                    // Загружаем состояние из localStorage
                     this.loadState();
-
-                    // Привязка событий
                     this.bindEvents();
-
-                    // Восстанавливаем UI из сохраненного состояния
                     this.restoreUI();
 
-                    // Сохраняем состояние периодически и перед уходом со страницы
+                    // Проверяем, нужно ли показывать рекламу
+                    this.checkShouldShowAds();
+
                     setInterval(() => this.saveState(), 1000);
                     window.addEventListener('beforeunload', () => this.saveState());
 
                     this.initialized = true;
-                    console.log('MusicPlayer initialized');
+                    console.log('MusicPlayer initialized, shouldShowAds:', this.shouldShowAds);
+                },
+
+                checkShouldShowAds: async function() {
+                    try {
+                        const response = await fetch('/api/ad/should-show');
+                        const data = await response.json();
+                        this.shouldShowAds = data.shouldShowAd;
+                    } catch (error) {
+                        console.error('Failed to check ad status:', error);
+                        this.shouldShowAds = true;
+                    }
                 },
 
                 bindEvents: function() {
@@ -280,6 +516,9 @@
                     const repeatBtn = document.getElementById('playerRepeatBtn');
                     const progressBar = document.getElementById('playerProgressBar');
                     const volumeSlider = document.getElementById('playerVolumeSlider');
+                    const adCloseBtn = document.getElementById('adCloseBtn');
+                    const adSkipText = document.getElementById('adSkipText');
+                    const adSubscribeBtn = document.getElementById('adSubscribeBtn');
 
                     if (playPauseBtn) playPauseBtn.addEventListener('click', () => this.togglePlay());
                     if (prevBtn) prevBtn.addEventListener('click', () => this.playPrevious());
@@ -288,6 +527,11 @@
                     if (repeatBtn) repeatBtn.addEventListener('click', () => this.toggleRepeat());
                     if (progressBar) progressBar.addEventListener('click', (e) => this.seek(e));
                     if (volumeSlider) volumeSlider.addEventListener('input', (e) => this.setVolume(e.target.value));
+                    if (adCloseBtn) adCloseBtn.addEventListener('click', () => this.closeAd(false));
+                    if (adSkipText) adSkipText.addEventListener('click', () => this.closeAd(true));
+                    if (adSubscribeBtn) adSubscribeBtn.addEventListener('click', () => {
+                        window.location.href = '/subscription/plans';
+                    });
 
                     this.audio.addEventListener('timeupdate', () => this.updateProgress());
                     this.audio.addEventListener('loadedmetadata', () => this.updateDuration());
@@ -295,33 +539,20 @@
                     this.audio.addEventListener('play', () => this.setPlayingState(true));
                     this.audio.addEventListener('pause', () => this.setPlayingState(false));
                     this.audio.addEventListener('volumechange', () => this.updateVolumeIcon());
-                    this.audio.addEventListener('canplay', () => {
-                        console.log('Audio can play');
-                        // Если трек должен играть, запускаем
-                        if (this.isPlaying) {
-                            this.audio.play().catch(e => console.warn('Auto-play failed:', e));
-                        }
-                    });
-                    this.audio.addEventListener('error', (e) => {
-                        console.error('Audio error:', e);
-                    });
                 },
 
                 restoreUI: function() {
-                    // Показываем плеер если есть текущий трек
                     if (this.currentTrack) {
                         document.getElementById('globalPlayer').style.display = 'block';
                         document.getElementById('playerTrackName').textContent = this.currentTrack.title || 'Неизвестный трек';
                         document.getElementById('playerTrackArtist').textContent = this.currentTrack.artistName || 'Неизвестный исполнитель';
 
-                        // Восстанавливаем прогресс
                         if (this.audio && !isNaN(this.audio.duration)) {
                             this.updateDuration();
                             this.updateProgress();
                         }
                     }
 
-                    // Восстанавливаем состояние кнопок
                     const playIcon = document.getElementById('playerPlayPauseIcon');
                     if (playIcon) {
                         playIcon.className = this.isPlaying ? 'fas fa-pause' : 'fas fa-play';
@@ -345,11 +576,136 @@
                     this.updateVolumeIcon();
                 },
 
-                // Публичные методы для вызова с других страниц
-                playTrack: function(track, playlist) {
+                showAd: function(track, playlist) {
+                    if (this.adActive) return;
+
+                    this.pendingTrack = track;
+                    this.pendingPlaylist = playlist;
+                    this.adActive = true;
+                    this.adRemainingTime = 5;
+
+                    // Получаем случайную рекламу
+                    fetch('/api/ad/random')
+                        .then(response => response.json())
+                        .then(ad => {
+                            this.displayAdModal(ad);
+                            this.startAdTimer();
+                        })
+                        .catch(() => {
+                            // Если ошибка, показываем дефолтную рекламу
+                            this.displayDefaultAd();
+                            this.startAdTimer();
+                        });
+                },
+
+                displayAdModal: function(ad) {
+                    const modal = document.getElementById('adModal');
+                    const titleEl = document.getElementById('adTitle');
+                    const messageEl = document.getElementById('adMessage');
+                    const imageContainer = document.getElementById('adImage');
+                    const closeBtn = document.getElementById('adCloseBtn');
+                    const skipText = document.getElementById('adSkipText');
+                    const timerSeconds = document.getElementById('adTimerSeconds');
+
+                    if (titleEl) titleEl.textContent = ad.title || 'Специальное предложение!';
+                    if (messageEl) messageEl.textContent = ad.message || 'Оформите подписку и слушайте без рекламы';
+                    if (timerSeconds) timerSeconds.textContent = '5';
+
+                    // Очищаем и заполняем контейнер изображения
+                    if (imageContainer) {
+                        imageContainer.innerHTML = '';
+                        if (ad.imageUrl && !ad.imageUrl.startsWith('/images/ads/')) {
+                            const img = document.createElement('img');
+                            img.src = ad.imageUrl;
+                            img.style.width = '100%';
+                            img.style.height = '100%';
+                            img.style.objectFit = 'cover';
+                            img.style.borderRadius = '50%';
+                            imageContainer.appendChild(img);
+                        } else {
+                            imageContainer.innerHTML = '<i class="fas fa-ad"></i>';
+                        }
+                    }
+
+                    // Скрываем кнопку закрытия и текст пропуска до окончания таймера
+                    if (closeBtn) closeBtn.style.display = 'none';
+                    if (skipText) skipText.style.display = 'none';
+
+                    // Показываем модальное окно
+                    if (modal) modal.style.display = 'flex';
+                },
+
+                displayDefaultAd: function() {
+                    const modal = document.getElementById('adModal');
+                    const titleEl = document.getElementById('adTitle');
+                    const messageEl = document.getElementById('adMessage');
+                    const imageContainer = document.getElementById('adImage');
+                    const timerSeconds = document.getElementById('adTimerSeconds');
+
+                    if (titleEl) titleEl.textContent = 'Премиум подписка';
+                    if (messageEl) messageEl.textContent = 'Оформите подписку всего за 299₽/мес и слушайте без рекламы!';
+                    if (timerSeconds) timerSeconds.textContent = '5';
+                    if (imageContainer) imageContainer.innerHTML = '<i class="fas fa-crown"></i>';
+
+                    if (modal) modal.style.display = 'flex';
+                },
+
+                startAdTimer: function() {
+                    const timerSeconds = document.getElementById('adTimerSeconds');
+                    const progressCircle = document.querySelector('.ad-timer-circle-progress');
+                    const totalTime = 5;
+                    const circumference = 2 * Math.PI * 18;
+
+                    if (progressCircle) {
+                        progressCircle.style.strokeDasharray = circumference;
+                        progressCircle.style.strokeDashoffset = circumference;
+                    }
+
+                    this.adTimerInterval = setInterval(() => {
+                        this.adRemainingTime--;
+
+                        if (timerSeconds) {
+                            timerSeconds.textContent = this.adRemainingTime;
+                        }
+
+                        // Обновляем таймер на круге
+                        if (progressCircle) {
+                            const progress = 1 - (this.adRemainingTime / totalTime);
+                            const offset = circumference * (1 - progress);
+                            progressCircle.style.strokeDashoffset = offset;
+                        }
+
+                        if (this.adRemainingTime <= 0) {
+                            this.closeAd(true);
+                        }
+                    }, 1000);
+                },
+
+                closeAd: function(allowPlayback) {
+                    // Останавливаем таймер
+                    if (this.adTimerInterval) {
+                        clearInterval(this.adTimerInterval);
+                        this.adTimerInterval = null;
+                    }
+
+                    // Скрываем модальное окно
+                    const modal = document.getElementById('adModal');
+                    if (modal) modal.style.display = 'none';
+
+                    if (allowPlayback && this.pendingTrack) {
+                        // Запоминаем, что реклама была показана
+                        this.startPlayback(this.pendingTrack, this.pendingPlaylist);
+                    }
+
+                    this.adActive = false;
+                    this.pendingTrack = null;
+                    this.pendingPlaylist = null;
+                },
+
+                startPlayback: function(track, playlist) {
                     if (!track) return;
 
-                    console.log('Playing track:', track);
+                    console.log('Starting playback for track:', track);
 
                     if (playlist && playlist.length > 0) {
                         this.playlist = playlist;
@@ -362,26 +718,45 @@
 
                     this.currentTrack = track;
 
-                    // Устанавливаем источник только если он изменился
                     const newSrc = '/tracks/stream/' + track.id;
                     if (this.audio.src !== newSrc) {
                         this.audio.src = newSrc;
                         this.audio.load();
                     }
 
-                    // Запускаем воспроизведение
                     this.audio.play().then(() => {
                         console.log('Playback started');
+                        this.isPlaying = true;
+                        this.updatePlayIcon();
                     }).catch(e => {
-                        console.warn('Playback failed, will retry on user interaction', e);
+                        console.warn('Playback failed:', e);
                     });
 
                     this.showPlayer();
                     this.updateTrackInfo(track);
                     this.saveState();
 
-                    // Отправляем статистику
                     fetch('/tracks/record/' + track.id, { method: 'POST' }).catch(() => {});
+                },
+
+                updatePlayIcon: function() {
+                    const icon = document.getElementById('playerPlayPauseIcon');
+                    if (icon) {
+                        icon.className = this.isPlaying ? 'fas fa-pause' : 'fas fa-play';
+                    }
+                },
+
+                // Публичный метод для воспроизведения трека с проверкой рекламы
+                playTrack: function(track, playlist) {
+                    if (!track) return;
+
+                    // Если нужно показывать рекламу и это не специальный случай
+                    if (this.shouldShowAds && !this.adActive) {
+                        console.log('Showing ad before playback');
+                        this.showAd(track, playlist);
+                    } else {
+                        this.startPlayback(track, playlist);
+                    }
                 },
 
                 playPlaylist: function(tracks, startIndex = 0) {
@@ -532,7 +907,6 @@
                         isPlaying: this.audio ? !this.audio.paused : false
                     };
                     localStorage.setItem('musicPlayerState', JSON.stringify(state));
-                    console.log('State saved, isPlaying:', state.isPlaying, 'time:', state.currentTime);
                 },
 
                 loadState: function() {
@@ -540,8 +914,6 @@
                     if (saved) {
                         try {
                             const state = JSON.parse(saved);
-                            console.log('Loading saved state:', state);
-
                             this.currentTrack = state.currentTrack;
                             this.playlist = state.playlist || [];
                             this.playlistIndex = state.playlistIndex || 0;
@@ -553,12 +925,10 @@
 
                             this.audio.volume = this.volume;
 
-                            // Если был активный трек, восстанавливаем его
                             if (this.currentTrack) {
                                 this.audio.src = '/tracks/stream/' + this.currentTrack.id;
                                 this.audio.load();
 
-                                // Устанавливаем текущее время после загрузки метаданных
                                 const setTime = () => {
                                     if (!isNaN(this.audio.duration) && this.savedTime > 0) {
                                         this.audio.currentTime = this.savedTime;
@@ -567,23 +937,12 @@
                                 };
                                 this.audio.addEventListener('loadedmetadata', setTime);
 
-                                // Если трек должен играть, запускаем
                                 if (this.isPlaying) {
                                     this.audio.play().catch(e => {
-                                        console.warn('Auto-play blocked, will play on user interaction');
+                                        console.warn('Auto-play blocked');
                                         this.isPlaying = false;
                                     });
                                 }
-                            }
-
-                            // Восстанавливаем визуальное состояние кнопок
-                            if (this.shuffle) {
-                                const btn = document.getElementById('playerShuffleBtn');
-                                if (btn) btn.style.color = 'var(--accent)';
-                            }
-                            if (this.repeat) {
-                                const btn = document.getElementById('playerRepeatBtn');
-                                if (btn) btn.style.color = 'var(--accent)';
                             }
                         } catch(e) {
                             console.error('Failed to load player state', e);
@@ -592,18 +951,15 @@
                 }
             };
 
-            // Инициализация после загрузки DOM
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', () => window.MusicPlayer.init());
             } else {
                 window.MusicPlayer.init();
             }
 
-            // Экспортируем функции для глобального использования
             window.playTrack = function(trackId, title, artist, playlistData) {
                 const playlist = playlistData || [];
                 if (!playlist.length) {
-                    // Собираем плейлист из data-атрибутов на странице
                     document.querySelectorAll('[data-track-id]').forEach(el => {
                         playlist.push({
                             id: el.dataset.trackId,
