@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+// src/main/java/com/musicstreaming/service/SubscriptionService.java
+
 @Service
 @Transactional
 public class SubscriptionService {
@@ -50,18 +52,40 @@ public class SubscriptionService {
 
         Subscription subscription = new Subscription(user);
 
-        if ("yearly".equals(plan)) {
-            subscription.setEndDate(LocalDateTime.now().plusYears(1));
-        } else {
-            subscription.setEndDate(LocalDateTime.now().plusMonths(1));
+        // Устанавливаем длительность в зависимости от плана
+        LocalDateTime now = LocalDateTime.now();
+
+        switch (plan != null ? plan.toLowerCase() : "monthly") {
+            case "yearly":
+                subscription.setEndDate(now.plusYears(1));
+                subscription.setAmount(amount != null ? amount : new BigDecimal("2990.00"));
+                break;
+            case "family":
+                subscription.setEndDate(now.plusMonths(1));
+                subscription.setAmount(amount != null ? amount : new BigDecimal("449.00"));
+                break;
+            case "premium":
+            case "monthly":
+            default:
+                subscription.setEndDate(now.plusMonths(1));
+                subscription.setAmount(amount != null ? amount : new BigDecimal("299.00"));
+                break;
         }
 
-        subscription.setAmount(amount);
-        subscription.setStatus("pending");
-        subscription.setActivated(false);
+        subscription.setStatus("active");
+        subscription.setActivated(true);
+        subscription.setTransactionId("TXN-" + System.currentTimeMillis());
+
+        // Обновляем роль пользователя на SUBSCRIBER
+        if (user.getRole() == User.UserRole.User) {
+            user.setRole(User.UserRole.Subscriber);
+            userRepository.save(user);
+            logger.info("User {} role updated to Subscriber", user.getUsername());
+        }
 
         Subscription saved = subscriptionRepository.save(subscription);
-        logger.info("Created subscription for user {}: {}", userId, saved.getId());
+        logger.info("Created and activated subscription for user {}: plan={}, endDate={}, id={}",
+                userId, plan, subscription.getEndDate(), saved.getId());
 
         return saved;
     }
@@ -73,6 +97,15 @@ public class SubscriptionService {
             subscription.setStatus("active");
             subscription.setTransactionId(transactionId);
             subscriptionRepository.save(subscription);
+
+            // Обновляем роль пользователя при активации
+            User user = subscription.getUser();
+            if (user != null && user.getRole() == User.UserRole.User) {
+                user.setRole(User.UserRole.Subscriber);
+                userRepository.save(user);
+                logger.info("User {} role updated to Subscriber during activation", user.getUsername());
+            }
+
             logger.info("Activated subscription: {}", subscriptionId);
         });
     }
@@ -82,10 +115,21 @@ public class SubscriptionService {
         subscriptionRepository.findById(subscriptionId).ifPresent(subscription -> {
             subscription.setStatus("cancelled");
             subscriptionRepository.save(subscription);
+
+            // Проверяем, есть ли другие активные подписки
+            User user = subscription.getUser();
+            if (user != null) {
+                checkAndUpdateUserRole(user.getId());
+            }
+
             logger.info("Cancelled subscription: {}", subscriptionId);
         });
     }
 
+    /**
+     * Проверяет истекшие подписки и обновляет роли пользователей
+     * Этот метод должен вызываться периодически (например, по расписанию)
+     */
     @Transactional
     public void checkExpiredSubscriptions() {
         List<Subscription> activeSubscriptions = subscriptionRepository.findActiveSubscriptions(LocalDateTime.now());
@@ -97,7 +141,62 @@ public class SubscriptionService {
                 sub.setActivated(false);
                 subscriptionRepository.save(sub);
                 logger.info("Subscription {} expired", sub.getId());
+
+                // Обновляем роль пользователя
+                User user = sub.getUser();
+                if (user != null) {
+                    checkAndUpdateUserRole(user.getId());
+                }
             }
         }
+    }
+
+    /**
+     * Проверяет наличие активных подписок у пользователя и обновляет его роль
+     */
+    @Transactional
+    public void checkAndUpdateUserRole(Integer userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return;
+        }
+
+        // Пропускаем админов и музыкантов - они не должны терять свои роли
+        if (user.getRole() == User.UserRole.Admin || user.getRole() == User.UserRole.Musician) {
+            return;
+        }
+
+        boolean hasActiveSubscription = findActiveByUserId(userId).isPresent();
+
+        if (hasActiveSubscription) {
+            // Есть активная подписка - должен быть Subscriber
+            if (user.getRole() != User.UserRole.Subscriber) {
+                user.setRole(User.UserRole.Subscriber);
+                userRepository.save(user);
+                logger.info("User {} role restored to Subscriber (has active subscription)", user.getUsername());
+            }
+        } else {
+            // Нет активной подписки - должен быть User
+            if (user.getRole() == User.UserRole.Subscriber) {
+                user.setRole(User.UserRole.User);
+                userRepository.save(user);
+                logger.info("User {} role downgraded to User (no active subscription)", user.getUsername());
+            }
+        }
+    }
+
+    /**
+     * Проверяет статус подписки при входе пользователя
+     */
+    @Transactional
+    public void checkSubscriptionOnLogin(User user) {
+        if (user == null) return;
+
+        // Пропускаем админов и музыкантов
+        if (user.getRole() == User.UserRole.Admin || user.getRole() == User.UserRole.Musician) {
+            return;
+        }
+
+        checkAndUpdateUserRole(user.getId());
     }
 }

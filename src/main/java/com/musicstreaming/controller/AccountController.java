@@ -64,8 +64,17 @@ public class AccountController {
         Optional<User> userOpt = userService.authenticate(usernameOrEmail, password);
 
         if (userOpt.isPresent()) {
-            authService.login(request, userOpt.get());
-            logger.info("User {} logged in successfully", userOpt.get().getUsername());
+            User user = userOpt.get();
+
+            // Проверяем статус подписки при входе
+            subscriptionService.checkSubscriptionOnLogin(user);
+
+            // Загружаем обновленного пользователя (с обновленной ролью)
+            User refreshedUser = userService.findById(user.getId())
+                    .orElse(user);
+
+            authService.login(request, refreshedUser);
+            logger.info("User {} logged in successfully, role: {}", refreshedUser.getUsername(), refreshedUser.getRole());
             return "redirect:/";
         } else {
             redirectAttributes.addAttribute("error", true);
@@ -113,11 +122,23 @@ public class AccountController {
             return "redirect:/account/login";
         }
 
+        // Проверяем статус подписки
+        subscriptionService.checkSubscriptionOnLogin(currentUser);
+
+        // Загружаем обновленного пользователя
+        User refreshedUser = userService.findById(currentUser.getId())
+                .orElse(currentUser);
+
+        // Обновляем пользователя в сессии, если роль изменилась
+        if (refreshedUser.getRole() != currentUser.getRole()) {
+            authService.login(request, refreshedUser);
+        }
+
         // Загружаем данные отдельными запросами с использованием DTO
         UserProfileDTO userProfile = new UserProfileDTO(
-                currentUser,
-                playlistService.findByUserId(currentUser.getId()),
-                subscriptionService.findByUserId(currentUser.getId())
+                refreshedUser,
+                playlistService.findByUserId(refreshedUser.getId()),
+                subscriptionService.findByUserId(refreshedUser.getId())
         );
 
         model.addAttribute("user", userProfile);

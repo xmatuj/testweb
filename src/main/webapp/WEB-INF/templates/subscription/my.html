@@ -193,7 +193,6 @@
         <p th:text="'Действует до: ' + ${#temporals.format(activeSubscription.endDate, 'dd.MM.yyyy')}"></p>
         <form th:action="@{/subscription/cancel}" method="post" style="margin-top: 15px;">
             <input type="hidden" name="subscriptionId" th:value="${activeSubscription.id}">
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Отменить подписку?')">Отменить подписку</button>
         </form>
     </div>
 

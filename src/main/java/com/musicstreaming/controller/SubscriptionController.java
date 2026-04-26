@@ -4,6 +4,7 @@ import com.musicstreaming.dto.SubscriptionUserDTO;
 import com.musicstreaming.model.User;
 import com.musicstreaming.service.AuthService;
 import com.musicstreaming.service.SubscriptionService;
+import com.musicstreaming.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 
 @Controller
 @RequestMapping("/subscription")
@@ -25,11 +27,15 @@ public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
     private final AuthService authService;
+    private final UserService userService;
 
     @Autowired
-    public SubscriptionController(SubscriptionService subscriptionService, AuthService authService) {
+    public SubscriptionController(SubscriptionService subscriptionService,
+                                  AuthService authService,
+                                  UserService userService) {
         this.subscriptionService = subscriptionService;
         this.authService = authService;
+        this.userService = userService;
     }
 
     @GetMapping("/plans")
@@ -69,10 +75,29 @@ public class SubscriptionController {
         model.addAttribute("currentUser", currentUser);
 
         String selectedPlan = plan != null ? plan : "premium";
+        String planName;
+        int planPrice;
+        String planPeriod;
+
+        switch (selectedPlan.toLowerCase()) {
+            case "yearly":
+                planName = "Годовой";
+                planPrice = 2990;
+                planPeriod = "год";
+                break;
+            case "monthly":
+            default:
+                planName = "Премиум";
+                planPrice = 299;
+                planPeriod = "Ежемесячно";
+                selectedPlan = "monthly";
+                break;
+        }
+
         model.addAttribute("selectedPlan", selectedPlan);
-        model.addAttribute("planName", selectedPlan.equals("premium") ? "Премиум" : "Семейный");
-        model.addAttribute("planPrice", selectedPlan.equals("premium") ? 299 : 449);
-        model.addAttribute("planPeriod", "Ежемесячно");
+        model.addAttribute("planName", planName);
+        model.addAttribute("planPrice", planPrice);
+        model.addAttribute("planPeriod", planPeriod);
 
         return "subscription/create";
     }
@@ -94,13 +119,41 @@ public class SubscriptionController {
         User currentUser = authService.getCurrentUser(request);
 
         try {
-            // симуляция подписки
+            // Определяем сумму в зависимости от плана
+            BigDecimal amount;
+            switch (plan.toLowerCase()) {
+                case "yearly":
+                    amount = new BigDecimal("2990.00");
+                    break;
+                case "monthly":
+                default:
+                    amount = new BigDecimal("299.00");
+                    break;
+            }
 
-            redirectAttributes.addFlashAttribute("success", "Подписка успешно оформлена!");
+            // Применяем промокод (простая логика для примера)
+            if ("FIRSTMONTH".equalsIgnoreCase(promoCode)) {
+                amount = new BigDecimal("1.00");
+                logger.info("Promo code applied: {}", promoCode);
+            }
+
+            // Создаем и активируем подписку
+            subscriptionService.createSubscription(currentUser.getId(), plan, amount);
+
+            // Обновляем пользователя в сессии после изменения роли
+            User updatedUser = userService.findById(currentUser.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+            authService.login(request, updatedUser);
+
+            logger.info("Subscription activated for user: {}, plan: {}, role: {}",
+                    updatedUser.getUsername(), plan, updatedUser.getRole());
+
+            redirectAttributes.addFlashAttribute("success", "Подписка успешно оформлена! Добро пожаловать в MusicStream Premium!");
             return "redirect:/subscription/success";
         } catch (Exception e) {
             logger.error("Error creating subscription", e);
-            redirectAttributes.addFlashAttribute("error", "Ошибка при оформлении подписки");
+            redirectAttributes.addFlashAttribute("error", "Ошибка при оформлении подписки: " + e.getMessage());
             return "redirect:/subscription/plans";
         }
     }
@@ -141,25 +194,5 @@ public class SubscriptionController {
                 subscriptionService.findActiveByUserId(currentUser.getId()).orElse(null));
 
         return "subscription/my";
-    }
-
-    @PostMapping("/cancel")
-    public String cancelSubscription(@RequestParam Integer subscriptionId,
-                                     HttpServletRequest request,
-                                     RedirectAttributes redirectAttributes) {
-
-        if (!authService.isAuthenticated(request)) {
-            return "redirect:/account/login";
-        }
-
-        try {
-            subscriptionService.cancelSubscription(subscriptionId);
-            redirectAttributes.addFlashAttribute("success", "Подписка отменена");
-        } catch (Exception e) {
-            logger.error("Error canceling subscription", e);
-            redirectAttributes.addFlashAttribute("error", "Ошибка при отмене подписки");
-        }
-
-        return "redirect:/subscription/my";
     }
 }

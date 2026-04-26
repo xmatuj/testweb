@@ -20,6 +20,8 @@
             --success: #1db954;
             --danger: #e22134;
             --premium: #f8c300;
+            --info: #2196f3;
+            --warning: #ff9800;
         }
 
         * {
@@ -83,6 +85,7 @@
             font-size: 24px;
             font-weight: 700;
             color: var(--accent);
+            text-decoration: none;
         }
 
         .logo i {
@@ -104,6 +107,7 @@
             justify-content: center;
             color: var(--text-secondary);
             transition: color 0.2s, background-color 0.2s;
+            text-decoration: none;
         }
 
         .nav-action-btn:hover {
@@ -113,7 +117,7 @@
 
         /* Заголовок профиля */
         .profile-header {
-            padding-top: 70px;
+            padding-top: 90px;
             padding-bottom: 30px;
             background: linear-gradient(to bottom, #1a1a1a, #121212);
         }
@@ -156,42 +160,111 @@
             gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .badge {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .badge.User {
+        .badge-User {
             background-color: var(--text-secondary);
             color: white;
         }
 
-        .badge.Subscriber {
+        .badge-Subscriber {
             background-color: var(--success);
             color: white;
         }
 
-        .badge.Musician {
+        .badge-Musician {
             background-color: var(--info);
             color: white;
         }
 
-        .badge.Admin {
+        .badge-Admin {
             background-color: var(--warning);
             color: var(--primary-bg);
         }
 
-        /* Основной контент */
-        .main-content {
-            padding-bottom: 80px;
+        .badge-premium {
+            background-color: var(--premium);
+            color: #000;
         }
 
-        /* Подписка */
+        /* Кнопки действий профиля */
+        .profile-actions-bar {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-decoration: none;
+        }
+
+        .action-btn-primary {
+            background-color: var(--card-bg);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .action-btn-primary:hover {
+            background-color: var(--accent);
+            color: var(--primary-bg);
+        }
+
+        .action-btn-premium {
+            background: linear-gradient(135deg, #f8c300 0%, #ffdb4d 100%);
+            color: #000;
+        }
+
+        .action-btn-premium:hover {
+            background: linear-gradient(135deg, #e0b000 0%, #ffcc00 100%);
+        }
+
+        .action-btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .action-btn-danger:hover {
+            background-color: #c21825;
+        }
+
+        .action-btn-admin {
+            background-color: var(--warning);
+            color: var(--primary-bg);
+        }
+
+        .action-btn-admin:hover {
+            background-color: #e68900;
+        }
+
+        /* Основной контент */
+        .main-content {
+            padding-bottom: 100px;
+        }
+
+        /* Секция подписки */
         .subscription-section {
             margin: 30px 0;
         }
@@ -209,6 +282,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .subscription-title {
@@ -248,16 +323,24 @@
             color: #000;
         }
 
+        .subscription-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
         .manage-subscription-btn {
             background-color: #000;
             color: var(--accent);
-            padding: 12px 30px;
+            padding: 10px 24px;
             border-radius: 25px;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             transition: background-color 0.2s;
+            text-decoration: none;
+            font-size: 14px;
         }
 
         .manage-subscription-btn:hover {
@@ -272,6 +355,13 @@
         .section-title {
             font-size: 24px;
             font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
         }
 
@@ -331,34 +421,86 @@
             gap: 8px;
             transition: background-color 0.2s;
             margin-bottom: 20px;
+            text-decoration: none;
         }
 
         .create-playlist-btn:hover {
             background-color: var(--accent-hover);
         }
 
-        /* Кнопка выхода */
-        .logout-section {
+        /* Информация профиля */
+        .profile-info-section {
             margin: 40px 0;
-            text-align: center;
         }
 
-        .logout-btn {
-            background-color: var(--danger);
-            color: white;
-            padding: 12px 40px;
-            border-radius: 25px;
-            font-weight: 600;
-            display: inline-flex;
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 25px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* Сообщения */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
             align-items: center;
             gap: 10px;
-            transition: background-color 0.2s;
-            border: none;
-            cursor: pointer;
         }
 
-        .logout-btn:hover {
-            background-color: #c21825;
+        .alert-success {
+            background-color: rgba(29, 185, 84, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background-color: rgba(226, 33, 52, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        /* Пустое состояние */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            margin-bottom: 20px;
         }
 
         /* Нижняя панель навигации */
@@ -370,7 +512,7 @@
             background-color: var(--primary-bg);
             border-top: 1px solid var(--border-color);
             padding: 10px 0;
-            z-index: 1000;
+            z-index: 998;
         }
 
         .nav-items {
@@ -388,6 +530,7 @@
             border-radius: 8px;
             transition: background-color 0.2s;
             color: var(--text-secondary);
+            text-decoration: none;
         }
 
         .nav-item.active {
@@ -404,108 +547,6 @@
 
         .nav-label {
             font-size: 12px;
-        }
-
-        /* Плеер */
-        .player {
-            position: fixed;
-            bottom: 70px;
-            left: 0;
-            right: 0;
-            background-color: var(--secondary-bg);
-            border-top: 1px solid var(--border-color);
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 999;
-        }
-
-        .player-track {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
-            max-width: 300px;
-        }
-
-        .player-image {
-            width: 56px;
-            height: 56px;
-            border-radius: 4px;
-            background-color: #333;
-        }
-
-        .player-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .player-track-name {
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-
-        .player-track-artist {
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .player-controls {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            flex: 1;
-        }
-
-        .control-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-primary);
-            transition: background-color 0.2s;
-        }
-
-        .control-btn.play-btn {
-            width: 44px;
-            height: 44px;
-            background-color: var(--text-primary);
-            color: var(--primary-bg);
-        }
-
-        .control-btn:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .player-progress {
-            flex: 1;
-            max-width: 300px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .progress-bar {
-            flex: 1;
-            height: 4px;
-            background-color: var(--border-color);
-            border-radius: 2px;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .progress-filled {
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 30%;
-            background-color: var(--accent);
-            border-radius: 2px;
         }
 
         /* Адаптивность */
@@ -526,10 +567,19 @@
                 width: 100px;
                 height: 100px;
             }
+
+            .profile-actions-bar {
+                flex-direction: column;
+                align-items: center;
+            }
         }
 
         @media (max-width: 576px) {
             .playlists-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .info-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -545,14 +595,17 @@
         </a>
 
         <div class="nav-actions">
-            <a href="/" class="nav-action-btn">
+            <a href="/" class="nav-action-btn" title="Главная">
                 <i class="fas fa-home"></i>
             </a>
             <th:block th:if="${isAdmin}">
-                <a href="/admin" class="nav-action-btn">
-                    <i class="fas fa-cog"></i>
+                <a href="/admin" class="nav-action-btn" title="Админ-панель">
+                    <i class="fas fa-crown"></i>
                 </a>
             </th:block>
+            <a href="/playlists" class="nav-action-btn" title="Плейлисты">
+                <i class="fas fa-list"></i>
+            </a>
         </div>
     </div>
 </nav>
@@ -561,17 +614,52 @@
 <header class="profile-header">
     <div class="container header-content">
         <div class="profile-avatar">
-            <span th:text="${#strings.substring(user.username, 0, 1)}">МС</span>
+            <span th:text="${#strings.substring(user.username, 0, 1)}">U</span>
         </div>
 
-        <h1 class="profile-name" th:text="${user.username}">Матвей</h1>
-        <p class="profile-email" th:text="${user.email}">student@vlsu.ru</p>
+        <h1 class="profile-name" th:text="${user.username}">Username</h1>
+        <p class="profile-email" th:text="${user.email}">user@example.com</p>
 
         <div class="profile-badges">
-            <span class="badge" th:classappend="${user.role.name()}" th:text="${user.role.name()}">User</span>
-            <span class="badge" style="background-color: var(--success); color: white;" th:if="${user.hasActiveSubscription}">
-        <i class="fas fa-crown"></i> Подписка активна
+            <span class="badge" th:classappend="'badge-' + ${user.role.name()}" th:text="${user.role.name()}">User</span>
+            <span class="badge badge-premium" th:if="${user.hasActiveSubscription}">
+                <i class="fas fa-crown"></i> Подписка активна
             </span>
+        </div>
+
+        <!-- Кнопки действий -->
+        <div class="profile-actions-bar">
+            <!-- Кнопка "Мои подписки" -->
+            <a href="/subscription/my" class="action-btn action-btn-primary">
+                <i class="fas fa-history"></i>
+                Мои подписки
+            </a>
+
+            <!-- Кнопка оформления подписки (если нет активной) -->
+            <a href="/subscription/plans" class="action-btn action-btn-premium" th:if="${!user.hasActiveSubscription}">
+                <i class="fas fa-crown"></i>
+                Оформить подписку
+            </a>
+
+            <!-- Кнопка управления подпиской (если активна) -->
+            <a href="/subscription/my" class="action-btn action-btn-premium" th:if="${user.hasActiveSubscription}">
+                <i class="fas fa-crown"></i>
+                Управление подпиской
+            </a>
+
+            <!-- Кнопка админ-панели -->
+            <a href="/admin" class="action-btn action-btn-admin" th:if="${isAdmin}">
+                <i class="fas fa-shield-alt"></i>
+                Панель управления
+            </a>
+
+            <!-- Кнопка выхода -->
+            <form th:action="@{/account/logout}" method="post" style="display: inline;">
+                <button type="submit" class="action-btn action-btn-danger">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Выйти
+                </button>
+            </form>
         </div>
     </div>
 </header>
@@ -584,8 +672,14 @@
             <div class="subscription-card">
                 <div class="subscription-header">
                     <h2 class="subscription-title">Premium Подписка</h2>
-                    <span class="subscription-badge">Активна</span>
+                    <span class="subscription-badge">
+                        <i class="fas fa-check-circle"></i> Активна
+                    </span>
                 </div>
+
+                <p class="subscription-desc">
+                    Вы пользуетесь всеми преимуществами премиум подписки. Спасибо, что выбрали MusicStream Premium!
+                </p>
 
                 <div class="subscription-features">
                     <div class="feature-item">
@@ -600,12 +694,22 @@
                         <i class="fas fa-check-circle"></i>
                         <span>Создание плейлистов</span>
                     </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Эксклюзивный контент</span>
+                    </div>
                 </div>
 
-                <a href="/subscription/my" class="manage-subscription-btn">
-                    <i class="fas fa-cog"></i>
-                    Управление подпиской
-                </a>
+                <div class="subscription-actions">
+                    <a href="/subscription/my" class="manage-subscription-btn">
+                        <i class="fas fa-cog"></i>
+                        Управление подпиской
+                    </a>
+                    <a href="/subscription/my" class="manage-subscription-btn">
+                        <i class="fas fa-history"></i>
+                        История платежей
+                    </a>
+                </div>
             </div>
         </section>
 
@@ -613,35 +717,51 @@
         <section class="subscription-section" th:unless="${user.hasActiveSubscription}">
             <div class="subscription-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
                 <div class="subscription-header">
-                    <h2 class="subscription-title">Оформите подписку</h2>
-                    <span class="subscription-badge" style="background-color: white; color: var(--primary-bg);">Всего 399₽/мес</span>
+                    <h2 class="subscription-title">Попробуйте Premium</h2>
+                    <span class="subscription-badge" style="background-color: white; color: var(--primary-bg);">
+                        Всего 299₽/мес
+                    </span>
                 </div>
+
+                <p class="subscription-desc">
+                    Оформите подписку и получите доступ ко всем функциям сервиса без ограничений.
+                </p>
 
                 <div class="subscription-features">
                     <div class="feature-item">
-                        <i class="fas fa-check-circle"></i>
+                        <i class="fas fa-check-circle" style="color: white;"></i>
                         <span>Без рекламы</span>
                     </div>
                     <div class="feature-item">
-                        <i class="fas fa-check-circle"></i>
+                        <i class="fas fa-check-circle" style="color: white;"></i>
                         <span>Высокое качество звука</span>
                     </div>
                     <div class="feature-item">
-                        <i class="fas fa-check-circle"></i>
+                        <i class="fas fa-check-circle" style="color: white;"></i>
                         <span>Создание плейлистов</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle" style="color: white;"></i>
+                        <span>Эксклюзивный контент</span>
                     </div>
                 </div>
 
-                <a href="/subscription/plans" class="manage-subscription-btn" style="background-color: white; color: var(--primary-bg);">
-                    <i class="fas fa-crown"></i>
-                    Выбрать план
-                </a>
+                <div class="subscription-actions">
+                    <a href="/subscription/plans" class="manage-subscription-btn" style="background-color: white; color: var(--primary-bg);">
+                        <i class="fas fa-crown"></i>
+                        Выбрать план
+                    </a>
+                    <a href="/subscription/plans" class="manage-subscription-btn" style="background-color: white; color: var(--primary-bg);">
+                        <i class="fas fa-question-circle"></i>
+                        Подробнее
+                    </a>
+                </div>
             </div>
         </section>
 
         <!-- Мои плейлисты -->
         <section class="playlists-section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div class="section-header">
                 <h2 class="section-title">Мои плейлисты</h2>
                 <a href="/playlists/create" class="create-playlist-btn">
                     <i class="fas fa-plus"></i>
@@ -650,36 +770,83 @@
             </div>
 
             <div class="playlists-grid" th:if="${not #lists.isEmpty(user.playlists)}">
-                <div class="playlist-card" th:each="playlist : ${user.playlists}" th:onclick="'location.href=\'/playlists/' + ${playlist.id} + '\''">
+                <div class="playlist-card" th:each="playlist : ${user.playlists}"
+                     th:onclick="'location.href=\'/playlists/' + ${playlist.id} + '\''">
                     <div class="playlist-image">
                         <i class="fas fa-music"></i>
                     </div>
-                    <div class="playlist-title" th:text="${playlist.title}">Любимое</div>
+                    <div class="playlist-title" th:text="${playlist.title}">Название плейлиста</div>
                     <div class="playlist-info">
-                        <span th:text="${playlist.trackCount} + ' треков'">125 треков</span>
+                        <span th:text="${playlist.trackCount} + ' треков'">0 треков</span>
+                        <span th:if="${playlist.totalDuration > 0}"> • </span>
+                        <span th:if="${playlist.totalDuration > 0}"
+                              th:text="${playlist.formattedTotalDuration}">0 мин</span>
                     </div>
                 </div>
             </div>
 
-            <div class="playlists-grid" th:unless="${not #lists.isEmpty(user.playlists)}">
-                <div class="playlist-card" onclick="location.href='/playlists/create'">
-                    <div class="playlist-image">
+            <div th:unless="${not #lists.isEmpty(user.playlists)}">
+                <div class="empty-state">
+                    <i class="fas fa-list"></i>
+                    <h3>У вас пока нет плейлистов</h3>
+                    <p>Создайте свой первый плейлист, чтобы собирать любимые треки</p>
+                    <a href="/playlists/create" class="create-playlist-btn">
                         <i class="fas fa-plus"></i>
-                    </div>
-                    <div class="playlist-title">Создать плейлист</div>
-                    <div class="playlist-info">Начните собирать музыку</div>
+                        Создать плейлист
+                    </a>
                 </div>
             </div>
         </section>
 
-        <!-- Кнопка выхода -->
-        <section class="logout-section">
-            <form th:action="@{/account/logout}" method="post">
-                <button type="submit" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Выйти из аккаунта
-                </button>
-            </form>
+        <!-- Информация профиля -->
+        <section class="profile-info-section">
+            <h2 class="section-title">Информация профиля</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Имя пользователя</div>
+                    <div class="info-value" th:text="${user.username}">username</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value" th:text="${user.email}">email@example.com</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Роль</div>
+                    <div class="info-value" th:text="${user.role.name()}">User</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Дата регистрации</div>
+                    <div class="info-value" th:text="${#temporals.format(user.dateOfCreated, 'dd MMMM yyyy')}">01 января 2025</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Подписка</div>
+                    <div class="info-value">
+                        <span th:if="${user.hasActiveSubscription}" style="color: var(--success);">
+                            <i class="fas fa-check-circle"></i> Активна
+                        </span>
+                        <span th:unless="${user.hasActiveSubscription}" style="color: var(--text-muted);">
+                            <i class="fas fa-times-circle"></i> Не оформлена
+                        </span>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Плейлистов</div>
+                    <div class="info-value" th:text="${#lists.size(user.playlists)}">0</div>
+                </div>
+
+                <div class="info-item" th:if="${user.canUploadTracks}">
+                    <div class="info-label">Загрузка треков</div>
+                    <div class="info-value" style="color: var(--success);">
+                        <i class="fas fa-check-circle"></i> Доступна
+                    </div>
+                </div>
+            </div>
         </section>
     </div>
 </main>
@@ -698,7 +865,7 @@
         </a>
 
         <a href="/playlists" class="nav-item">
-            <i class="fas fa-book nav-icon"></i>
+            <i class="fas fa-list nav-icon"></i>
             <span class="nav-label">Библиотека</span>
         </a>
 
@@ -712,6 +879,26 @@
 <!-- Глобальный плеер -->
 <div th:replace="fragments/player-fragment :: player"></div>
 
+<!-- Скрипты -->
 <div th:replace="~{fragments/scripts :: scripts}"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        // Автоматически скрываем сообщения через 5 секунд
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(alert => {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.remove();
+                    }
+                }, 500);
+            });
+        }, 5000);
+    });
+    /*]]>*/
+</script>
 </body>
 </html>
