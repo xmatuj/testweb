@@ -475,6 +475,7 @@
                 adTimerInterval: null,   // Таймер рекламы
                 adRemainingTime: 0,      // Оставшееся время рекламы
                 shouldShowAds: false,    // Флаг, показывать ли рекламу этому пользователю
+                adPlaybackStarted: false, // Флаг, что реклама завершилась и нужно начать воспроизведение
 
                 init: function() {
                     if (this.initialized) return;
@@ -482,6 +483,7 @@
                     this.audio = new Audio();
                     this.audio.volume = this.volume;
                     this.audio.crossOrigin = 'anonymous';
+                    this.audio.preload = 'auto';
 
                     this.loadState();
                     this.bindEvents();
@@ -516,22 +518,32 @@
                     const repeatBtn = document.getElementById('playerRepeatBtn');
                     const progressBar = document.getElementById('playerProgressBar');
                     const volumeSlider = document.getElementById('playerVolumeSlider');
-                    const adCloseBtn = document.getElementById('adCloseBtn');
-                    const adSkipText = document.getElementById('adSkipText');
-                    const adSubscribeBtn = document.getElementById('adSubscribeBtn');
 
-                    if (playPauseBtn) playPauseBtn.addEventListener('click', () => this.togglePlay());
-                    if (prevBtn) prevBtn.addEventListener('click', () => this.playPrevious());
-                    if (nextBtn) nextBtn.addEventListener('click', () => this.playNext());
+                    if (playPauseBtn) {
+                        playPauseBtn.addEventListener('click', () => {
+                            // Блокируем управление во время рекламы
+                            if (this.adActive) {
+                                console.log('Cannot control playback during ad');
+                                return;
+                            }
+                            this.togglePlay();
+                        });
+                    }
+                    if (prevBtn) prevBtn.addEventListener('click', () => {
+                        if (this.adActive) return;
+                        this.playPrevious();
+                    });
+                    if (nextBtn) nextBtn.addEventListener('click', () => {
+                        if (this.adActive) return;
+                        this.playNext();
+                    });
                     if (shuffleBtn) shuffleBtn.addEventListener('click', () => this.toggleShuffle());
                     if (repeatBtn) repeatBtn.addEventListener('click', () => this.toggleRepeat());
-                    if (progressBar) progressBar.addEventListener('click', (e) => this.seek(e));
-                    if (volumeSlider) volumeSlider.addEventListener('input', (e) => this.setVolume(e.target.value));
-                    if (adCloseBtn) adCloseBtn.addEventListener('click', () => this.closeAd(false));
-                    if (adSkipText) adSkipText.addEventListener('click', () => this.closeAd(true));
-                    if (adSubscribeBtn) adSubscribeBtn.addEventListener('click', () => {
-                        window.location.href = '/subscription/plans';
+                    if (progressBar) progressBar.addEventListener('click', (e) => {
+                        if (this.adActive) return;
+                        this.seek(e);
                     });
+                    if (volumeSlider) volumeSlider.addEventListener('input', (e) => this.setVolume(e.target.value));
 
                     this.audio.addEventListener('timeupdate', () => this.updateProgress());
                     this.audio.addEventListener('loadedmetadata', () => this.updateDuration());
@@ -579,10 +591,33 @@
                 showAd: function(track, playlist) {
                     if (this.adActive) return;
 
+                    // Останавливаем текущее воспроизведение если есть
+                    if (this.audio && !this.audio.paused) {
+                        this.audio.pause();
+                        this.audio.currentTime = 0;
+                    }
+
+                    // Сохраняем трек и плейлист, но НЕ начинаем воспроизведение
                     this.pendingTrack = track;
                     this.pendingPlaylist = playlist;
+                    this.currentTrack = track;
                     this.adActive = true;
+                    this.adPlaybackStarted = false;
                     this.adRemainingTime = 5;
+
+                    // Показываем информацию о треке, который будет играть после рекламы
+                    document.getElementById('playerTrackName').textContent = track.title || 'Неизвестный трек';
+                    document.getElementById('playerTrackArtist').textContent = track.artistName || 'Неизвестный исполнитель';
+                    document.getElementById('globalPlayer').style.display = 'block';
+
+                    // Устанавливаем иконку паузы, так как реклама "играет"
+                    document.getElementById('playerPlayPauseIcon').className = 'fas fa-pause';
+                    this.isPlaying = true;
+                    this.updatePlayIcon();
+
+                    // Очищаем источник аудио
+                    this.audio.src = '';
+                    this.audio.removeAttribute('src');
 
                     // Получаем случайную рекламу
                     fetch('/api/ad/random')
@@ -592,7 +627,6 @@
                             this.startAdTimer();
                         })
                         .catch(() => {
-                            // Если ошибка, показываем дефолтную рекламу
                             this.displayDefaultAd();
                             this.startAdTimer();
                         });
@@ -627,7 +661,7 @@
                         }
                     }
 
-                    // Скрываем кнопку закрытия и текст пропуска до окончания таймера
+                    // Скрываем кнопку закрытия и текст пропуска
                     if (closeBtn) closeBtn.style.display = 'none';
                     if (skipText) skipText.style.display = 'none';
 
@@ -658,7 +692,14 @@
 
                     if (progressCircle) {
                         progressCircle.style.strokeDasharray = circumference;
-                        progressCircle.style.strokeDashoffset = circumference;
+                        progressCircle.style.strokeDashoffset = 0;
+                    }
+
+                    this.adRemainingTime = totalTime;
+
+                    // Очищаем предыдущий таймер если есть
+                    if (this.adTimerInterval) {
+                        clearInterval(this.adTimerInterval);
                     }
 
                     this.adTimerInterval = setInterval(() => {
@@ -676,12 +717,20 @@
                         }
 
                         if (this.adRemainingTime <= 0) {
-                            this.closeAd(true);
+                            this.finishAdAndPlay();
                         }
                     }, 1000);
+
+                    // Подписка на кнопку
+                    const adSubscribeBtn = document.getElementById('adSubscribeBtn');
+                    if (adSubscribeBtn) {
+                        adSubscribeBtn.onclick = () => {
+                            window.location.href = '/subscription/plans';
+                        };
+                    }
                 },
 
-                closeAd: function(allowPlayback) {
+                finishAdAndPlay: function() {
                     // Останавливаем таймер
                     if (this.adTimerInterval) {
                         clearInterval(this.adTimerInterval);
@@ -692,20 +741,24 @@
                     const modal = document.getElementById('adModal');
                     if (modal) modal.style.display = 'none';
 
-                    if (allowPlayback && this.pendingTrack) {
-                        // Запоминаем, что реклама была показана
-                        this.startPlayback(this.pendingTrack, this.pendingPlaylist);
+                    // Устанавливаем флаг, что реклама завершена
+                    this.adActive = false;
+                    this.adPlaybackStarted = true;
+
+                    // Запускаем воспроизведение трека
+                    if (this.pendingTrack) {
+                        console.log('Ad finished, starting playback of:', this.pendingTrack.title);
+                        this.startPlaybackAfterAd(this.pendingTrack, this.pendingPlaylist);
                     }
 
-                    this.adActive = false;
                     this.pendingTrack = null;
                     this.pendingPlaylist = null;
                 },
 
-                startPlayback: function(track, playlist) {
+                startPlaybackAfterAd: function(track, playlist) {
                     if (!track) return;
 
-                    console.log('Starting playback for track:', track);
+                    console.log('Starting playback after ad for track:', track.title || track.id);
 
                     if (playlist && playlist.length > 0) {
                         this.playlist = playlist;
@@ -718,25 +771,116 @@
 
                     this.currentTrack = track;
 
+                    // Создаем новый источник аудио
                     const newSrc = '/tracks/stream/' + track.id;
-                    if (this.audio.src !== newSrc) {
+                    this.audio.src = newSrc;
+                    this.audio.load();
+
+                    // Воспроизводим когда аудио будет готово
+                    const startPlay = () => {
+                        this.audio.play().then(() => {
+                            console.log('Playback after ad started successfully');
+                            this.isPlaying = true;
+                            this.updatePlayIcon();
+                            this.updateTrackInfo(track);
+                            this.showPlayer();
+                            this.saveState();
+
+                            // Записываем статистику прослушивания
+                            fetch('/tracks/record/' + track.id, { method: 'POST' }).catch(() => {});
+                        }).catch(e => {
+                            console.warn('Playback after ad failed:', e);
+                            // Пробуем еще раз с задержкой
+                            setTimeout(() => {
+                                this.audio.play().then(() => {
+                                    console.log('Playback after ad started on retry');
+                                    this.isPlaying = true;
+                                    this.updatePlayIcon();
+                                    this.updateTrackInfo(track);
+                                    this.showPlayer();
+                                    this.saveState();
+                                    fetch('/tracks/record/' + track.id, { method: 'POST' }).catch(() => {});
+                                }).catch(e2 => {
+                                    console.error('Playback after ad failed on retry:', e2);
+                                    this.isPlaying = false;
+                                    this.updatePlayIcon();
+                                });
+                            }, 500);
+                        });
+
+                        this.audio.removeEventListener('canplay', startPlay);
+                    };
+
+                    // Если аудио уже готово к воспроизведению
+                    if (this.audio.readyState >= 3) {
+                        startPlay();
+                    } else {
+                        // Ждем загрузки
+                        this.audio.addEventListener('canplay', startPlay, { once: true });
+                    }
+                },
+
+                startPlayback: function(track, playlist) {
+                    if (!track) return;
+
+                    // Останавливаем текущее воспроизведение, если оно есть
+                    if (this.audio) {
+                        this.audio.pause();
+                        if (this.audio.currentTime) {
+                            this.audio.currentTime = 0;
+                        }
+                    }
+
+                    console.log('Starting playback for track:', track.title || track.id);
+
+                    if (playlist && playlist.length > 0) {
+                        this.playlist = playlist;
+                        this.playlistIndex = playlist.findIndex(t => t.id == track.id);
+                        if (this.playlistIndex === -1) this.playlistIndex = 0;
+                    } else {
+                        this.playlist = [track];
+                        this.playlistIndex = 0;
+                    }
+
+                    this.currentTrack = track;
+
+                    // Устанавливаем источник аудио
+                    const newSrc = '/tracks/stream/' + track.id;
+
+                    // Проверяем, не воспроизводится ли уже этот трек
+                    if (this.audio.src !== newSrc || this.audio.readyState === 0) {
                         this.audio.src = newSrc;
                         this.audio.load();
                     }
 
-                    this.audio.play().then(() => {
-                        console.log('Playback started');
-                        this.isPlaying = true;
-                        this.updatePlayIcon();
-                    }).catch(e => {
-                        console.warn('Playback failed:', e);
-                    });
+                    // Начинаем воспроизведение только если реклама не активна
+                    if (!this.adActive) {
+                        const startPlay = () => {
+                            this.audio.play().then(() => {
+                                console.log('Playback started successfully');
+                                this.isPlaying = true;
+                                this.updatePlayIcon();
+                                // Записываем статистику прослушивания
+                                fetch('/tracks/record/' + track.id, { method: 'POST' }).catch(() => {});
+                            }).catch(e => {
+                                console.warn('Playback failed:', e);
+                                this.isPlaying = false;
+                                this.updatePlayIcon();
+                            });
+                        };
+
+                        // Если аудио уже готово к воспроизведению
+                        if (this.audio.readyState >= 3) {
+                            startPlay();
+                        } else {
+                            // Ждем загрузки
+                            this.audio.addEventListener('canplay', startPlay, { once: true });
+                        }
+                    }
 
                     this.showPlayer();
                     this.updateTrackInfo(track);
                     this.saveState();
-
-                    fetch('/tracks/record/' + track.id, { method: 'POST' }).catch(() => {});
                 },
 
                 updatePlayIcon: function() {
@@ -752,7 +896,7 @@
 
                     // Если нужно показывать рекламу и это не специальный случай
                     if (this.shouldShowAds && !this.adActive) {
-                        console.log('Showing ad before playback');
+                        console.log('Showing ad before playback for track:', track.title || track.id);
                         this.showAd(track, playlist);
                     } else {
                         this.startPlayback(track, playlist);
@@ -766,6 +910,12 @@
                 },
 
                 togglePlay: function() {
+                    // Не позволяем управлять воспроизведением во время рекламы
+                    if (this.adActive) {
+                        console.log('Cannot control playback during ad');
+                        return;
+                    }
+
                     if (!this.currentTrack) {
                         console.log('No track to play');
                         return;
