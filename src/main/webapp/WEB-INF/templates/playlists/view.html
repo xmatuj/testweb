@@ -431,11 +431,11 @@
                         <i class="fas fa-play"></i> Слушать
                     </button>
                     <a th:href="@{'/playlists/edit/' + ${playlist.id}}" class="btn btn-secondary"
-                       th:if="${currentUser != null and (currentUser.id == playlist.userId or currentUser.isAdmin())}">
+                       th:if="${canEdit}">
                         <i class="fas fa-edit"></i> Редактировать
                     </a>
                     <form th:action="@{'/playlists/delete/' + ${playlist.id}}" method="post" style="display: inline;"
-                          th:if="${currentUser != null and (currentUser.id == playlist.userId or currentUser.isAdmin())}">
+                          th:if="${canEdit}">
                         <button type="submit" class="btn btn-danger"
                                 onclick="return confirm('Удалить плейлист? Это действие нельзя отменить.');">
                             <i class="fas fa-trash"></i> Удалить
@@ -479,7 +479,7 @@
                     <div class="track-actions">
                         <form th:action="@{'/playlists/' + ${playlist.id} + '/remove-track'}" method="post"
                               onsubmit="return confirm('Удалить трек из плейлиста?');"
-                              th:if="${currentUser != null and (currentUser.id == playlist.userId or currentUser.isAdmin())}">
+                              th:if="${canEdit}">
                             <input type="hidden" name="trackId" th:value="${track.id}">
                             <button type="submit" class="action-btn" title="Удалить из плейлиста" onclick="event.stopPropagation()">
                                 <i class="fas fa-times"></i>
@@ -498,7 +498,7 @@
 
         <!-- Add Track Section -->
         <section class="add-track-section"
-                 th:if="${currentUser != null and (currentUser.id == playlist.userId or currentUser.isAdmin()) and not #lists.isEmpty(availableTracks)}">
+                 th:if="${canEdit and not #lists.isEmpty(availableTracks)}">
             <h3 style="margin-bottom: 20px; color: var(--accent);">Добавить трек в плейлист</h3>
 
             <form class="add-track-form" th:action="@{'/playlists/' + ${playlist.id} + '/add-track'}" method="post">

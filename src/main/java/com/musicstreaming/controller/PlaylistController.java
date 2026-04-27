@@ -6,6 +6,7 @@ import com.musicstreaming.model.Track;
 import com.musicstreaming.model.User;
 import com.musicstreaming.service.AuthService;
 import com.musicstreaming.service.PlaylistService;
+import com.musicstreaming.service.SubscriptionService;
 import com.musicstreaming.service.TrackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -29,6 +30,9 @@ public class PlaylistController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private SubscriptionService subscriptionService;
+
     // ============ READ ALL ============
     @GetMapping
     public String listPlaylists(Model model, HttpServletRequest request) {
@@ -42,15 +46,27 @@ public class PlaylistController {
         model.addAttribute("publicPlaylists", playlistService.findPublicPlaylistsDTO());
         model.addAttribute("currentUser", currentUser);
 
+        // Добавляем информацию о возможности создавать плейлисты
+        boolean canCreatePlaylist = canCreatePlaylist(currentUser);
+        model.addAttribute("canCreatePlaylist", canCreatePlaylist);
+
         return "playlists/list";
     }
 
     // ============ CREATE ============
     @GetMapping("/create")
-    public String createForm(Model model, HttpServletRequest request) {
+    public String createForm(Model model, HttpServletRequest request,
+                             RedirectAttributes redirectAttributes) {
         User currentUser = authService.getCurrentUser(request);
         if (currentUser == null) {
             return "redirect:/account/login?redirect=/playlists/create";
+        }
+
+        // Проверяем, может ли пользователь создавать плейлисты
+        if (!canCreatePlaylist(currentUser)) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Для создания плейлистов необходима активная подписка Premium");
+            return "redirect:/playlists";
         }
 
         model.addAttribute("playlist", new Playlist());
@@ -65,6 +81,13 @@ public class PlaylistController {
         User currentUser = authService.getCurrentUser(request);
         if (currentUser == null) {
             return "redirect:/account/login";
+        }
+
+        // Проверяем, может ли пользователь создавать плейлисты
+        if (!canCreatePlaylist(currentUser)) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Для создания плейлистов необходима активная подписка Premium");
+            return "redirect:/playlists";
         }
 
         playlist.setUser(currentUser);
@@ -102,6 +125,11 @@ public class PlaylistController {
         model.addAttribute("availableTracks", availableTracks);
         model.addAttribute("currentUser", currentUser);
 
+        // Проверяем, может ли пользователь редактировать плейлист
+        boolean canEdit = currentUser != null &&
+                (currentUser.getId().equals(playlistDTO.getUserId()) || currentUser.isAdmin());
+        model.addAttribute("canEdit", canEdit);
+
         return "playlists/view";
     }
 
@@ -114,6 +142,13 @@ public class PlaylistController {
         User currentUser = authService.getCurrentUser(request);
         if (currentUser == null) {
             return "redirect:/account/login";
+        }
+
+        // Проверяем права на редактирование плейлиста
+        PlaylistDTO playlistDTO = playlistService.findDTOById(playlistId).orElse(null);
+        if (playlistDTO == null || (!currentUser.getId().equals(playlistDTO.getUserId()) && !currentUser.isAdmin())) {
+            redirectAttributes.addFlashAttribute("error", "У вас нет прав на редактирование этого плейлиста");
+            return "redirect:/playlists/" + playlistId;
         }
 
         try {
@@ -135,6 +170,13 @@ public class PlaylistController {
         User currentUser = authService.getCurrentUser(request);
         if (currentUser == null) {
             return "redirect:/account/login";
+        }
+
+        // Проверяем права на редактирование плейлиста
+        PlaylistDTO playlistDTO = playlistService.findDTOById(playlistId).orElse(null);
+        if (playlistDTO == null || (!currentUser.getId().equals(playlistDTO.getUserId()) && !currentUser.isAdmin())) {
+            redirectAttributes.addFlashAttribute("error", "У вас нет прав на редактирование этого плейлиста");
+            return "redirect:/playlists/" + playlistId;
         }
 
         try {
@@ -191,5 +233,21 @@ public class PlaylistController {
         playlistService.delete(id);
         redirectAttributes.addFlashAttribute("success", "Плейлист удален");
         return "redirect:/playlists";
+    }
+
+    /**
+     * Проверяет, может ли пользователь создавать плейлисты
+     */
+    private boolean canCreatePlaylist(User user) {
+        if (user == null) return false;
+
+        // Администраторы и музыканты могут создавать плейлисты
+        if (user.isAdmin() || user.isMusician()) return true;
+
+        // Подписчики могут создавать плейлисты
+        if (user.isSubscriber()) return true;
+
+        // Проверяем наличие активной подписки
+        return subscriptionService.findActiveByUserId(user.getId()).isPresent();
     }
 }

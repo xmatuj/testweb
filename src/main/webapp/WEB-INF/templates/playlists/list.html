@@ -228,6 +228,27 @@
             font-size: 20px;
             margin-bottom: 4px;
         }
+
+.alert {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-success {
+    background-color: rgba(29, 185, 84, 0.1);
+    border: 1px solid #1db954;
+    color: #1db954;
+}
+
+.alert-error {
+    background-color: rgba(226, 33, 52, 0.1);
+    border: 1px solid #e22134;
+    color: #e22134;
+}
     </style>
 </head>
 <body>
@@ -250,14 +271,26 @@
         <!-- Header -->
         <div class="page-header">
             <h1 class="page-title">Мои плейлисты</h1>
-            <a href="/playlists/create" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Создать плейлист
-            </a>
+            <th:block th:if="${canCreatePlaylist}">
+                <a href="/playlists/create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Создать плейлист
+                </a>
+            </th:block>
+            <th:block th:unless="${canCreatePlaylist}">
+                <a href="/subscription/plans" class="btn btn-primary">
+                    <i class="fas fa-crown"></i> Оформить подписку для создания плейлистов
+                </a>
+            </th:block>
         </div>
 
         <!-- Success Message -->
         <div th:if="${success}" class="alert alert-success">
             <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+        </div>
+
+        <!-- Error Message -->
+        <div th:if="${error}" class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
         </div>
 
         <!-- My Playlists -->
@@ -306,10 +339,18 @@
         <div th:if="${#lists.isEmpty(playlists) and #lists.isEmpty(publicPlaylists)}" class="empty-state">
             <i class="fas fa-list" style="font-size: 64px;"></i>
             <h3>У вас пока нет плейлистов</h3>
-            <p>Создайте свой первый плейлист, чтобы собирать любимые треки</p>
-            <a href="/playlists/create" class="btn btn-primary" style="margin-top: 20px;">
-                <i class="fas fa-plus"></i> Создать плейлист
-            </a>
+            <th:block th:if="${canCreatePlaylist}">
+                <p>Создайте свой первый плейлист, чтобы собирать любимые треки</p>
+                <a href="/playlists/create" class="btn btn-primary" style="margin-top: 20px;">
+                    <i class="fas fa-plus"></i> Создать плейлист
+                </a>
+            </th:block>
+            <th:block th:unless="${canCreatePlaylist}">
+                <p>Для создания плейлистов необходима активная подписка Premium</p>
+                <a href="/subscription/plans" class="btn btn-primary" style="margin-top: 20px;">
+                    <i class="fas fa-crown"></i> Оформить подписку
+                </a>
+            </th:block>
         </div>
     </div>
 </main>
