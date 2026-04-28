@@ -440,6 +440,422 @@
                 display: none;
             }
         }
+        /* Исправленные стили для плеера */
+.global-player {
+    position: fixed;
+    bottom: 70px;
+    left: 0;
+    right: 0;
+    background-color: var(--secondary-bg, #181818);
+    border-top: 1px solid var(--border-color, #333333);
+    padding: 8px 20px;
+    z-index: 9999;
+    box-shadow: 0 -4px 10px rgba(0,0,0,0.3);
+}
+
+.player-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.player-track {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 250px;
+}
+
+.player-cover {
+    width: 48px;
+    height: 48px;
+    min-width: 48px; /* Добавлено для предотвращения сжатия */
+    border-radius: 4px;
+    background: linear-gradient(135deg, var(--accent, #ffdb4d), #ffcc00);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-size: 20px;
+}
+
+.player-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0; /* Добавлено для корректного text-overflow */
+}
+
+.player-track-name {
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-track-artist {
+    font-size: 12px;
+    color: var(--text-secondary, #b3b3b3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0; /* Добавлено для предотвращения сжатия */
+}
+
+.control-btn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px; /* Добавлено для предотвращения сжатия */
+    min-height: 36px; /* Добавлено для предотвращения сжатия */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary, #fff);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    padding: 0; /* Добавлено для сброса отступов */
+}
+
+.control-btn:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.control-btn.play-btn {
+    width: 44px;
+    height: 44px;
+    min-width: 44px; /* Добавлено для предотвращения сжатия */
+    min-height: 44px; /* Добавлено для предотвращения сжатия */
+    background-color: var(--accent, #ffdb4d);
+    color: #000;
+    border-radius: 50%;
+}
+
+.control-btn.play-btn:hover {
+    background-color: #ffcc00;
+}
+
+/* Исправление для иконки play */
+.control-btn.play-btn i,
+.control-btn i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.control-btn.play-btn i {
+    font-size: 18px;
+}
+
+.player-progress-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 2;
+    min-width: 200px;
+}
+
+.time-current, .time-total {
+    font-size: 12px;
+    color: var(--text-secondary, #b3b3b3);
+    min-width: 40px;
+    flex-shrink: 0;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 4px;
+    background-color: var(--border-color, #333);
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+}
+
+.progress-filled {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background-color: var(--accent, #ffdb4d);
+    border-radius: 2px;
+    pointer-events: none;
+    transition: width 0.1s linear;
+}
+
+.player-volume {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.player-volume i {
+    color: var(--text-secondary, #b3b3b3);
+    width: 20px;
+    text-align: center;
+}
+
+#playerVolumeSlider {
+    width: 80px;
+    accent-color: var(--accent, #ffdb4d);
+}
+
+/* Стили для модального окна рекламы */
+.ad-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ad-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+}
+
+.ad-modal-content {
+    position: relative;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    overflow: hidden;
+    animation: adSlideIn 0.4s ease;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 219, 77, 0.3);
+}
+
+@keyframes adSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.ad-modal-header {
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ad-sponsor-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.ad-close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.2s;
+    display: none; /* Скрыто */
+}
+
+.ad-close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.ad-body {
+    padding: 30px 20px;
+    text-align: center;
+}
+
+.ad-image {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, var(--accent), #ffcc00);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #000;
+}
+
+.ad-info h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: var(--accent);
+}
+
+.ad-info p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.ad-timer {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    position: relative;
+}
+
+.ad-timer-circle {
+    width: 70px;
+    height: 70px;
+    transform: rotate(-90deg);
+}
+
+.ad-timer-circle-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 3;
+}
+
+.ad-timer-circle-progress {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.3s linear;
+}
+
+.ad-timer-seconds {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.ad-actions {
+    padding: 0 20px 20px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.ad-action-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-size: 14px;
+}
+
+.ad-subscribe-btn {
+    background: linear-gradient(135deg, var(--accent), #ffcc00);
+    color: #000;
+}
+
+.ad-subscribe-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 219, 77, 0.3);
+}
+
+.ad-skip-text {
+    text-align: center;
+    padding: 15px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: color 0.2s;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: none; /* Скрыто */
+}
+
+.ad-skip-text:hover {
+    color: var(--accent);
+}
+
+/* Адаптивные стили для плеера */
+@media (max-width: 900px) {
+    .player-progress-container {
+        min-width: 150px;
+    }
+
+    .player-volume {
+        min-width: 100px;
+    }
+
+    #playerVolumeSlider {
+        width: 60px;
+    }
+}
+
+@media (max-width: 768px) {
+    .player-container {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .player-progress-container {
+        order: 3;
+        width: 100%;
+        min-width: auto;
+    }
+
+    .player-volume {
+        display: none;
+    }
+
+    .player-track {
+        min-width: 150px;
+    }
+
+    .player-controls {
+        gap: 4px;
+    }
+
+    .control-btn {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+    }
+
+    .control-btn.play-btn {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        min-height: 40px;
+    }
+}
     </style>
 
     <script th:inline="javascript">
