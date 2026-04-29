@@ -491,6 +491,21 @@
                 </div>
             </th:block>
 
+            <!-- Исполнители -->
+            <th:block th:if="${artists != null and not #lists.isEmpty(artists)}">
+                <h3 class="section-title" style="font-size: 20px; margin: 30px 0 20px;">Исполнители</h3>
+                <div class="artist-cards">
+                    <div class="artist-card" th:each="artist : ${artists}"
+                         th:onclick="'location.href=\'/artist/' + ${artist.id} + '\''">
+                        <div class="artist-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="artist-name" th:text="${artist.name}">Исполнитель</div>
+                        <div class="artist-genre" th:text="${artist.albumCount} + ' альбомов • ' + ${artist.trackCount} + ' треков'">0 альбомов • 0 треков</div>
+                    </div>
+                </div>
+            </th:block>
+
             <!-- Пустой результат -->
             <th:block th:if="${totalResults == 0}">
                 <div class="empty-state">

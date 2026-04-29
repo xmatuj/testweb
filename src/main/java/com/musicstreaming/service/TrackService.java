@@ -19,18 +19,20 @@ public class TrackService {
     private final ArtistRepository artistRepository;
     private final AlbumRepository albumRepository;
     private final GenreRepository genreRepository;
+    private final TrackStatisticsRepository trackStatisticsRepository;
 
     @Autowired
     public TrackService(TrackRepository trackRepository,
                         ModerationRepository moderationRepository,
                         ArtistRepository artistRepository,
                         AlbumRepository albumRepository,
-                        GenreRepository genreRepository) {
+                        GenreRepository genreRepository, TrackStatisticsRepository trackStatisticsRepository) {
         this.trackRepository = trackRepository;
         this.moderationRepository = moderationRepository;
         this.artistRepository = artistRepository;
         this.albumRepository = albumRepository;
         this.genreRepository = genreRepository;
+        this.trackStatisticsRepository = trackStatisticsRepository;
     }
 
     public Optional<Track> findById(Integer id) {
@@ -138,5 +140,12 @@ public class TrackService {
     @Transactional
     public void delete(Integer id) {
         trackRepository.deleteById(id);
+    }
+
+    public long getTotalListenCount(Integer trackId) {
+        return trackStatisticsRepository.findByTrackId(trackId)
+                .stream()
+                .mapToLong(TrackStatistics::getListenCount)
+                .sum();
     }
 }

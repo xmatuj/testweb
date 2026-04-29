@@ -24,7 +24,7 @@ public interface ArtistRepository extends JpaRepository<Artist, Integer> {
     // Метод для получения DTO с подсчетом альбомов и треков
     @Query("SELECT new com.musicstreaming.dto.ArtistDTO(" +
             "a.id, a.name, a.description, " +
-            "SIZE(a.albums), SIZE(a.tracks)) " +
+            "SIZE(a.albums), SIZE(a.tracks), a.photoPath) " +
             "FROM Artist a " +
             "ORDER BY a.name")
     List<ArtistDTO> findAllArtistDTOs();
@@ -32,7 +32,7 @@ public interface ArtistRepository extends JpaRepository<Artist, Integer> {
     // Метод для поиска с DTO
     @Query("SELECT new com.musicstreaming.dto.ArtistDTO(" +
             "a.id, a.name, a.description, " +
-            "SIZE(a.albums), SIZE(a.tracks)) " +
+            "SIZE(a.albums), SIZE(a.tracks), a.photoPath) " +
             "FROM Artist a " +
             "WHERE LOWER(a.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(a.description) LIKE LOWER(CONCAT('%', :query, '%')) " +

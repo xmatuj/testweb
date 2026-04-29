@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${artist.name} + ' - MusicStream'">Исполнитель</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #181818;
+            --card-bg: #1e1e1e;
+            --hover-bg: #282828;
+            --accent: #ffdb4d;
+            --accent-hover: #ffcc00;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --success: #1db954;
+            --danger: #e22134;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.15) 0%, transparent 50%);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+            font-size: inherit;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Навигационная панель */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .logo i {
+            margin-right: 8px;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 30px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notification-btn, .user-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--secondary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            text-decoration: none;
+        }
+
+        .notification-btn:hover, .user-btn:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--primary-bg);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: var(--primary-bg);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Заголовок исполнителя */
+        .artist-header {
+            padding-top: 90px;
+            padding-bottom: 30px;
+            background: linear-gradient(to bottom, #1a1a1a, #121212);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .artist-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+            z-index: 0;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .artist-info {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .artist-info {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+        }
+
+        .artist-avatar {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            flex-shrink: 0;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 576px) {
+            .artist-avatar {
+                width: 150px;
+                height: 150px;
+                font-size: 60px;
+            }
+        }
+
+        .artist-details {
+            flex: 1;
+        }
+
+        .artist-name {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .artist-name {
+                font-size: 36px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .artist-name {
+                font-size: 28px;
+            }
+        }
+
+        .artist-stats {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 576px) {
+            .artist-stats {
+                flex-wrap: wrap;
+                gap: 20px;
+                justify-content: center;
+            }
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .artist-bio {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 600px;
+            font-size: 16px;
+            margin-bottom: 25px;
+        }
+
+        .artist-actions-header {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .play-btn {
+            background-color: var(--accent);
+            color: var(--primary-bg);
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .play-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Основной контент */
+        .main-content {
+            padding-bottom: 100px;
+        }
+
+        .popular-tracks {
+            margin: 40px 0;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .track-list {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .track-item {
+            display: grid;
+            grid-template-columns: 50px 1fr 100px 80px;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .track-item:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .track-number {
+            color: var(--text-secondary);
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .track-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .track-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .track-artist {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .track-duration {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .track-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .action-btn-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+        .action-btn-small:hover {
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Альбомы */
+        .albums-section {
+            margin: 40px 0;
+        }
+
+        .albums-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .album-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 16px;
+            transition: background-color 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .album-card:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .album-image {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .album-image i {
+            font-size: 40px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .album-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .album-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .album-info {
+            font-size: 14px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .play-button {
+            position: absolute;
+            right: 16px;
+            bottom: 70px;
+            width: 48px;
+            height: 48px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .album-card:hover .play-button {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Плеер */
+        .global-player {
+            position: fixed;
+            bottom: 70px;
+            left: 0;
+            right: 0;
+            background-color: var(--secondary-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 8px 20px;
+            z-index: 999;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.3);
+        }
+
+        .player-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .player-track {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .player-cover {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            border-radius: 4px;
+            background: linear-gradient(135deg, var(--accent), #ffcc00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 20px;
+        }
+
+        .player-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .player-track-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-track-artist {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            min-height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            padding: 0;
+        }
+
+        .control-btn:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .control-btn.play-btn {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
+            background-color: var(--accent);
+            color: #000;
+            border-radius: 50%;
+        }
+
+        .control-btn i {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .control-btn.play-btn i {
+            font-size: 18px;
+        }
+
+        .player-progress-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 2;
+            min-width: 200px;
+        }
+
+        .time-current, .time-total {
+            font-size: 12px;
+            color: var(--text-secondary);
+            min-width: 40px;
+            flex-shrink: 0;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .progress-filled {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0%;
+            background-color: var(--accent);
+            border-radius: 2px;
+            pointer-events: none;
+            transition: width 0.1s linear;
+        }
+
+        .player-volume {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+            flex-shrink: 0;
+        }
+
+        .player-volume i {
+            color: var(--text-secondary);
+            width: 20px;
+            text-align: center;
+        }
+
+        #playerVolumeSlider {
+            width: 80px;
+            accent-color: var(--accent);
+        }
+
+        /* Нижняя панель навигации */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--primary-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 10px 0;
+            z-index: 998;
+        }
+
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+        }
+
+        .add-to-playlist-btn {
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+        .add-to-playlist-btn:hover {
+            color: var(--accent) !important;
+            background-color: rgba(255, 219, 77, 0.1);
+        }
+
+        .add-to-playlist-btn.added {
+            color: var(--success) !important;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 12000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        @media (max-width: 900px) {
+            .player-progress-container {
+                min-width: 150px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-bar {
+                margin: 0 15px;
+            }
+            .player-container {
+                flex-wrap: wrap;
+            }
+            .player-progress-container {
+                order: 3;
+                width: 100%;
+                min-width: auto;
+            }
+            .player-volume {
+                display: none;
+            }
+            .albums-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+
+        @media (max-width: 576px) {
+            .track-item {
+                grid-template-columns: 40px 1fr 80px 60px;
+                padding: 10px 12px;
+            }
+            .albums-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Хедер -->
+<header>
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <a href="/" class="logo">
+                <i class="fas fa-music"></i>
+                MusicStream
+            </a>
+
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Поиск треков, альбомов, исполнителей" id="searchInput">
+            </div>
+
+            <div class="user-actions" th:if="${isAuthenticated}">
+                <a th:if="${isAdmin}" href="/admin" class="notification-btn" title="Админ-панель">
+                    <i class="fas fa-crown"></i>
+                </a>
+                <button class="notification-btn">
+                    <i class="far fa-bell"></i>
+                </button>
+                <a href="/account/profile" class="user-btn">
+                    <div class="user-avatar" th:text="${currentUser != null ? #strings.substring(currentUser.username, 0, 1) : 'U'}">U</div>
+                </a>
+            </div>
+
+            <div class="user-actions" th:unless="${isAuthenticated}">
+                <a href="/account/login" class="btn" style="color: var(--text-primary); margin-right: 15px;">Войти</a>
+                <a href="/account/register" class="btn btn-primary">Регистрация</a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<!-- Заголовок исполнителя -->
+<header class="artist-header">
+    <div class="container header-content">
+        <div class="artist-info">
+            <div class="artist-avatar">
+                <img th:if="${artist.photoPath != null}" th:src="${artist.photoPath}" alt="Фото исполнителя"
+                     style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                <i th:unless="${artist.photoPath != null}" class="fas fa-user"></i>
+            </div>
+            <div class="artist-details">
+                <h1 class="artist-name" th:text="${artist.name}">Исполнитель 1</h1>
+                <div class="artist-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" th:text="${#numbers.formatDecimal(totalListens, 0, 'COMMA', 0, 'POINT')}">0</span>
+                        <span class="stat-label">прослушиваний</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" th:text="${artist.trackCount}">24</span>
+                        <span class="stat-label">треков</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" th:text="${artist.albumCount}">5</span>
+                        <span class="stat-label">альбомов</span>
+                    </div>
+                </div>
+                <p class="artist-bio" th:text="${artist.description}">Описание исполнителя</p>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Основной контент -->
+<main class="main-content">
+    <div class="container">
+        <!-- Популярные треки -->
+        <section class="popular-tracks" th:if="${not #lists.isEmpty(popularTracks)}">
+            <div class="section-header">
+                <h2 class="section-title">Популярные треки</h2>
+            </div>
+            <div class="track-list">
+                <div class="track-item" th:each="track, iterStat : ${popularTracks}"
+                     th:data-track-id="${track.id}"
+                     th:data-track-title="${track.title}"
+                     th:data-track-artist="${artist.name}">
+                    <div class="track-number" th:text="${iterStat.index + 1}">1</div>
+                    <div class="track-info">
+                        <div class="track-name" th:text="${track.title}">Название трека</div>
+                        <div class="track-artist" th:text="${artist.name}">Исполнитель</div>
+                    </div>
+                    <div class="track-duration" th:text="${track.formattedDuration}">3:45</div>
+                    <div class="track-actions">
+                        <button class="action-btn-small like-btn" onclick="event.stopPropagation()">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <button class="action-btn-small add-to-playlist-btn" th:data-track-id="${track.id}" onclick="event.stopPropagation()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Альбомы -->
+        <section class="albums-section" th:if="${not #lists.isEmpty(albums)}">
+            <div class="section-header">
+                <h2 class="section-title">Альбомы</h2>
+            </div>
+            <div class="albums-grid">
+                <div class="album-card" th:each="album : ${albums}" th:onclick="'location.href=\'/album/' + ${album.id} + '\''">
+                    <div class="album-image">
+                        <img th:if="${album.coverPath != null}" th:src="${album.coverPath}" alt="Обложка">
+                        <i th:unless="${album.coverPath != null}" class="fas fa-compact-disc"></i>
+                    </div>
+                    <div class="play-button" th:onclick="'event.stopPropagation(); playAlbum(' + ${album.id} + ')'">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div class="album-title" th:text="${album.title}">Альбом</div>
+                    <div class="album-info" th:text="${album.releaseDate != null ? #temporals.format(album.releaseDate, 'yyyy') : '2024'} + ' • ' + ${#lists.size(album.tracks)} + ' треков'">2024 • 12 треков</div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- Нижняя панель навигации -->
+<nav class="bottom-nav">
+    <div class="nav-items">
+        <a href="/" class="nav-item"><i class="fas fa-home nav-icon"></i><span class="nav-label">Главная</span></a>
+        <a href="/search" class="nav-item active"><i class="fas fa-search nav-icon"></i><span class="nav-label">Поиск</span></a>
+        <a href="/playlists" class="nav-item"><i class="fas fa-list nav-icon"></i><span class="nav-label">Библиотека</span></a>
+        <a href="/account/profile" class="nav-item"><i class="fas fa-user nav-icon"></i><span class="nav-label">Профиль</span></a>
+    </div>
+</nav>
+
+<!-- Глобальный плеер -->
+<div th:replace="fragments/player-fragment :: player"></div>
+<div th:replace="~{fragments/scripts :: scripts}"></div>
+<div th:replace="~{fragments/add-to-playlist-modal :: addToPlaylistModal}"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        // Поиск при нажатии Enter
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && this.value.trim()) {
+                    window.location.href = '/search?query=' + encodeURIComponent(this.value.trim());
+                }
+            });
+        }
+
+        // Функция для сбора уникальных треков
+        function collectUniqueTracks() {
+            const tracksMap = new Map();
+            document.querySelectorAll('[data-track-id]').forEach(el => {
+                const id = el.dataset.trackId;
+                if (!tracksMap.has(id)) {
+                    tracksMap.set(id, {
+                        id: id,
+                        title: el.dataset.trackTitle || el.querySelector('.track-name')?.textContent || 'Неизвестный трек',
+                        artistName: el.dataset.trackArtist || el.querySelector('.track-artist')?.textContent || 'Неизвестный исполнитель'
+                    });
+                }
+            });
+            return Array.from(tracksMap.values());
+        }
+
+        const playlist = collectUniqueTracks();
+
+        // Обработка кликов по трекам
+        document.querySelectorAll('.track-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (e.target.closest('.track-actions, .action-btn-small, button')) return;
+
+                const trackId = this.dataset.trackId;
+                const trackTitle = this.dataset.trackTitle || this.querySelector('.track-name')?.textContent || 'Неизвестный трек';
+                const trackArtist = this.dataset.trackArtist || this.querySelector('.track-artist')?.textContent || 'Неизвестный исполнитель';
+
+                if (window.MusicPlayer) {
+                    window.MusicPlayer.playTrack({ id: trackId, title: trackTitle, artistName: trackArtist }, playlist);
+                }
+            });
+        });
+
+        // Кнопки лайка
+        document.querySelectorAll('.like-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('far')) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    icon.style.color = 'var(--success)';
+                } else {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    icon.style.color = '';
+                }
+            });
+        });
+
+        // Обработчики для кнопок добавления в плейлист
+        document.querySelectorAll('.add-to-playlist-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const trackId = this.dataset.trackId;
+                if (!window.isAuthenticated) {
+                    window.location.href = '/account/login';
+                    return;
+                }
+                if (typeof openAddToPlaylistModal === 'function') {
+                    openAddToPlaylistModal(trackId);
+                }
+            });
+        });
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

@@ -15,6 +15,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import com.musicstreaming.dto.ArtistDTO;
+import com.musicstreaming.service.ArtistService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -29,14 +31,16 @@ public class HomeController {
     private final AlbumService albumService;
     private final AuthService authService;
     private final SubscriptionService subscriptionService;
+    private ArtistService artistService;
 
     @Autowired
     public HomeController(TrackService trackService, AlbumService albumService,
-                          AuthService authService, SubscriptionService subscriptionService) {
+                          AuthService authService, SubscriptionService subscriptionService, ArtistService artistService) {
         this.trackService = trackService;
         this.albumService = albumService;
         this.authService = authService;
         this.subscriptionService = subscriptionService;
+        this.artistService = artistService;
     }
 
     @GetMapping("/")
@@ -105,11 +109,13 @@ public class HomeController {
             try {
                 List<Track> tracks = trackService.search(query);
                 List<Album> albums = albumService.search(query);
+                List<ArtistDTO> artists = artistService.searchDTOs(query);
 
                 logger.info("Search '{}' found {} tracks and {} albums", query, tracks.size(), albums.size());
 
                 model.addAttribute("tracks", tracks);
                 model.addAttribute("albums", albums);
+                model.addAttribute("artists", artists);
 
                 int totalResults = tracks.size() + albums.size();
                 model.addAttribute("totalResults", totalResults);

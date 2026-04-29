@@ -84,7 +84,8 @@ public class ArtistService {
                         artist.getName(),
                         artist.getDescription(),
                         artist.getAlbums().size(),
-                        artist.getTracks().size()
+                        artist.getTracks().size(),
+                        artist.getPhotoPath()
                 ))
                 .orElse(null);
     }
