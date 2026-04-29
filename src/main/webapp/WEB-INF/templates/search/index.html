@@ -483,7 +483,9 @@
                 <div class="albums-grid">
                     <div class="album-card" th:each="album : ${albums}" th:onclick="'location.href=\'/album/' + ${album.id} + '\''">
                         <div class="artist-avatar">
-                            <i class="fas fa-compact-disc"></i>
+                            <img th:if="${album.coverPath != null}" th:src="${album.coverPath}"
+                                 alt="Обложка" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            <i th:unless="${album.coverPath != null}" class="fas fa-compact-disc"></i>
                         </div>
                         <div class="album-title" th:text="${album.title}">Альбом</div>
                         <div class="album-artist" th:text="${album.artist != null ? album.artist.name : 'Исполнитель'}">Исполнитель</div>
@@ -498,10 +500,12 @@
                     <div class="artist-card" th:each="artist : ${artists}"
                          th:onclick="'location.href=\'/artist/' + ${artist.id} + '\''">
                         <div class="artist-avatar">
-                            <i class="fas fa-user"></i>
+                            <img th:if="${artist.photoPath != null}" th:src="${artist.photoPath}"
+                                 alt="Фото" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            <i th:unless="${artist.photoPath != null}" class="fas fa-user"></i>
                         </div>
                         <div class="artist-name" th:text="${artist.name}">Исполнитель</div>
-                        <div class="artist-genre" th:text="${artist.albumCount} + ' альбомов • ' + ${artist.trackCount} + ' треков'">0 альбомов • 0 треков</div>
+                        <div class="artist-genre" th:text="${artist.albumCount} + ' альбомов • ' + ${artist.trackCount} + ' треков'">5 альбомов • 20 треков</div>
                     </div>
                 </div>
             </th:block>
