@@ -5,8 +5,11 @@
 <div th:fragment="scripts">
     <script th:inline="javascript">
         /*<![CDATA[*/
-        // Поиск
+        // Глобальная переменная авторизации
+        window.isAuthenticated = /*[[${isAuthenticated}]]*/ false;
+
         document.addEventListener('DOMContentLoaded', function() {
+            // Поиск
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
                 searchInput.addEventListener('keypress', function(e) {
@@ -18,6 +21,9 @@
 
             // Настройка кнопок воспроизведения на странице
             setupPlayButtons();
+
+            // Настройка кнопок добавления в плейлист
+            setupAddToPlaylistButtons();
         });
 
         function setupPlayButtons() {
@@ -27,7 +33,7 @@
                 playlist.push({
                     id: el.dataset.trackId,
                     title: el.dataset.trackTitle || el.querySelector('.track-name, .card-title, .track-title')?.textContent || 'Трек',
-                    artistName: el.dataset.trackArtist || el.querySelector('.track-artist, .card-subtitle, .track-features')?.textContent || 'Исполнитель'
+                    artistName: el.dataset.trackArtist || el.querySelector('.track-artist, .card-subtitle')?.textContent || 'Исполнитель'
                 });
             });
 
@@ -35,11 +41,11 @@
             document.querySelectorAll('[data-track-id]').forEach(el => {
                 el.addEventListener('click', function(e) {
                     // Игнорируем клики по кнопкам действий
-                    if (e.target.closest('.track-actions, .action-btn, .like-btn, button')) return;
+                    if (e.target.closest('.track-actions, .action-btn, .like-btn, button, .add-to-playlist-btn')) return;
 
                     const trackId = this.dataset.trackId;
                     const trackTitle = this.dataset.trackTitle || this.querySelector('.track-name, .card-title, .track-title')?.textContent || 'Трек';
-                    const trackArtist = this.dataset.trackArtist || this.querySelector('.track-artist, .card-subtitle, .track-features')?.textContent || 'Исполнитель';
+                    const trackArtist = this.dataset.trackArtist || this.querySelector('.track-artist, .card-subtitle')?.textContent || 'Исполнитель';
 
                     if (window.MusicPlayer) {
                         window.MusicPlayer.playTrack({ id: trackId, title: trackTitle, artistName: trackArtist }, playlist);
@@ -84,6 +90,37 @@
             });
         }
 
+        // НОВАЯ ФУНКЦИЯ: Настройка кнопок добавления в плейлист
+        function setupAddToPlaylistButtons() {
+            document.querySelectorAll('.add-to-playlist-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+
+                    const trackId = this.dataset.trackId;
+
+                    if (!trackId) {
+                        console.error('No track ID found on button');
+                        return;
+                    }
+
+                    // Проверяем авторизацию
+                    if (!window.isAuthenticated) {
+                        window.location.href = '/account/login';
+                        return;
+                    }
+
+                    // Открываем модальное окно
+                    if (typeof openAddToPlaylistModal === 'function') {
+                        openAddToPlaylistModal(trackId);
+                    } else {
+                        console.error('openAddToPlaylistModal function not found');
+                        window.location.href = '/playlists';
+                    }
+                });
+            });
+        }
+
         // Глобальная функция для воспроизведения трека
         window.playTrack = function(trackId, title, artist) {
             const playlist = [];
@@ -97,6 +134,18 @@
 
             if (window.MusicPlayer) {
                 window.MusicPlayer.playTrack({ id: trackId, title: title, artistName: artist }, playlist);
+            }
+        };
+
+        // Глобальная функция для добавления в плейлист
+        window.handleAddToPlaylist = function(trackId) {
+            if (!window.isAuthenticated) {
+                window.location.href = '/account/login';
+                return;
+            }
+
+            if (typeof openAddToPlaylistModal === 'function') {
+                openAddToPlaylistModal(trackId);
             }
         };
 

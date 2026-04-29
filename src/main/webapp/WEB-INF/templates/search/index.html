@@ -395,6 +395,26 @@
                 gap: 15px;
             }
         }
+        .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 12000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
     </style>
 </head>
 <body>
@@ -447,7 +467,9 @@
                             <button class="action-btn like-btn" onclick="event.stopPropagation()">
                                 <i class="far fa-heart"></i>
                             </button>
-                            <button class="action-btn add-to-playlist-btn" th:data-track-id="${track.id}" onclick="event.stopPropagation()">
+                            <button class="action-btn add-to-playlist-btn"
+                                    th:data-track-id="${track.id}"
+                                    onclick="event.stopPropagation()">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -534,7 +556,9 @@
                         <button class="action-btn like-btn" onclick="event.stopPropagation()">
                             <i class="far fa-heart"></i>
                         </button>
-                        <button class="action-btn add-to-playlist-btn" th:data-track-id="${track.id}" onclick="event.stopPropagation()">
+                        <button class="action-btn add-to-playlist-btn"
+                                th:data-track-id="${track.id}"
+                                onclick="event.stopPropagation()">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -581,6 +605,8 @@
 <div th:replace="fragments/player-fragment :: player"></div>
 
 <div th:replace="~{fragments/scripts :: scripts}"></div>
+
+<div th:replace="~{fragments/add-to-playlist-modal :: addToPlaylistModal}"></div>
 
 <script th:inline="javascript">
     /*<![CDATA[*/

@@ -598,6 +598,38 @@
                 display: none;
             }
         }
+        .add-to-playlist-btn {
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+        .add-to-playlist-btn:hover {
+            color: var(--accent) !important;
+            background-color: rgba(255, 219, 77, 0.1);
+        }
+
+        .add-to-playlist-btn.added {
+            color: var(--success) !important;
+        }
+        .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 12000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
     </style>
 </head>
 <body>
@@ -648,7 +680,10 @@
                     <button class="action-btn like-btn" onclick="event.stopPropagation()">
                         <i class="far fa-heart"></i>
                     </button>
-                    <button class="action-btn" onclick="event.stopPropagation()">
+                    <!-- ВАЖНО: Кнопка добавления в плейлист -->
+                    <button class="action-btn add-to-playlist-btn"
+                            th:data-track-id="${track.id}"
+                            onclick="event.stopPropagation()">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
@@ -665,6 +700,8 @@
 
 <!-- Скрипты -->
 <div th:replace="~{fragments/scripts :: scripts}"></div>
+
+<div th:replace="~{fragments/add-to-playlist-modal :: addToPlaylistModal}"></div>
 
 <script th:inline="javascript">
     /*<![CDATA[*/
@@ -692,6 +729,15 @@
             });
         });
     });
+
+    function handleAddToPlaylist(trackId) {
+    if (typeof openAddToPlaylistModal === 'function') {
+        openAddToPlaylistModal(trackId);
+    } else {
+        // Если функция не определена, перенаправляем на страницу входа
+        window.location.href = '/account/login';
+        }
+    }
     /*]]>*/
 </script>
 </body>

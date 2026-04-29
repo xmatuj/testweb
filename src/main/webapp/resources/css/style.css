@@ -606,3 +606,15 @@ body {
         grid-template-columns: 1fr;
     }
 }
+.add-to-playlist-btn {
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.add-to-playlist-btn:hover {
+    color: var(--accent) !important;
+    background-color: rgba(255, 219, 77, 0.1);
+}
+
+.add-to-playlist-btn.added {
+    color: var(--success) !important;
+}

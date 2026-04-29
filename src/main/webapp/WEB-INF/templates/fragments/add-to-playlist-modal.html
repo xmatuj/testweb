@@ -1,0 +1,538 @@
+<!-- src/main/webapp/WEB-INF/templates/fragments/add-to-playlist-modal.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="addToPlaylistModal">
+    <!-- Модальное окно добавления в плейлист -->
+    <div class="modal-overlay" id="addToPlaylistModal">
+        <div class="modal playlist-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Добавить в плейлист</h3>
+                <button class="modal-close" onclick="closeAddToPlaylistModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-content">
+                <!-- Поиск плейлистов -->
+                <div class="playlist-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="playlistSearchInput" placeholder="Поиск плейлистов...">
+                </div>
+
+                <!-- Список плейлистов -->
+                <div class="playlists-list" id="playlistsList">
+                    <div class="loading-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Загрузка плейлистов...</span>
+                    </div>
+                </div>
+
+                <!-- Кнопка создания нового плейлиста -->
+                <div class="create-playlist-section">
+                    <div class="divider">
+                        <span>или</span>
+                    </div>
+                    <button class="create-playlist-btn" onclick="createNewPlaylist()">
+                        <i class="fas fa-plus"></i>
+                        Создать новый плейлист
+                    </button>
+                </div>
+
+                <!-- Сообщение об успехе/ошибке -->
+                <div class="playlist-message" id="playlistMessage" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .playlist-modal {
+            max-width: 450px !important;
+        }
+
+        .playlist-search {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .playlist-search i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .playlist-search input {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .playlist-search input:focus {
+            border-color: var(--accent);
+        }
+
+        .playlists-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .playlists-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .playlists-list::-webkit-scrollbar-track {
+            background: var(--secondary-bg);
+        }
+
+        .playlists-list::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .playlist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .playlist-item:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .playlist-item.selected {
+            background-color: rgba(255, 219, 77, 0.1);
+        }
+
+        .playlist-item-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            background: linear-gradient(135deg, var(--accent), #ffcc00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .playlist-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .playlist-item-title {
+            font-weight: 500;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .playlist-item-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .playlist-item-add {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--accent);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .playlist-item-add:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .playlist-item-add.added {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+        }
+
+        .loading-state i {
+            margin-right: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .create-playlist-section {
+            margin-top: 15px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: var(--border-color);
+        }
+
+        .divider span {
+            padding: 0 15px;
+        }
+
+        .create-playlist-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px dashed var(--border-color);
+            background-color: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .create-playlist-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background-color: rgba(255, 219, 77, 0.05);
+        }
+
+        .playlist-message {
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .playlist-message.success {
+            background-color: rgba(29, 185, 84, 0.1);
+            color: var(--success);
+        }
+
+        .playlist-message.error {
+            background-color: rgba(226, 33, 52, 0.1);
+            color: var(--danger);
+        }
+    </style>
+
+    <script>
+        let currentTrackId = null;
+        let currentPlaylists = [];
+
+        // Открыть модальное окно
+        function openAddToPlaylistModal(trackId) {
+            currentTrackId = trackId;
+
+            const modal = document.getElementById('addToPlaylistModal');
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+                // Загружаем плейлисты
+                loadPlaylists();
+
+                // Очищаем сообщение
+                const message = document.getElementById('playlistMessage');
+                if (message) {
+                    message.style.display = 'none';
+                    message.textContent = '';
+                }
+
+                // Очищаем поиск
+                const searchInput = document.getElementById('playlistSearchInput');
+                if (searchInput) searchInput.value = '';
+            }
+        }
+
+        // Закрыть модальное окно
+        function closeAddToPlaylistModal() {
+            const modal = document.getElementById('addToPlaylistModal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+            currentTrackId = null;
+        }
+
+        // Загрузить плейлисты пользователя
+        async function loadPlaylists() {
+            const listContainer = document.getElementById('playlistsList');
+            if (!listContainer) return;
+
+            listContainer.innerHTML = `
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Загрузка плейлистов...</span>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/playlists/my');
+                const data = await response.json();
+
+                if (data.success) {
+                    currentPlaylists = data.playlists || [];
+
+                    if (currentPlaylists.length === 0) {
+                        listContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-list"></i>
+                                <p>У вас пока нет плейлистов</p>
+                            </div>
+                        `;
+                    } else {
+                        renderPlaylists(currentPlaylists);
+                    }
+
+                    // Проверяем наличие трека в плейлистах
+                    checkTrackInPlaylists();
+                } else {
+                    listContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>${data.error || 'Ошибка загрузки плейлистов'}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading playlists:', error);
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Ошибка загрузки плейлистов</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Проверить наличие трека в плейлистах
+        async function checkTrackInPlaylists() {
+            if (!currentTrackId || currentPlaylists.length === 0) return;
+
+            for (const playlist of currentPlaylists) {
+                try {
+                    const response = await fetch(`/api/playlists/${playlist.id}/has-track/${currentTrackId}`);
+                    const data = await response.json();
+
+                    if (data.success && data.hasTrack) {
+                        const btn = document.querySelector(`.playlist-item-add[data-playlist-id="${playlist.id}"]`);
+                        if (btn) {
+                            btn.classList.add('added');
+                            btn.innerHTML = '<i class="fas fa-check"></i>';
+                            btn.title = 'Уже в плейлисте';
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error checking track in playlist ${playlist.id}:`, error);
+                }
+            }
+        }
+
+        // Отрендерить список плейлистов
+        function renderPlaylists(playlists) {
+            const listContainer = document.getElementById('playlistsList');
+            if (!listContainer) return;
+
+            listContainer.innerHTML = playlists.map(playlist => `
+                <div class="playlist-item" data-playlist-id="${playlist.id}">
+                    <div class="playlist-item-icon">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div class="playlist-item-info">
+                        <div class="playlist-item-title">${escapeHtml(playlist.title)}</div>
+                        <div class="playlist-item-meta">
+                            ${playlist.trackCount} треков • ${playlist.visibility === 'Public' ? 'Публичный' : 'Приватный'}
+                        </div>
+                    </div>
+                    <button class="playlist-item-add"
+                            data-playlist-id="${playlist.id}"
+                            onclick="addTrackToPlaylist(${playlist.id}, '${escapeHtml(playlist.title)}')"
+                            title="Добавить трек">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Экранирование HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Добавить трек в плейлист
+        async function addTrackToPlaylist(playlistId, playlistTitle) {
+            if (!currentTrackId) return;
+
+            const btn = document.querySelector(`.playlist-item-add[data-playlist-id="${playlistId}"]`);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            }
+
+            try {
+                const response = await fetch(`/api/playlists/${playlistId}/add-track?trackId=${currentTrackId}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                const messageEl = document.getElementById('playlistMessage');
+                if (messageEl) {
+                    messageEl.style.display = 'block';
+
+                    if (data.success) {
+                        messageEl.className = 'playlist-message success';
+                        messageEl.innerHTML = `<i class="fas fa-check-circle"></i> Трек добавлен в плейлист "${escapeHtml(playlistTitle)}"`;
+
+                        // Обновляем кнопку
+                        if (btn) {
+                            btn.classList.add('added');
+                            btn.innerHTML = '<i class="fas fa-check"></i>';
+                        }
+
+                        // Обновляем количество треков
+                        updatePlaylistTrackCount(playlistId);
+
+                        // Автоматически закрываем через 2 секунды
+                        setTimeout(() => {
+                            closeAddToPlaylistModal();
+                        }, 2000);
+                    } else {
+                        messageEl.className = 'playlist-message error';
+                        messageEl.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${data.error || 'Ошибка при добавлении трека'}`;
+
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-plus"></i>';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error adding track to playlist:', error);
+
+                const messageEl = document.getElementById('playlistMessage');
+                if (messageEl) {
+                    messageEl.style.display = 'block';
+                    messageEl.className = 'playlist-message error';
+                    messageEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> Ошибка при добавлении трека';
+                }
+
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-plus"></i>';
+                }
+            }
+        }
+
+        // Обновить количество треков в плейлисте
+        function updatePlaylistTrackCount(playlistId) {
+            const item = document.querySelector(`.playlist-item[data-playlist-id="${playlistId}"]`);
+            if (item) {
+                const meta = item.querySelector('.playlist-item-meta');
+                if (meta) {
+                    const currentCount = parseInt(meta.textContent) || 0;
+                    meta.textContent = meta.textContent.replace(/\d+ треков/, `${currentCount + 1} треков`);
+                }
+            }
+        }
+
+        // Создать новый плейлист
+        function createNewPlaylist() {
+            window.location.href = '/playlists/create';
+        }
+
+        // Поиск плейлистов
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('playlistSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const query = this.value.toLowerCase();
+                    const filtered = currentPlaylists.filter(p =>
+                        p.title.toLowerCase().includes(query)
+                    );
+                    renderPlaylists(filtered);
+
+                    if (filtered.length === 0) {
+                        const listContainer = document.getElementById('playlistsList');
+                        if (listContainer) {
+                            listContainer.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-search"></i>
+                                    <p>Плейлисты не найдены</p>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    checkTrackInPlaylists();
+                });
+            }
+
+            // Закрытие модального окна при клике вне его
+            const modal = document.getElementById('addToPlaylistModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeAddToPlaylistModal();
+                    }
+                });
+            }
+
+            // Закрытие при нажатии Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('addToPlaylistModal');
+                    if (modal && modal.classList.contains('active')) {
+                        closeAddToPlaylistModal();
+                    }
+                }
+            });
+        });
+    </script>
+</div>
+</body>
+</html>
