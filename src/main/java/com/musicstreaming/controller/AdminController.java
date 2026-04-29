@@ -1,6 +1,9 @@
-// src/main/java/com/musicstreaming/controller/AdminController.java
 package com.musicstreaming.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import com.musicstreaming.repository.ModerationRepository;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.nio.file.Files;
@@ -41,12 +44,14 @@ public class AdminController {
     private final AlbumService albumService;
     private final GenreService genreService;
     private final PlaylistService playlistService;
+    private final ModerationRepository moderationRepository;
 
     @Autowired
     public AdminController(UserService userService, TrackService trackService,
                            AdminService adminService, AuthService authService,
                            ArtistService artistService, AlbumService albumService,
-                           GenreService genreService, PlaylistService playlistService) {
+                           GenreService genreService, PlaylistService playlistService,
+                           ModerationRepository moderationRepository) {
         this.userService = userService;
         this.trackService = trackService;
         this.adminService = adminService;
@@ -55,6 +60,7 @@ public class AdminController {
         this.albumService = albumService;
         this.genreService = genreService;
         this.playlistService = playlistService;
+        this.moderationRepository = moderationRepository;
     }
 
     @GetMapping
@@ -812,7 +818,8 @@ public class AdminController {
     // ==================== MODERATION ====================
 
     @GetMapping("/moderation")
-    public String moderation(Model model, HttpServletRequest request,
+    public String moderation(@RequestParam(required = false, defaultValue = "0") int page,
+                             Model model, HttpServletRequest request,
                              RedirectAttributes redirectAttributes) {
 
         if (!authService.isAdmin(request)) {
@@ -822,10 +829,26 @@ public class AdminController {
 
         User currentUser = authService.getCurrentUser(request);
         model.addAttribute("currentUser", currentUser);
-        model.addAttribute("pendingTracks", trackService.findPendingModeration());
-        model.addAttribute("pendingCount", trackService.findPendingModeration().size());
         model.addAttribute("pageTitle", "Модерация контента");
         model.addAttribute("activePage", "moderation");
+
+        // Треки на модерации
+        List<Track> pendingTracks = trackService.findPendingModeration();
+        model.addAttribute("pendingTracks", pendingTracks);
+        model.addAttribute("pendingCount", pendingTracks.size());
+
+        // История модерации с пагинацией
+        int pageSize = 10;
+        Pageable pageable = PageRequest.of(page, pageSize);
+        Page<Moderation> moderationPage = moderationRepository.findModerationHistory(pageable);
+
+        model.addAttribute("moderationHistory", moderationPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", moderationPage.getTotalPages());
+        model.addAttribute("totalItems", moderationPage.getTotalElements());
+
+        // Жанры для фильтров
+        model.addAttribute("genres", genreService.findAll());
 
         return "admin/moderation";
     }
