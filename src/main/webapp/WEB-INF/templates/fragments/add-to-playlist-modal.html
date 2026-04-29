@@ -1,4 +1,3 @@
-<!-- src/main/webapp/WEB-INF/templates/fragments/add-to-playlist-modal.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
@@ -14,29 +13,46 @@
             </div>
 
             <div class="modal-content">
-                <!-- Поиск плейлистов -->
-                <div class="playlist-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="playlistSearchInput" placeholder="Поиск плейлистов...">
-                </div>
-
-                <!-- Список плейлистов -->
-                <div class="playlists-list" id="playlistsList">
-                    <div class="loading-state">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <span>Загрузка плейлистов...</span>
+                <!-- Сообщение о необходимости подписки -->
+                <div class="subscription-required" id="subscriptionRequired" style="display: none;">
+                    <div class="subscription-required-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h3>Требуется Premium подписка</h3>
+                    <p>Для добавления треков в плейлисты необходима активная подписка Premium</p>
+                    <div class="subscription-required-actions">
+                        <a href="/subscription/plans" class="btn btn-premium">
+                            <i class="fas fa-crown"></i> Оформить подписку
+                        </a>
                     </div>
                 </div>
 
-                <!-- Кнопка создания нового плейлиста -->
-                <div class="create-playlist-section">
-                    <div class="divider">
-                        <span>или</span>
+                <!-- Контент для пользователей с подпиской -->
+                <div id="playlistContent">
+                    <!-- Поиск плейлистов -->
+                    <div class="playlist-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="playlistSearchInput" placeholder="Поиск плейлистов...">
                     </div>
-                    <button class="create-playlist-btn" onclick="createNewPlaylist()">
-                        <i class="fas fa-plus"></i>
-                        Создать новый плейлист
-                    </button>
+
+                    <!-- Список плейлистов -->
+                    <div class="playlists-list" id="playlistsList">
+                        <div class="loading-state">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Загрузка плейлистов...</span>
+                        </div>
+                    </div>
+
+                    <!-- Кнопка создания нового плейлиста -->
+                    <div class="create-playlist-section">
+                        <div class="divider">
+                            <span>или</span>
+                        </div>
+                        <button class="create-playlist-btn" onclick="createNewPlaylist()">
+                            <i class="fas fa-plus"></i>
+                            Создать новый плейлист
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Сообщение об успехе/ошибке -->
@@ -54,7 +70,12 @@
             position: relative;
             margin-bottom: 15px;
         }
-
+        .modal-header {
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            align-items: center;
+        }
         .playlist-search i {
             position: absolute;
             left: 12px;
@@ -166,6 +187,11 @@
             background-color: var(--accent-hover);
         }
 
+        .playlist-item-add:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .playlist-item-add.added {
             background-color: var(--success);
             color: white;
@@ -256,34 +282,138 @@
             background-color: rgba(226, 33, 52, 0.1);
             color: var(--danger);
         }
+
+        /* Стили для сообщения о необходимости подписки */
+        .subscription-required {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .subscription-required-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f8c300, #ffdb4d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: #000;
+            margin: 0 auto 20px;
+        }
+
+        .subscription-required h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .subscription-required p {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .subscription-required-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-premium {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #f8c300, #ffdb4d);
+            color: #000;
+        }
+
+        .btn-premium:hover {
+            background: linear-gradient(135deg, #e0b000, #ffcc00);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 219, 77, 0.3);
+        }
+
+        .btn-close {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border-color);
+            background-color: var(--secondary-bg);
+            color: var(--text-primary);
+        }
+
+        .btn-close:hover {
+            background-color: var(--hover-bg);
+        }
     </style>
 
     <script>
         let currentTrackId = null;
         let currentPlaylists = [];
+        let userCanManagePlaylists = false;
 
         // Открыть модальное окно
-        function openAddToPlaylistModal(trackId) {
+        async function openAddToPlaylistModal(trackId) {
             currentTrackId = trackId;
 
             const modal = document.getElementById('addToPlaylistModal');
-            if (modal) {
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
+            if (!modal) return;
 
-                // Загружаем плейлисты
-                loadPlaylists();
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
 
-                // Очищаем сообщение
-                const message = document.getElementById('playlistMessage');
-                if (message) {
-                    message.style.display = 'none';
-                    message.textContent = '';
+            // Очищаем сообщение
+            const message = document.getElementById('playlistMessage');
+            if (message) {
+                message.style.display = 'none';
+                message.textContent = '';
+            }
+
+            // Очищаем поиск
+            const searchInput = document.getElementById('playlistSearchInput');
+            if (searchInput) searchInput.value = '';
+
+            // Проверяем, может ли пользователь управлять плейлистами
+            await checkUserCanManagePlaylists();
+
+            // Если может - загружаем плейлисты
+            if (userCanManagePlaylists) {
+                document.getElementById('subscriptionRequired').style.display = 'none';
+                document.getElementById('playlistContent').style.display = 'block';
+                await loadPlaylists();
+            } else {
+                document.getElementById('subscriptionRequired').style.display = 'block';
+                document.getElementById('playlistContent').style.display = 'none';
+            }
+        }
+
+        // Проверить, может ли пользователь управлять плейлистами
+        async function checkUserCanManagePlaylists() {
+            try {
+                const response = await fetch('/api/playlists/can-create');
+                const data = await response.json();
+
+                if (data.success) {
+                    userCanManagePlaylists = data.canCreate;
+                } else {
+                    userCanManagePlaylists = false;
                 }
-
-                // Очищаем поиск
-                const searchInput = document.getElementById('playlistSearchInput');
-                if (searchInput) searchInput.value = '';
+            } catch (error) {
+                console.error('Error checking playlist permissions:', error);
+                userCanManagePlaylists = false;
             }
         }
 
@@ -314,6 +444,14 @@
                 const data = await response.json();
 
                 if (data.success) {
+                    userCanManagePlaylists = data.canManage !== undefined ? data.canManage : true;
+
+                    if (!userCanManagePlaylists) {
+                        document.getElementById('subscriptionRequired').style.display = 'block';
+                        document.getElementById('playlistContent').style.display = 'none';
+                        return;
+                    }
+
                     currentPlaylists = data.playlists || [];
 
                     if (currentPlaylists.length === 0) {
@@ -363,6 +501,7 @@
                             btn.classList.add('added');
                             btn.innerHTML = '<i class="fas fa-check"></i>';
                             btn.title = 'Уже в плейлисте';
+                            btn.disabled = true;
                         }
                     }
                 } catch (error) {
@@ -441,6 +580,11 @@
                         setTimeout(() => {
                             closeAddToPlaylistModal();
                         }, 2000);
+                    } else if (data.subscriptionRequired) {
+                        // Показываем сообщение о необходимости подписки
+                        document.getElementById('subscriptionRequired').style.display = 'block';
+                        document.getElementById('playlistContent').style.display = 'none';
+                        messageEl.style.display = 'none';
                     } else {
                         messageEl.className = 'playlist-message error';
                         messageEl.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${data.error || 'Ошибка при добавлении трека'}`;
@@ -474,14 +618,20 @@
             if (item) {
                 const meta = item.querySelector('.playlist-item-meta');
                 if (meta) {
-                    const currentCount = parseInt(meta.textContent) || 0;
-                    meta.textContent = meta.textContent.replace(/\d+ треков/, `${currentCount + 1} треков`);
+                    const match = meta.textContent.match(/(\d+) треков/);
+                    if (match) {
+                        const currentCount = parseInt(match[1]);
+                        meta.textContent = meta.textContent.replace(/\d+ треков/, `${currentCount + 1} треков`);
+                    }
                 }
             }
         }
 
         // Создать новый плейлист
         function createNewPlaylist() {
+            if (!userCanManagePlaylists) {
+                return;
+            }
             window.location.href = '/playlists/create';
         }
 
