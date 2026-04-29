@@ -41,6 +41,9 @@ public class ArtistCabinetController {
     @Autowired
     private AlbumService albumService;
 
+    @Autowired
+    private AudioMetadataService audioMetadataService;
+
     @GetMapping("/cabinet")
     public String artistCabinet(Model model, HttpServletRequest request,
                                 RedirectAttributes redirectAttributes) {
@@ -124,7 +127,7 @@ public class ArtistCabinetController {
         try {
             com.musicstreaming.model.Track track = new com.musicstreaming.model.Track();
             track.setTitle(title);
-            track.setDuration(180); // По умолчанию 3 минуты
+            track.setDuration(180); // Значение по умолчанию
             track.setUploadedByUser(currentUser);
             track.setModerated(false);
 
@@ -133,7 +136,7 @@ public class ArtistCabinetController {
                 artistService.findById(artistId).ifPresent(track::setArtist);
             }
 
-            // Установка альбома (если выбран)
+            // Установка альбома
             if (albumId != null && albumId > 0) {
                 albumService.findById(albumId).ifPresent(track::setAlbum);
             }
@@ -161,10 +164,40 @@ public class ArtistCabinetController {
                 audioFile.transferTo(destFile.toFile());
 
                 track.setFilePath(filename);
+
+                int duration = audioMetadataService.getDurationInSeconds(destFile.toString());
+                if (duration > 0) {
+                    track.setDuration(duration);
+                    logger.info("Auto-detected duration for track '{}': {} seconds", title, duration);
+                } else {
+                    logger.warn("Could not detect duration for track '{}', using default 180 seconds", title);
+                    track.setDuration(180);
+                }
             }
 
+            // Загрузка обложки
+//            if (coverFile != null && !coverFile.isEmpty()) {
+//                String userDir = System.getProperty("user.dir");
+//                Path uploadDir = Paths.get(userDir, "uploads", "covers");
+//
+//                if (!Files.exists(uploadDir)) {
+//                    Files.createDirectories(uploadDir);
+//                }
+//
+//                String originalFilename = coverFile.getOriginalFilename();
+//                String extension = ".jpg";
+//                if (originalFilename != null && originalFilename.contains(".")) {
+//                    extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+//                }
+//                String filename = UUID.randomUUID().toString() + extension;
+//
+//                Path destFile = uploadDir.resolve(filename);
+//                coverFile.transferTo(destFile.toFile());
+//            }
+
             trackService.save(track);
-            redirectAttributes.addFlashAttribute("success", "Трек успешно загружен и отправлен на модерацию!");
+            redirectAttributes.addFlashAttribute("success",
+                    "Трек успешно загружен и отправлен на модерацию! Длительность: " + track.getFormattedDuration());
 
         } catch (Exception e) {
             logger.error("Error uploading track", e);

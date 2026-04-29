@@ -47,11 +47,14 @@ public class AdminController {
     private final ModerationRepository moderationRepository;
 
     @Autowired
+    private AudioMetadataService audioMetadataService;
+
+    @Autowired
     public AdminController(UserService userService, TrackService trackService,
                            AdminService adminService, AuthService authService,
                            ArtistService artistService, AlbumService albumService,
                            GenreService genreService, PlaylistService playlistService,
-                           ModerationRepository moderationRepository) {
+                           ModerationRepository moderationRepository,  AudioMetadataService audioMetadataService) {
         this.userService = userService;
         this.trackService = trackService;
         this.adminService = adminService;
@@ -61,6 +64,7 @@ public class AdminController {
         this.genreService = genreService;
         this.playlistService = playlistService;
         this.moderationRepository = moderationRepository;
+        this.audioMetadataService = audioMetadataService;
     }
 
     @GetMapping
@@ -376,6 +380,7 @@ public class AdminController {
                 // Сохраняем filePath из существующего трека, если не загружен новый файл
                 if (audioFile == null || audioFile.isEmpty()) {
                     track.setFilePath(existingTrack.getFilePath());
+                    track.setDuration(existingTrack.getDuration()); // Сохраняем старую длительность
                 }
 
                 // Сохраняем uploadedByUser из существующего трека
@@ -402,7 +407,6 @@ public class AdminController {
                 logger.info("Processing uploaded file: {}, size: {} bytes",
                         audioFile.getOriginalFilename(), audioFile.getSize());
 
-                // Используем абсолютный путь через user.dir
                 String userDir = System.getProperty("user.dir");
                 Path uploadDir = Paths.get(userDir, "uploads", "music");
 
@@ -431,13 +435,23 @@ public class AdminController {
                 logger.info("File exists after save: {}", Files.exists(destFile));
                 logger.info("File size after save: {} bytes", Files.size(destFile));
 
-                // Сохраняем только имя файла в БД (не полный путь)
+                // Сохраняем имя файла в БД
                 track.setFilePath(filename);
-            }
 
-            // Устанавливаем длительность по умолчанию, если не задана
-            if (track.getDuration() == null || track.getDuration() == 0) {
-                track.setDuration(180); // 3 минуты по умолчанию
+                // АВТОМАТИЧЕСКОЕ ОПРЕДЕЛЕНИЕ ДЛИТЕЛЬНОСТИ
+                int detectedDuration = audioMetadataService.getDurationInSeconds(destFile.toString());
+                if (detectedDuration > 0) {
+                    track.setDuration(detectedDuration);
+                    logger.info("Auto-detected duration: {} seconds ({}:{})",
+                            detectedDuration, detectedDuration / 60, detectedDuration % 60);
+                } else if (track.getDuration() == null || track.getDuration() == 0) {
+                    // Если не удалось определить и нет явно указанной длительности
+                    track.setDuration(180); // 3 минуты по умолчанию
+                    logger.warn("Using default duration of 180 seconds");
+                }
+            } else if (track.getDuration() == null || track.getDuration() == 0) {
+                // Если файл не загружался и длительность не указана
+                track.setDuration(180);
             }
 
             // Обработка статуса модерации
@@ -452,13 +466,17 @@ public class AdminController {
             // Сохраняем трек
             trackService.save(track);
 
-            if (track.getId() != null) {
-                redirectAttributes.addFlashAttribute("success", "Трек успешно обновлён");
-                logger.info("Updated track with id: {}", track.getId());
+            String message;
+            if (track.getId() != null && audioFile != null && !audioFile.isEmpty()) {
+                message = "Трек успешно обновлён. Длительность: " + track.getFormattedDuration();
+            } else if (track.getId() != null) {
+                message = "Трек успешно обновлён";
             } else {
-                redirectAttributes.addFlashAttribute("success", "Трек успешно создан");
-                logger.info("Created new track with id: {}", track.getId());
+                message = "Трек успешно создан. Длительность: " + track.getFormattedDuration();
             }
+
+            redirectAttributes.addFlashAttribute("success", message);
+            logger.info("Saved track: id={}, duration={}s", track.getId(), track.getDuration());
 
         } catch (Exception e) {
             logger.error("Error saving track", e);
