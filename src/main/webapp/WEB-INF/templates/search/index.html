@@ -621,6 +621,24 @@
             }
         });
 
+        // Функция для сбора уникальных треков
+        function collectUniqueTracks() {
+            const tracksMap = new Map();
+            document.querySelectorAll('[data-track-id]').forEach(el => {
+                const id = el.dataset.trackId;
+                if (!tracksMap.has(id)) {
+                    tracksMap.set(id, {
+                        id: id,
+                        title: el.dataset.trackTitle || el.querySelector('.track-name')?.textContent || 'Неизвестный трек',
+                        artistName: el.dataset.trackArtist || el.querySelector('.track-artist')?.textContent || 'Неизвестный исполнитель'
+                    });
+                }
+            });
+            return Array.from(tracksMap.values());
+        }
+
+        const playlist = collectUniqueTracks();
+
         // Функция для воспроизведения трека
         window.playTrack = function(trackId, trackTitle, trackArtist) {
             const track = {
@@ -629,29 +647,19 @@
                 artistName: trackArtist
             };
 
-            // Собираем плейлист из всех треков на странице
-            const playlist = [];
-            document.querySelectorAll('[data-track-id]').forEach(el => {
-                playlist.push({
-                    id: el.dataset.trackId,
-                    title: el.dataset.trackTitle || el.querySelector('.track-name')?.textContent || 'Трек',
-                    artistName: el.dataset.trackArtist || el.querySelector('.track-artist')?.textContent || ''
-                });
-            });
-
             if (window.MusicPlayer) {
                 window.MusicPlayer.playTrack(track, playlist);
             }
         };
 
         // Обработка кликов по трекам
-        document.querySelectorAll('[data-track-id]').forEach(el => {
-            el.addEventListener('click', function(e) {
+        document.querySelectorAll('.track-item').forEach(item => {
+            item.addEventListener('click', function(e) {
                 if (e.target.closest('.track-actions, .action-btn')) return;
 
                 const trackId = this.dataset.trackId;
-                const trackTitle = this.dataset.trackTitle || this.querySelector('.track-name')?.textContent || 'Трек';
-                const trackArtist = this.dataset.trackArtist || this.querySelector('.track-artist')?.textContent || '';
+                const trackTitle = this.dataset.trackTitle || this.querySelector('.track-name')?.textContent || 'Неизвестный трек';
+                const trackArtist = this.dataset.trackArtist || this.querySelector('.track-artist')?.textContent || 'Неизвестный исполнитель';
 
                 playTrack(trackId, trackTitle, trackArtist);
             });
@@ -670,6 +678,21 @@
                     icon.classList.remove('fas');
                     icon.classList.add('far');
                     icon.style.color = '';
+                }
+            });
+        });
+
+        // Обработчики для кнопок добавления в плейлист
+        document.querySelectorAll('.add-to-playlist-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const trackId = this.dataset.trackId;
+                if (!window.isAuthenticated) {
+                    window.location.href = '/account/login';
+                    return;
+                }
+                if (typeof openAddToPlaylistModal === 'function') {
+                    openAddToPlaylistModal(trackId);
                 }
             });
         });

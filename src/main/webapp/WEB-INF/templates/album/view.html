@@ -988,6 +988,22 @@
         let albumPlayRecorded = false;
         const recordedTracks = new Set();
 
+        // Функция для сбора уникальных треков
+        function collectUniqueTracks() {
+            const tracksMap = new Map();
+            document.querySelectorAll('[data-track-id]').forEach(el => {
+                const id = el.dataset.trackId;
+                if (!tracksMap.has(id)) {
+                    tracksMap.set(id, {
+                        id: id,
+                        title: el.dataset.trackTitle || el.querySelector('.track-name')?.textContent || 'Трек',
+                        artistName: el.dataset.trackArtist || el.querySelector('.track-artist')?.textContent || ''
+                    });
+                }
+            });
+            return Array.from(tracksMap.values());
+        }
+
         // Функция для записи прослушивания альбома
         function recordAlbumPlayOnce() {
             if (albumPlayRecorded || !albumId) return;
@@ -1039,14 +1055,7 @@
         recordAlbumPlayOnce();
 
         // Собираем треки для плеера
-        const tracks = [];
-        document.querySelectorAll('[data-track-id]').forEach(el => {
-            tracks.push({
-                id: el.dataset.trackId,
-                title: el.dataset.trackTitle || el.querySelector('.track-name')?.textContent || 'Трек',
-                artistName: el.dataset.trackArtist || el.querySelector('.track-artist')?.textContent || ''
-            });
-        });
+        const tracks = collectUniqueTracks();
 
         // Кнопка "Слушать альбом"
         document.getElementById('playAlbumBtn')?.addEventListener('click', function() {
@@ -1096,6 +1105,19 @@
                     icon.classList.remove('fas');
                     icon.classList.add('far');
                     icon.style.color = '';
+                }
+            });
+        });
+
+        // Обработчики для кнопок добавления в плейлист
+        document.querySelectorAll('.add-to-playlist-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const trackId = this.dataset.trackId;
+                if (typeof openAddToPlaylistModal === 'function') {
+                    openAddToPlaylistModal(trackId);
+                } else {
+                    window.location.href = '/account/login';
                 }
             });
         });

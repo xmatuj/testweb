@@ -1312,23 +1312,31 @@ small a:hover {
             document.getElementById('coverUploadText').textContent = fileName;
         });
 
-        // ИСПРАВЛЕНО: Обработчики для кнопок воспроизведения
+        // Функция для сбора уникальных треков
+        function collectUniqueTracks() {
+            const tracksMap = new Map();
+            document.querySelectorAll('[data-track-id]').forEach(el => {
+                const id = el.dataset.trackId;
+                if (!tracksMap.has(id)) {
+                    tracksMap.set(id, {
+                        id: id,
+                        title: el.dataset.trackTitle || el.querySelector('.track-name')?.textContent || 'Неизвестный трек',
+                        artistName: el.dataset.trackArtist || el.querySelector('.track-artist, .track-meta')?.textContent || 'Неизвестный исполнитель'
+                    });
+                }
+            });
+            return Array.from(tracksMap.values());
+        }
+
+        const playlist = collectUniqueTracks();
+
+        // Обработчики для кнопок воспроизведения
         document.querySelectorAll('.play-track-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const trackId = this.dataset.trackId;
                 const trackTitle = this.dataset.trackTitle;
                 const trackArtist = this.dataset.trackArtist;
-
-                // Собираем все треки на странице для плейлиста
-                const playlist = [];
-                document.querySelectorAll('[data-track-id]').forEach(el => {
-                    playlist.push({
-                        id: el.dataset.trackId,
-                        title: el.dataset.trackTitle || el.querySelector('.track-name')?.textContent || 'Неизвестный трек',
-                        artistName: el.dataset.trackArtist || el.querySelector('.track-artist, .track-meta')?.textContent || 'Неизвестный исполнитель'
-                    });
-                });
 
                 if (window.MusicPlayer) {
                     window.MusicPlayer.playTrack({
@@ -1340,7 +1348,7 @@ small a:hover {
             });
         });
 
-        // ИСПРАВЛЕНО: Клик по строке трека
+        // Клик по строке трека
         document.querySelectorAll('.track-item').forEach(item => {
             item.addEventListener('click', function(e) {
                 // Не обрабатываем клик по кнопкам
@@ -1349,15 +1357,6 @@ small a:hover {
                 const trackId = this.dataset.trackId;
                 const trackTitle = this.dataset.trackTitle;
                 const trackArtist = this.dataset.trackArtist;
-
-                const playlist = [];
-                document.querySelectorAll('[data-track-id]').forEach(el => {
-                    playlist.push({
-                        id: el.dataset.trackId,
-                        title: el.dataset.trackTitle || el.querySelector('.track-name')?.textContent || 'Неизвестный трек',
-                        artistName: el.dataset.trackArtist || el.querySelector('.track-meta')?.textContent || 'Неизвестный исполнитель'
-                    });
-                });
 
                 if (window.MusicPlayer && trackId) {
                     window.MusicPlayer.playTrack({
