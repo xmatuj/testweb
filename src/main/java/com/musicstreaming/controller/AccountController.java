@@ -134,7 +134,12 @@ public class AccountController {
             authService.login(request, refreshedUser);
         }
 
-        // Загружаем данные отдельными запросами с использованием DTO
+        // Если пользователь музыкант (но не админ, или админ с музыкантом)
+        if (refreshedUser.isMusician()) {
+            return "redirect:/artist/cabinet";
+        }
+
+        // Для обычных пользователей и админов без статуса музыканта
         UserProfileDTO userProfile = new UserProfileDTO(
                 refreshedUser,
                 playlistService.findByUserId(refreshedUser.getId()),

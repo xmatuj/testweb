@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои треки - Кабинет музыканта - MusicStream</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Скопируйте стили из cabinet.html */
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #181818;
+            --card-bg: #1e1e1e;
+            --hover-bg: #282828;
+            --accent: #ffdb4d;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --success: #1db954;
+            --danger: #e22134;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--primary-bg); color: var(--text-primary); min-height: 100vh; }
+        a { text-decoration: none; color: inherit; }
+        button { cursor: pointer; border: none; background: none; color: inherit; font-size: inherit; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        .navbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            background-color: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .navbar-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo {
+            display: flex; align-items: center; font-size: 24px; font-weight: 700;
+            color: var(--accent); text-decoration: none;
+        }
+        .logo i { margin-right: 8px; }
+
+        .main-content { padding-top: 90px; padding-bottom: 80px; }
+        .page-title { font-size: 28px; font-weight: 700; margin-bottom: 30px; color: var(--accent); }
+
+        .back-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            color: var(--text-secondary); margin-bottom: 20px; transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--text-primary); }
+
+        .tracks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .track-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            transition: transform 0.2s, background-color 0.2s;
+            cursor: pointer;
+        }
+        .track-card:hover {
+            transform: translateY(-5px);
+            background-color: var(--hover-bg);
+        }
+
+        .track-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .track-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .track-card-meta {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-approved { background-color: var(--success); color: white; }
+        .status-pending { background-color: var(--accent); color: var(--primary-bg); }
+
+        .track-card-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .btn-play { background-color: var(--accent); color: var(--primary-bg); }
+        .btn-play:hover { background-color: #ffcc00; }
+        .btn-edit { background-color: var(--secondary-bg); color: var(--text-primary); }
+        .btn-edit:hover { background-color: var(--hover-bg); }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        .empty-state i { font-size: 64px; margin-bottom: 20px; opacity: 0.5; }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background-color: var(--primary-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 10px 0;
+            z-index: 998;
+        }
+        .nav-items { display: flex; justify-content: space-around; }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 4px; padding: 8px 12px; border-radius: 8px;
+            color: var(--text-secondary); text-decoration: none;
+        }
+        .nav-item.active { color: var(--accent); }
+        .nav-icon { font-size: 20px; }
+        .nav-label { font-size: 12px; }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="container navbar-content">
+        <a href="/" class="logo">
+            <i class="fas fa-music"></i>
+            MusicStream
+        </a>
+        <a href="/artist/cabinet" class="back-link">
+            <i class="fas fa-arrow-left"></i> Назад в кабинет
+        </a>
+    </div>
+</nav>
+
+<main class="main-content">
+    <div class="container">
+        <h1 class="page-title">Мои треки</h1>
+
+        <div class="tracks-grid" th:if="${not #lists.isEmpty(tracks)}">
+            <div class="track-card" th:each="track : ${tracks}"
+                 th:data-track-id="${track.id}"
+                 th:data-track-title="${track.title}"
+                 th:data-track-artist="${track.artist != null ? track.artist.name : 'Неизвестный исполнитель'}">
+                <div class="track-card-header">
+                    <div>
+                        <div class="track-card-title" th:text="${track.title}">Название</div>
+                        <div class="track-card-meta">
+                            <span th:text="${track.artist != null ? track.artist.name : 'Неизвестный исполнитель'}">Исполнитель</span>
+                            <span th:if="${track.genre != null}"> • </span>
+                            <span th:if="${track.genre != null}" th:text="${track.genre.name}">Жанр</span>
+                            <span> • </span>
+                            <span th:text="${track.formattedDuration}">3:45</span>
+                        </div>
+                    </div>
+                    <span class="status-badge" th:classappend="${track.moderated} ? 'status-approved' : 'status-pending'"
+                          th:text="${track.moderated} ? 'Одобрен' : 'На модерации'"></span>
+                </div>
+
+                <div class="track-card-actions">
+                    <button class="btn-sm btn-play play-track-btn"
+                            th:data-track-id="${track.id}"
+                            th:data-track-title="${track.title}"
+                            th:data-track-artist="${track.artist != null ? track.artist.name : 'Неизвестный исполнитель'}">
+                        <i class="fas fa-play"></i> Слушать
+                    </button>
+                    <a th:href="@{'/admin/tracks/' + ${track.id}}" class="btn-sm btn-edit" th:if="${isAdmin}">
+                        <i class="fas fa-edit"></i> Ред.
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div th:unless="${not #lists.isEmpty(tracks)}" class="empty-state">
+            <i class="fas fa-music"></i>
+            <h3>У вас пока нет треков</h3>
+            <p>Загрузите свой первый трек в кабинете музыканта</p>
+        </div>
+    </div>
+</main>
+
+<nav class="bottom-nav">
+    <div class="nav-items">
+        <a href="/" class="nav-item">
+            <i class="fas fa-home nav-icon"></i>
+            <span class="nav-label">Главная</span>
+        </a>
+        <a href="/search" class="nav-item">
+            <i class="fas fa-search nav-icon"></i>
+            <span class="nav-label">Поиск</span>
+        </a>
+        <a href="/playlists" class="nav-item">
+            <i class="fas fa-list nav-icon"></i>
+            <span class="nav-label">Библиотека</span>
+        </a>
+        <a href="/artist/cabinet" class="nav-item active">
+            <i class="fas fa-user nav-icon"></i>
+            <span class="nav-label">Кабинет</span>
+        </a>
+    </div>
+</nav>
+
+<div th:replace="fragments/player-fragment :: player"></div>
+<div th:replace="~{fragments/scripts :: scripts}"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        // Собираем все треки на странице для плейлиста
+        const playlist = [];
+        document.querySelectorAll('[data-track-id]').forEach(el => {
+            playlist.push({
+                id: el.dataset.trackId,
+                title: el.dataset.trackTitle || el.querySelector('.track-card-title')?.textContent || 'Неизвестный трек',
+                artistName: el.dataset.trackArtist || el.querySelector('.track-card-meta')?.textContent?.split(' • ')[0] || 'Неизвестный исполнитель'
+            });
+        });
+
+        // Кнопки воспроизведения
+        document.querySelectorAll('.play-track-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const trackId = this.dataset.trackId;
+                const trackTitle = this.dataset.trackTitle;
+                const trackArtist = this.dataset.trackArtist;
+
+                if (window.MusicPlayer) {
+                    window.MusicPlayer.playTrack({
+                        id: trackId,
+                        title: trackTitle,
+                        artistName: trackArtist
+                    }, playlist);
+                }
+            });
+        });
+
+        // Клик по карточке трека
+        document.querySelectorAll('.track-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                if (e.target.closest('button, a')) return;
+
+                const trackId = this.dataset.trackId;
+                const trackTitle = this.dataset.trackTitle;
+                const trackArtist = this.dataset.trackArtist;
+
+                if (window.MusicPlayer && trackId) {
+                    window.MusicPlayer.playTrack({
+                        id: trackId,
+                        title: trackTitle,
+                        artistName: trackArtist
+                    }, playlist);
+                }
+            });
+        });
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

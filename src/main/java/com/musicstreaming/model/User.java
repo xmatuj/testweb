@@ -94,7 +94,7 @@ public class User {
     }
 
     public boolean isMusician() {
-        return role == UserRole.Musician || role == UserRole.Admin;
+        return role == UserRole.Musician;
     }
 
     public boolean isSubscriber() {
