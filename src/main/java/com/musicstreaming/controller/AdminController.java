@@ -603,7 +603,7 @@ public class AdminController {
                             @RequestParam String title,
                             @RequestParam Integer artistId,
                             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate releaseDate,
-                            @RequestParam(required = false) String coverPath,
+                            @RequestParam(value = "coverFile", required = false) MultipartFile coverFile, // Изменено
                             HttpServletRequest request,
                             RedirectAttributes redirectAttributes) {
 
@@ -614,7 +614,6 @@ public class AdminController {
 
         try {
             Album album;
-
             if (id != null) {
                 album = albumService.findById(id)
                         .orElseThrow(() -> new IllegalArgumentException("Album not found: " + id));
@@ -624,31 +623,23 @@ public class AdminController {
 
             album.setTitle(title);
             album.setReleaseDate(releaseDate);
-            album.setCoverPath(coverPath);
-
             artistService.findById(artistId).ifPresent(album::setArtist);
 
-            albumService.save(album);
-
-            if (id != null) {
-                redirectAttributes.addFlashAttribute("success", "Альбом успешно обновлен");
-                logger.info("Updated album with id: {}", album.getId());
-            } else {
-                redirectAttributes.addFlashAttribute("success", "Альбом успешно создан");
-                logger.info("Created new album with id: {}", album.getId());
+            // Загрузка обложки
+            if (coverFile != null && !coverFile.isEmpty()) {
+                String filename = saveImage(coverFile, "albums");
+                album.setCoverPath("/images/" + filename);
             }
 
+            albumService.save(album);
+            redirectAttributes.addFlashAttribute("success", "Альбом сохранен");
         } catch (Exception e) {
             logger.error("Error saving album", e);
-            redirectAttributes.addFlashAttribute("error", "Ошибка при сохранении: " + e.getMessage());
-
-            if (id != null) {
-                return "redirect:/admin/albums/edit/" + id;
-            }
-            return "redirect:/admin/albums/new";
+            redirectAttributes.addFlashAttribute("error", "Ошибка: " + e.getMessage());
         }
         return "redirect:/admin/albums";
     }
+
 
     @GetMapping("/albums/edit/{id}")
     public String editAlbumForm(@PathVariable Integer id, Model model,
@@ -832,6 +823,45 @@ public class AdminController {
 
     // ==================== ARTIST MANAGEMENT ====================
 
+//    @PostMapping("/artists/save")
+//    public String saveArtist(@RequestParam(required = false) Integer id,
+//                             @RequestParam String name,
+//                             @RequestParam(required = false) String description,
+//                             @RequestParam(value = "photoFile", required = false) MultipartFile photoFile,
+//                             HttpServletRequest request,
+//                             RedirectAttributes redirectAttributes) {
+//
+//        if (!authService.isAdmin(request)) {
+//            redirectAttributes.addFlashAttribute("error", "Access denied");
+//            return "redirect:/";
+//        }
+//
+//        try {
+//            Artist artist;
+//            if (id != null) {
+//                artist = artistService.findById(id)
+//                        .orElseThrow(() -> new IllegalArgumentException("Artist not found: " + id));
+//            } else {
+//                artist = new Artist();
+//            }
+//
+//            artist.setName(name);
+//            artist.setDescription(description);
+//
+//            // Загрузка фото
+//            if (photoFile != null && !photoFile.isEmpty()) {
+//                String filename = saveImage(photoFile, "artists");
+//                artist.setPhotoPath("/images/" + filename);
+//            }
+//
+//            artistService.save(artist);
+//            redirectAttributes.addFlashAttribute("success", "Исполнитель сохранен");
+//        } catch (Exception e) {
+//            logger.error("Error saving artist", e);
+//            redirectAttributes.addFlashAttribute("error", "Ошибка: " + e.getMessage());
+//        }
+//        return "redirect:/admin/artists";
+//    }
 
     // ==================== MODERATION ====================
 
@@ -869,5 +899,32 @@ public class AdminController {
         model.addAttribute("genres", genreService.findAll());
 
         return "admin/moderation";
+    }
+
+    private String saveImage(MultipartFile file, String subfolder) {
+        try {
+            String userDir = System.getProperty("user.dir");
+            Path uploadDir = Paths.get(userDir, "uploads", "images", subfolder);
+
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            String extension = ".jpg";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String filename = subfolder + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
+
+            Path destFile = uploadDir.resolve(filename);
+            file.transferTo(destFile.toFile());
+
+            logger.info("Saved image: {}", destFile.toAbsolutePath());
+            return subfolder + "/" + filename;
+        } catch (Exception e) {
+            logger.error("Error saving image", e);
+            return "default.jpg";
+        }
     }
 }

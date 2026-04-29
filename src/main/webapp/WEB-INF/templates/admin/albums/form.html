@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -337,7 +337,7 @@
             </div>
 
             <div class="form-container">
-                <form th:action="@{/admin/albums/save}" method="post">
+                <form th:action="@{/admin/albums/save}" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="id" th:value="${album.id}">
 
                     <div class="form-group">
@@ -365,10 +365,12 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Путь к обложке</label>
-                        <input type="text" name="coverPath" class="form-control"
-                               th:value="${album.coverPath}"
-                               placeholder="/images/albums/cover.jpg">
+                        <label class="form-label">Обложка альбома</label>
+                        <input type="file" name="coverFile" class="form-control" accept="image/*">
+                        <div th:if="${album.coverPath != null}">
+                            <img th:src="${album.coverPath}" style="max-width: 200px; max-height: 200px; margin-top: 10px; border-radius: 8px;">
+                            <small style="color: var(--text-muted);">Текущая обложка</small>
+                        </div>
                     </div>
 
                     <div class="form-actions">

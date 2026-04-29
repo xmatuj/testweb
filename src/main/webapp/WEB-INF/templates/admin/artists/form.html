@@ -29,7 +29,7 @@
 
         <div class="container" style="padding: 30px 20px;">
             <div class="form-container">
-                <form th:action="@{/admin/artists/save}" method="post">
+                <form th:action="@{/admin/artists/save}" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="id" th:value="${artist.id}">
 
                     <div class="form-group">
@@ -46,10 +46,12 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Путь к фото</label>
-                        <input type="text" name="photoPath" class="form-control"
-                               th:value="${artist.photoPath}"
-                               placeholder="/images/artists/queen.jpg">
+                        <label class="form-label">Фото исполнителя</label>
+                        <input type="file" name="photoFile" class="form-control" accept="image/*">
+                        <div th:if="${artist.photoPath != null}">
+                            <img th:src="${artist.photoPath}" style="max-width: 200px; max-height: 200px; margin-top: 10px; border-radius: 8px;">
+                            <small style="color: var(--text-muted);">Текущее фото</small>
+                        </div>
                     </div>
 
                     <div class="form-actions">
