@@ -1,11 +1,13 @@
-// src/main/java/com/musicstreaming/controller/TrackStreamController.java
 package com.musicstreaming.controller;
 
 import com.musicstreaming.model.Track;
 import com.musicstreaming.model.TrackStatistics;
+import com.musicstreaming.model.User;
 import com.musicstreaming.repository.TrackRepository;
 import com.musicstreaming.repository.TrackStatisticsRepository;
 import com.musicstreaming.service.AlbumService;
+import com.musicstreaming.service.AuthService;
+import com.musicstreaming.service.RecommendationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,15 @@ public class TrackStreamController {
     private final ServletContext servletContext;
 
     @Autowired
+    private AlbumService albumService;
+
+    @Autowired
+    private AuthService authService;
+
+    @Autowired
+    private RecommendationService recommendationService;
+
+    @Autowired
     public TrackStreamController(TrackRepository trackRepository,
                                  TrackStatisticsRepository statsRepository,
                                  ServletContext servletContext) {
@@ -44,18 +55,10 @@ public class TrackStreamController {
         this.servletContext = servletContext;
     }
 
-    @Autowired
-    private AlbumService albumService;
-
-    /**
-     * Получение пути к папке uploads/music
-     */
     private Path getUploadPath() {
-        // Используем абсолютный путь к директории проекта через системное свойство
         String userDir = System.getProperty("user.dir");
         Path uploadPath = Paths.get(userDir, "uploads", "music");
 
-        // Создаём папку если её нет
         try {
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
@@ -86,22 +89,18 @@ public class TrackStreamController {
             return ResponseEntity.notFound().build();
         }
 
-        // Проверяем, не является ли filePath уже абсолютным путем
         Path audioFilePath;
         File audioFile;
 
         if (filePath.contains(File.separator) || filePath.contains("/")) {
-            // Если путь выглядит как абсолютный или относительный с папками
             audioFile = new File(filePath);
             if (!audioFile.exists()) {
-                // Пробуем найти файл в стандартной директории
                 Path uploadPath = getUploadPath();
                 String fileName = Paths.get(filePath).getFileName().toString();
                 audioFilePath = uploadPath.resolve(fileName);
                 audioFile = audioFilePath.toFile();
             }
         } else {
-            // Просто имя файла, ищем в uploads/music
             Path uploadPath = getUploadPath();
             audioFilePath = uploadPath.resolve(filePath);
             audioFile = audioFilePath.toFile();
@@ -111,7 +110,6 @@ public class TrackStreamController {
 
         if (!audioFile.exists()) {
             logger.error("Audio file not found: {}", audioFile.getAbsolutePath());
-            // Выведем содержимое папки для диагностики
             try {
                 Path uploadPath = getUploadPath();
                 if (Files.exists(uploadPath)) {
@@ -126,7 +124,6 @@ public class TrackStreamController {
         long fileSize = audioFile.length();
         logger.info("File size: {} bytes", fileSize);
 
-        // Определяем MIME тип по расширению
         String contentType = "audio/mpeg";
         String fileName = audioFile.getName().toLowerCase();
         if (fileName.endsWith(".wav")) {
@@ -137,7 +134,6 @@ public class TrackStreamController {
             contentType = "audio/mp4";
         }
 
-        // Поддержка Range запросов для перемотки
         String rangeHeader = request.getHeader("Range");
         long rangeStart = 0;
         long rangeEnd = fileSize - 1;
@@ -203,11 +199,31 @@ public class TrackStreamController {
     }
 
     @PostMapping("/record/{id}")
-    public ResponseEntity<Void> recordPlay(@PathVariable Integer id) {
+    public ResponseEntity<Void> recordPlay(@PathVariable Integer id, HttpServletRequest request) {
+        logger.info("=== RECORD PLAY CALLED: trackId={} ===", id);
+
         trackRepository.findById(id).ifPresent(track -> {
+            // Запись статистики прослушивания трека
             TrackStatistics stats = new TrackStatistics(track);
             statsRepository.save(stats);
-            logger.debug("Recorded play for track {}", id);
+            logger.debug("Recorded TrackStatistics for track {}", id);
+
+            // Запись в историю рекомендаций
+            User currentUser = authService.getCurrentUser(request);
+            logger.info("Current user from session: {}", currentUser != null ? currentUser.getUsername() + " (id=" + currentUser.getId() + ")" : "NULL");
+
+            if (currentUser != null) {
+                try {
+                    recommendationService.recordListening(currentUser.getId(), id);
+                    logger.info("=== SUCCESS: Recorded recommendation data for user={}, track={} ===",
+                            currentUser.getId(), id);
+                } catch (Exception e) {
+                    logger.error("=== ERROR recording recommendation data for user={}, track={}: {} ===",
+                            currentUser.getId(), id, e.getMessage(), e);
+                }
+            } else {
+                logger.warn("=== SKIP: No authenticated user, can't record recommendation ===");
+            }
         });
         return ResponseEntity.ok().build();
     }
