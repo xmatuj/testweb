@@ -270,8 +270,7 @@
         <header class="page-header">
             <h1 class="page-title">Выберите план подписки</h1>
             <p class="page-subtitle">
-                Получите доступ ко всем функциям MusicStream.
-                <span class="highlight-text">Первый месяц бесплатно</span> для новых подписчиков.
+                Получите доступ ко всем функциям <span class="highlight-text">MusicStream</span>
             </p>
         </header>
 
@@ -299,7 +298,6 @@
                     <li><i class="fas fa-check"></i> Поиск треков</li>
                     <li class="disabled"><i class="fas fa-times"></i> Создание плейлистов</li>
                     <li class="disabled"><i class="fas fa-times"></i> Без рекламы</li>
-                    <li class="disabled"><i class="fas fa-times"></i> Высокое качество звука</li>
                 </ul>
                 <div th:if="${hasActiveSubscription}">
                     <button class="current-plan" disabled>
@@ -331,11 +329,10 @@
                     </div>
                 </div>
                 <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> Прослушивание музыки</li>
+                    <li><i class="fas fa-check"></i> Поиск треков</li>
                     <li><i class="fas fa-check"></i> Без рекламы</li>
-                    <li><i class="fas fa-check"></i> Высокое качество звука</li>
                     <li><i class="fas fa-check"></i> Создание плейлистов</li>
-                    <li><i class="fas fa-check"></i> Персонализированные плейлисты</li>
-                    <li><i class="fas fa-check"></i> Оффлайн прослушивание</li>
                 </ul>
                 <div th:if="${hasActiveSubscription}">
                     <a href="/subscription/my" class="plan-button primary">

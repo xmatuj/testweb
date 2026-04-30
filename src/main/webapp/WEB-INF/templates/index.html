@@ -651,9 +651,6 @@
                     <i class="fas fa-record-vinyl" th:if="${album.coverPath == null}"></i>
                     <img th:if="${album.coverPath != null}" th:src="${album.coverPath}" alt="Обложка">
                 </div>
-                <div class="play-button" th:onclick="'event.stopPropagation(); playAlbum(' + ${album.id} + ')'">
-                    <i class="fas fa-play"></i>
-                </div>
                 <div class="card-title" th:text="${album.title}">Альбом</div>
                 <div class="card-subtitle" th:text="${album.artist != null ? album.artist.name : 'Исполнитель'}">Исполнитель</div>
             </div>
@@ -686,9 +683,6 @@
                 </div>
                 <div class="track-duration" th:text="${track.formattedDuration}">3:45</div>
                 <div class="track-actions">
-                    <button class="action-btn like-btn" onclick="event.stopPropagation()">
-                        <i class="far fa-heart"></i>
-                    </button>
                     <button class="action-btn add-to-playlist-btn"
                             th:data-track-id="${track.id}"
                             onclick="event.stopPropagation()">

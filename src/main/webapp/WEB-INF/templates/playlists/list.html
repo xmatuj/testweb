@@ -250,22 +250,50 @@
     border: 1px solid #e22134;
     color: #e22134;
 }
+        .search-bar {
+            flex: 1;
+            max-width: 1500px;
+            margin: 0 30px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
     </style>
 </head>
 <body>
-<!-- Navbar -->
-<nav class="navbar">
-    <div class="container navbar-content">
-        <a href="/" class="logo">
-            <i class="fas fa-music"></i>
-            MusicStream
-        </a>
-        <div>
-            <span th:text="${currentUser.username}" style="color: var(--text-secondary);">User</span>
-        </div>
-    </div>
-</nav>
+<header>
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <a href="/" class="logo">
+                <i class="fas fa-music"></i>
+                MusicStream
+            </a>
 
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Поиск треков, альбомов, исполнителей" id="searchInput">
+            </div>
+
+        </div>
+    </nav>
+</header>
 <!-- Main Content -->
 <main class="main-content">
     <div class="container">

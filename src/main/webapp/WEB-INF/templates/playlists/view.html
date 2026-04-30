@@ -289,7 +289,6 @@
             color: var(--accent);
         }
 
-        /* Добавление трека */
         .add-track-section {
             margin-top: 30px;
             padding: 20px;
@@ -515,28 +514,6 @@
                 <h3>В этом плейлисте пока нет треков</h3>
                 <p>Добавьте треки из списка ниже</p>
             </div>
-        </section>
-
-        <!-- Add Track Section -->
-        <section class="add-track-section"
-                 th:if="${canEdit and not #lists.isEmpty(availableTracks)}">
-            <h3 style="margin-bottom: 20px; color: var(--accent);">Добавить трек в плейлист</h3>
-
-            <form class="add-track-form" th:action="@{'/playlists/' + ${playlist.id} + '/add-track'}" method="post">
-                <div class="select-track">
-                    <select name="trackId" class="form-control" required>
-                        <option value="">-- Выберите трек --</option>
-                        <option th:each="track : ${availableTracks}"
-                                th:value="${track.id}"
-                                th:text="${track.title} + ' - ' + (${track.artist != null} ? ${track.artist.name} : 'Неизвестный')">
-                            Название трека
-                        </option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Добавить
-                </button>
-            </form>
         </section>
     </div>
 </main>

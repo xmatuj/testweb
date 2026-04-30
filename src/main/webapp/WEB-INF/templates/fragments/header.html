@@ -1,4 +1,3 @@
-<!-- src/main/webapp/WEB-INF/templates/fragments/header.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
@@ -19,9 +18,6 @@
                 <a th:if="${isAdmin}" href="/admin" class="notification-btn" title="Админ-панель">
                     <i class="fas fa-crown"></i>
                 </a>
-                <button class="notification-btn">
-                    <i class="far fa-bell"></i>
-                </button>
                 <a href="/account/profile" class="user-btn">
                     <div class="user-avatar" th:text="${currentUser != null ? #strings.substring(currentUser.username, 0, 1) : 'U'}">U</div>
                 </a>
