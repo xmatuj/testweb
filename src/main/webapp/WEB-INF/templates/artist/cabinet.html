@@ -167,7 +167,10 @@
             flex-shrink: 0;
             border: 4px solid var(--accent);
         }
-
+        .status-rejected {
+            background-color: var(--danger);
+            color: white;
+        }
         .artist-details {
             flex: 1;
         }
@@ -934,11 +937,6 @@ small a:hover {
                 <i class="fas fa-crown"></i>
             </a>
 
-            <!-- Обычный профиль -->
-            <a href="/account/profile" class="settings-btn" title="Профиль">
-                <i class="fas fa-user"></i>
-            </a>
-
             <!-- Кнопка выхода -->
             <form th:action="@{/account/logout}" method="post" style="display: inline;">
                 <button type="submit" class="settings-btn" title="Выйти"
@@ -1060,8 +1058,15 @@ small a:hover {
                     </div>
                     <div class="track-plays" th:text="${track.formattedDuration}">3:45</div>
                     <div class="track-status">
-                <span class="status-badge" th:classappend="${track.moderated} ? 'status-approved' : 'status-pending'"
-                      th:text="${track.moderated} ? 'Одобрен' : 'На модерации'">Статус</span>
+                                        <span class="status-badge"
+                                               th:classappend="${trackStatuses != null && trackStatuses.containsKey(track.id) ?
+                                  (trackStatuses.get(track.id) == 'approved' ? 'status-approved' :
+                                  (trackStatuses.get(track.id) == 'rejected' ? 'status-rejected' : 'status-pending')) : 'status-pending'}"
+                                               th:text="${trackStatuses != null && trackStatuses.containsKey(track.id) ?
+                                  (trackStatuses.get(track.id) == 'approved' ? 'Одобрен' :
+                                  (trackStatuses.get(track.id) == 'rejected' ? 'Отклонен' : 'На модерации')) : 'На модерации'}">
+                            Статус
+                        </span>
                     </div>
                     <div class="track-actions">
                         <button class="action-btn play-track-btn"
@@ -1069,9 +1074,6 @@ small a:hover {
                                 th:data-track-title="${track.title}"
                                 th:data-track-artist="${track.artist != null ? track.artist.name : 'Неизвестный исполнитель'}">
                             <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-btn">
-                            <i class="fas fa-ellipsis-h"></i>
                         </button>
                     </div>
                 </div>

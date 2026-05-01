@@ -91,8 +91,9 @@ public class AdminService {
         trackRepository.findById(trackId).ifPresent(track -> {
             Moderation moderation = new Moderation();
             moderation.setTrack(track);
-            moderation.setModerator(new User());
-            moderation.getModerator().setId(moderatorId);
+            User moderator = new User();
+            moderator.setId(moderatorId);
+            moderation.setModerator(moderator);
             moderation.setStatus(Moderation.ModerationStatus.Approved);
             moderation.setComment(comment != null ? comment : "Track approved");
             moderationRepository.save(moderation);
@@ -102,13 +103,12 @@ public class AdminService {
 
     @Transactional
     public void rejectTrack(Integer trackId, Integer moderatorId, String comment) {
-        trackRepository.updateModerationStatus(trackId, false);
-
         trackRepository.findById(trackId).ifPresent(track -> {
             Moderation moderation = new Moderation();
             moderation.setTrack(track);
-            moderation.setModerator(new User());
-            moderation.getModerator().setId(moderatorId);
+            User moderator = new User();
+            moderator.setId(moderatorId);
+            moderation.setModerator(moderator);
             moderation.setStatus(Moderation.ModerationStatus.Rejected);
             moderation.setComment(comment != null ? comment : "Track rejected");
             moderationRepository.save(moderation);

@@ -9,7 +9,8 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.UUID;
+import java.util.*;
+
 import com.musicstreaming.dto.AdminUserDTO;
 import com.musicstreaming.dto.TrackDTO;
 import com.musicstreaming.model.*;
@@ -25,9 +26,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -270,10 +268,17 @@ public class AdminController {
                 tracks = trackService.findAll();
             }
 
+            // ДОБАВЛЯЕМ: статусы модерации для каждого трека
+            Map<Integer, String> trackModerationStatuses = new HashMap<>();
+            for (Track track : tracks) {
+                trackModerationStatuses.put(track.getId(), getTrackModerationStatus(track));
+            }
+
             model.addAttribute("tracks", tracks);
             model.addAttribute("totalTracks", tracks.size());
             model.addAttribute("pendingCount", trackService.findPendingModeration().size());
             model.addAttribute("search", search);
+            model.addAttribute("trackModerationStatuses", trackModerationStatuses); // ДОБАВЛЕНО
 
             model.addAttribute("artists", artistService.findAll());
             model.addAttribute("albums", albumService.findAll());
@@ -880,10 +885,25 @@ public class AdminController {
         model.addAttribute("pageTitle", "Модерация контента");
         model.addAttribute("activePage", "moderation");
 
-        // Треки на модерации
+        // Получаем ВСЕ непроверенные треки
         List<Track> pendingTracks = trackService.findPendingModeration();
-        model.addAttribute("pendingTracks", pendingTracks);
-        model.addAttribute("pendingCount", pendingTracks.size());
+
+        // Фильтруем - исключаем отклоненные треки
+        // Отклоненный трек - это трек, у которого последняя запись в Moderations имеет статус Rejected
+        List<Track> filteredPendingTracks = new ArrayList<>();
+        for (Track track : pendingTracks) {
+            Optional<Moderation> latestModeration = moderationRepository.findLatestByTrackId(track.getId());
+
+            // Показываем трек только если:
+            // 1. Нет записей в модерации (новый трек)
+            // 2. Или последний статус не Rejected
+            if (latestModeration.isEmpty() || latestModeration.get().getStatus() != Moderation.ModerationStatus.Rejected) {
+                filteredPendingTracks.add(track);
+            }
+        }
+
+        model.addAttribute("pendingTracks", filteredPendingTracks);
+        model.addAttribute("pendingCount", filteredPendingTracks.size());
 
         // История модерации с пагинацией
         int pageSize = 10;
@@ -926,5 +946,20 @@ public class AdminController {
             logger.error("Error saving image", e);
             return "default.jpg";
         }
+    }
+    private String getTrackModerationStatus(Track track) {
+        if (track.isModerated()) {
+            return "approved";
+        }
+
+        // Проверяем последнюю запись в Moderations
+        Optional<Moderation> latestModeration = moderationRepository.findLatestByTrackId(track.getId());
+
+        if (latestModeration.isPresent() &&
+                latestModeration.get().getStatus() == Moderation.ModerationStatus.Rejected) {
+            return "rejected";
+        }
+
+        return "pending";
     }
 }

@@ -1,7 +1,9 @@
 package com.musicstreaming.controller;
 
 import com.musicstreaming.dto.ArtistProfileDTO;
+import com.musicstreaming.model.Moderation;
 import com.musicstreaming.model.User;
+import com.musicstreaming.repository.ModerationRepository;
 import com.musicstreaming.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +46,30 @@ public class ArtistCabinetController {
     @Autowired
     private AudioMetadataService audioMetadataService;
 
+    @Autowired
+    private ModerationRepository moderationRepository;
+
+    /**
+     * Определяет статус трека на основе записей в Moderations
+     */
+    private String getTrackStatus(com.musicstreaming.model.Track track) {
+        // Если трек одобрен (isModerated = true)
+        if (track.isModerated()) {
+            return "approved";
+        }
+
+        // Проверяем последнюю запись в Moderations
+        Optional<Moderation> latestModeration = moderationRepository.findLatestByTrackId(track.getId());
+
+        // Если есть запись и статус Rejected - трек отклонен
+        if (latestModeration.isPresent() && latestModeration.get().getStatus() == Moderation.ModerationStatus.Rejected) {
+            return "rejected";
+        }
+
+        // Во всех остальных случаях - на модерации
+        return "pending";
+    }
+
     @GetMapping("/cabinet")
     public String artistCabinet(Model model, HttpServletRequest request,
                                 RedirectAttributes redirectAttributes) {
@@ -53,39 +79,42 @@ public class ArtistCabinetController {
             return "redirect:/account/login";
         }
 
-        // Если админ, показываем обычный профиль или админ-панель
         if (currentUser.isAdmin() && !currentUser.isMusician()) {
-            // Админ без статуса музыканта - показываем обычный профиль
             return "redirect:/account/profile";
         }
 
-        // Проверяем, является ли пользователь музыкантом
         if (!currentUser.isMusician()) {
             redirectAttributes.addFlashAttribute("error", "Доступ запрещен. Только для музыкантов.");
             return "redirect:/account/profile";
         }
 
-        // Загружаем профиль артиста с полной статистикой
         ArtistProfileDTO artistProfile = artistService.getArtistProfile(currentUser.getId());
+
+        // ДОБАВЛЯЕМ: статусы модерации для треков
+        Map<Integer, String> trackStatuses = new HashMap<>();
+        if (artistProfile.getPopularTracks() != null) {
+            for (com.musicstreaming.model.Track track : artistProfile.getPopularTracks()) {
+                trackStatuses.put(track.getId(), getTrackStatus(track));
+            }
+        }
+        if (artistProfile.getTracks() != null) {
+            for (com.musicstreaming.model.Track track : artistProfile.getTracks()) {
+                trackStatuses.put(track.getId(), getTrackStatus(track));
+            }
+        }
 
         model.addAttribute("artist", artistProfile);
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", true);
         model.addAttribute("isAdmin", currentUser.isAdmin());
         model.addAttribute("isMusician", currentUser.isMusician());
-
-        // Загружаем все жанры для формы
         model.addAttribute("genres", genreService.findAll());
-
-        // Загружаем всех исполнителей для выбора в форме
         model.addAttribute("artists", artistService.findAll());
+        model.addAttribute("trackStatuses", trackStatuses); // ДОБАВЛЕНО
 
         return "artist/cabinet";
     }
 
-    /**
-     * API для получения альбомов конкретного исполнителя
-     */
     @GetMapping("/api/albums-by-artist")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getAlbumsByArtist(@RequestParam Integer artistId) {
@@ -127,24 +156,20 @@ public class ArtistCabinetController {
         try {
             com.musicstreaming.model.Track track = new com.musicstreaming.model.Track();
             track.setTitle(title);
-            track.setDuration(180); // Значение по умолчанию
+            track.setDuration(180);
             track.setUploadedByUser(currentUser);
             track.setModerated(false);
 
-            // Установка исполнителя
             if (artistId != null && artistId > 0) {
                 artistService.findById(artistId).ifPresent(track::setArtist);
             }
 
-            // Установка альбома
             if (albumId != null && albumId > 0) {
                 albumService.findById(albumId).ifPresent(track::setAlbum);
             }
 
-            // Установка жанра
             genreService.findById(genreId).ifPresent(track::setGenre);
 
-            // Загрузка аудиофайла
             if (audioFile != null && !audioFile.isEmpty()) {
                 String userDir = System.getProperty("user.dir");
                 Path uploadDir = Paths.get(userDir, "uploads", "music");
@@ -175,26 +200,6 @@ public class ArtistCabinetController {
                 }
             }
 
-            // Загрузка обложки
-//            if (coverFile != null && !coverFile.isEmpty()) {
-//                String userDir = System.getProperty("user.dir");
-//                Path uploadDir = Paths.get(userDir, "uploads", "covers");
-//
-//                if (!Files.exists(uploadDir)) {
-//                    Files.createDirectories(uploadDir);
-//                }
-//
-//                String originalFilename = coverFile.getOriginalFilename();
-//                String extension = ".jpg";
-//                if (originalFilename != null && originalFilename.contains(".")) {
-//                    extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-//                }
-//                String filename = UUID.randomUUID().toString() + extension;
-//
-//                Path destFile = uploadDir.resolve(filename);
-//                coverFile.transferTo(destFile.toFile());
-//            }
-
             trackService.save(track);
             redirectAttributes.addFlashAttribute("success",
                     "Трек успешно загружен и отправлен на модерацию! Длительность: " + track.getFormattedDuration());
@@ -209,6 +214,7 @@ public class ArtistCabinetController {
 
     @GetMapping("/tracks")
     public String myTracks(Model model, HttpServletRequest request,
+                           @RequestParam(required = false) String status,
                            RedirectAttributes redirectAttributes) {
         User currentUser = authService.getCurrentUser(request);
 
@@ -217,33 +223,67 @@ public class ArtistCabinetController {
             return "redirect:/account/profile";
         }
 
-        List<com.musicstreaming.model.Track> tracks = trackService.findByUploaderId(currentUser.getId());
-        model.addAttribute("tracks", tracks);
-        model.addAttribute("currentUser", currentUser);
-        model.addAttribute("isAuthenticated", true);
-        model.addAttribute("isAdmin", currentUser.isAdmin());
-        model.addAttribute("isMusician", currentUser.isMusician());
+        List<com.musicstreaming.model.Track> allTracks = trackService.findByUploaderId(currentUser.getId());
 
-        return "artist/tracks";
-    }
-
-    @GetMapping("/analytics")
-    public String analytics(Model model, HttpServletRequest request,
-                            RedirectAttributes redirectAttributes) {
-        User currentUser = authService.getCurrentUser(request);
-
-        if (currentUser == null || !currentUser.isMusician()) {
-            redirectAttributes.addFlashAttribute("error", "Доступ запрещен");
-            return "redirect:/account/profile";
+        // Фильтрация по статусу
+        List<com.musicstreaming.model.Track> filteredTracks;
+        if (status != null && !status.isEmpty()) {
+            switch (status.toLowerCase()) {
+                case "approved":
+                    filteredTracks = allTracks.stream()
+                            .filter(t -> "approved".equals(getTrackStatus(t)))
+                            .collect(Collectors.toList());
+                    break;
+                case "rejected":
+                    filteredTracks = allTracks.stream()
+                            .filter(t -> "rejected".equals(getTrackStatus(t)))
+                            .collect(Collectors.toList());
+                    break;
+                case "pending":
+                    filteredTracks = allTracks.stream()
+                            .filter(t -> "pending".equals(getTrackStatus(t)))
+                            .collect(Collectors.toList());
+                    break;
+                default:
+                    filteredTracks = allTracks;
+                    break;
+            }
+        } else {
+            filteredTracks = allTracks;
         }
 
-        ArtistProfileDTO artistProfile = artistService.getArtistProfile(currentUser.getId());
-        model.addAttribute("artist", artistProfile);
+        // Собираем статусы и комментарии
+        Map<Integer, String> trackStatuses = new HashMap<>();
+        Map<Integer, String> moderationComments = new HashMap<>();
+
+        for (com.musicstreaming.model.Track track : filteredTracks) {
+            String trackStatus = getTrackStatus(track);
+            trackStatuses.put(track.getId(), trackStatus);
+
+            // Получаем комментарий из последней записи модерации
+            Optional<Moderation> moderationOpt = moderationRepository.findLatestByTrackId(track.getId());
+            moderationOpt.ifPresent(moderation -> {
+                if (moderation.getComment() != null && !moderation.getComment().isEmpty()) {
+                    moderationComments.put(track.getId(), moderation.getComment());
+                }
+            });
+        }
+
+        model.addAttribute("tracks", filteredTracks);
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", true);
         model.addAttribute("isAdmin", currentUser.isAdmin());
         model.addAttribute("isMusician", currentUser.isMusician());
+        model.addAttribute("currentStatus", status);
+        model.addAttribute("trackStatuses", trackStatuses);
+        model.addAttribute("moderationComments", moderationComments);
 
-        return "artist/analytics";
+        // Статистика
+        model.addAttribute("totalTracks", allTracks.size());
+        model.addAttribute("approvedCount", allTracks.stream().filter(t -> "approved".equals(getTrackStatus(t))).count());
+        model.addAttribute("pendingCount", allTracks.stream().filter(t -> "pending".equals(getTrackStatus(t))).count());
+        model.addAttribute("rejectedCount", allTracks.stream().filter(t -> "rejected".equals(getTrackStatus(t))).count());
+
+        return "artist/tracks";
     }
 }

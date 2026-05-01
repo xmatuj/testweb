@@ -145,7 +145,10 @@ button {
 .menu-text {
     flex: 1;
 }
-
+.status-rejected {
+    background-color: var(--danger);
+    color: white;
+}
 .menu-badge {
     background-color: var(--danger);
     color: white;
@@ -679,10 +682,6 @@ textarea.form-control {
                         <div class="stat-value" th:text="${totalTracks}">0</div>
                         <div class="stat-label">Всего треков</div>
                     </div>
-                    <div class="stat-card" style="margin: 0; max-width: 200px;">
-                        <div class="stat-value" th:text="${pendingCount}">0</div>
-                        <div class="stat-label">На модерации</div>
-                    </div>
                 </div>
                 <a href="/admin/tracks/new" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Добавить трек
@@ -721,10 +720,15 @@ textarea.form-control {
                         <td th:text="${track.genre != null ? track.genre.name : '—'}">Жанр</td>
                         <td th:text="${track.formattedDuration}">3:45</td>
                         <td>
-                                    <span class="status-badge" th:classappend="${track.moderated} ? 'status-approved' : 'status-pending'"
-                                          th:text="${track.moderated} ? 'Одобрен' : 'На модерации'">
-                                        Статус
-                                    </span>
+                            <span class="status-badge"
+                                  th:classappend="${trackModerationStatuses != null && trackModerationStatuses.containsKey(track.id) ?
+                                      (trackModerationStatuses.get(track.id) == 'approved' ? 'status-approved' :
+                                      (trackModerationStatuses.get(track.id) == 'rejected' ? 'status-rejected' : 'status-pending')) : 'status-pending'}"
+                                  th:text="${trackModerationStatuses != null && trackModerationStatuses.containsKey(track.id) ?
+                                      (trackModerationStatuses.get(track.id) == 'approved' ? 'Одобрен' :
+                                      (trackModerationStatuses.get(track.id) == 'rejected' ? 'Отклонен' : 'На модерации')) : 'На модерации'}">
+                                Статус
+                            </span>
                         </td>
                         <td>
                             <div style="display: flex; gap: 5px;">

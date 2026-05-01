@@ -117,20 +117,16 @@ public class TrackService {
 
     @Transactional
     public void rejectTrack(Integer trackId, Integer moderatorId, String comment) {
-        int updated = trackRepository.updateModerationStatus(trackId, false);
-
-        if (updated > 0) {
-            trackRepository.findById(trackId).ifPresent(track -> {
-                Moderation moderation = new Moderation();
-                moderation.setTrack(track);
-                User moderator = new User();
-                moderator.setId(moderatorId);
-                moderation.setModerator(moderator);
-                moderation.setStatus(Moderation.ModerationStatus.Rejected);
-                moderation.setComment(comment != null ? comment : "Track rejected");
-                moderationRepository.save(moderation);
-            });
-        }
+        trackRepository.findById(trackId).ifPresent(track -> {
+            Moderation moderation = new Moderation();
+            moderation.setTrack(track);
+            User moderator = new User();
+            moderator.setId(moderatorId);
+            moderation.setModerator(moderator);
+            moderation.setStatus(Moderation.ModerationStatus.Rejected);
+            moderation.setComment(comment != null ? comment : "Track rejected");
+            moderationRepository.save(moderation);
+        });
     }
 
     public Optional<Track> findByIdWithUser(Integer id) {

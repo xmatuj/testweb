@@ -16,7 +16,13 @@ import java.util.Optional;
 public interface ModerationRepository extends JpaRepository<Moderation, Integer> {
 
     @Query("SELECT m FROM Moderation m WHERE m.track.id = :trackId ORDER BY m.moderationDate DESC")
-    Optional<Moderation> findByTrackId(@Param("trackId") Integer trackId);
+    List<Moderation> findByTrackId(@Param("trackId") Integer trackId);
+
+    // Добавляем метод для получения последней модерации по треку
+    default Optional<Moderation> findLatestByTrackId(Integer trackId) {
+        List<Moderation> moderations = findByTrackId(trackId);
+        return moderations.isEmpty() ? Optional.empty() : Optional.of(moderations.get(0));
+    }
 
     List<Moderation> findByModeratorIdOrderByModerationDateDesc(Integer moderatorId);
 

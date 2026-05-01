@@ -151,7 +151,10 @@ button {
     margin-left: 250px;
     padding-bottom: 20px;
 }
-
+.status-rejected {
+    background-color: var(--danger);
+    color: white;
+}
 .top-bar {
     background-color: var(--secondary-bg);
     padding: 15px 0;

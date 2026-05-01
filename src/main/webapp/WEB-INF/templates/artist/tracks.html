@@ -1,3 +1,4 @@
+<!-- src/main/webapp/WEB-INF/templates/artist/tracks.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -6,7 +7,6 @@
     <title>Мои треки - Кабинет музыканта - MusicStream</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Скопируйте стили из cabinet.html */
         :root {
             --primary-bg: #121212;
             --secondary-bg: #181818;
@@ -19,6 +19,8 @@
             --border-color: #333333;
             --success: #1db954;
             --danger: #e22134;
+            --warning: #ff9800;
+            --info: #2196f3;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -44,7 +46,7 @@
         .logo i { margin-right: 8px; }
 
         .main-content { padding-top: 90px; padding-bottom: 80px; }
-        .page-title { font-size: 28px; font-weight: 700; margin-bottom: 30px; color: var(--accent); }
+        .page-title { font-size: 28px; font-weight: 700; margin-bottom: 10px; color: var(--accent); }
 
         .back-link {
             display: inline-flex; align-items: center; gap: 8px;
@@ -52,53 +54,193 @@
         }
         .back-link:hover { color: var(--text-primary); }
 
-        .tracks-grid {
+        /* Статистика */
+        .stats-row {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
+            margin-bottom: 30px;
         }
 
-        .track-card {
+        .stat-card {
             background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 25px;
-            transition: transform 0.2s, background-color 0.2s;
-            cursor: pointer;
-        }
-        .track-card:hover {
-            transform: translateY(-5px);
-            background-color: var(--hover-bg);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
         }
 
-        .track-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-        .track-card-title {
-            font-size: 18px;
-            font-weight: 600;
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
             margin-bottom: 5px;
         }
-        .track-card-meta {
+
+        .stat-value.total { color: var(--accent); }
+        .stat-value.approved { color: var(--success); }
+        .stat-value.pending { color: var(--warning); }
+        .stat-value.rejected { color: var(--danger); }
+
+        .stat-label {
             font-size: 14px;
             color: var(--text-secondary);
         }
 
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .status-approved { background-color: var(--success); color: white; }
-        .status-pending { background-color: var(--accent); color: var(--primary-bg); }
-
-        .track-card-actions {
+        /* Фильтры */
+        .filters {
             display: flex;
             gap: 10px;
-            justify-content: flex-end;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        .filter-btn:hover {
+            background-color: var(--hover-bg);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background-color: var(--accent);
+            color: var(--primary-bg);
+            border-color: var(--accent);
+        }
+
+        /* Список треков */
+        .tracks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .track-item {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s, background-color 0.2s;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+        }
+
+        .track-item:hover {
+            transform: translateY(-2px);
+            background-color: var(--hover-bg);
+        }
+
+        .track-item.status-approved {
+            border-left-color: var(--success);
+        }
+
+        .track-item.status-pending {
+            border-left-color: var(--warning);
+        }
+
+        .track-item.status-rejected {
+            border-left-color: var(--danger);
+        }
+
+        .track-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .track-info {
+            flex: 1;
+        }
+
+        .track-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .track-meta {
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .track-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.approved {
+            background-color: rgba(29, 185, 84, 0.15);
+            color: var(--success);
+        }
+
+        .status-badge.pending {
+            background-color: rgba(255, 152, 0, 0.15);
+            color: var(--warning);
+        }
+
+        .status-badge.rejected {
+            background-color: rgba(226, 33, 52, 0.15);
+            color: var(--danger);
+        }
+
+        /* Комментарий модератора */
+        .moderation-comment {
+            margin-top: 12px;
+            padding: 12px;
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .moderation-comment.rejected {
+            background-color: rgba(226, 33, 52, 0.1);
+            border: 1px solid rgba(226, 33, 52, 0.3);
+        }
+
+        .moderation-comment.approved {
+            background-color: rgba(29, 185, 84, 0.1);
+            border: 1px solid rgba(29, 185, 84, 0.3);
+        }
+
+        .comment-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .comment-text {
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .track-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
             padding-top: 15px;
             border-top: 1px solid var(--border-color);
         }
@@ -110,11 +252,24 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
-            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
-        .btn-play { background-color: var(--accent); color: var(--primary-bg); }
+
+        .btn-play {
+            background-color: var(--accent);
+            color: var(--primary-bg);
+            text-decoration: none;
+        }
         .btn-play:hover { background-color: #ffcc00; }
-        .btn-edit { background-color: var(--secondary-bg); color: var(--text-primary); }
+
+        .btn-edit {
+            background-color: var(--secondary-bg);
+            color: var(--text-primary);
+            text-decoration: none;
+            border: 1px solid var(--border-color);
+        }
         .btn-edit:hover { background-color: var(--hover-bg); }
 
         .empty-state {
@@ -123,6 +278,8 @@
             color: var(--text-secondary);
         }
         .empty-state i { font-size: 64px; margin-bottom: 20px; opacity: 0.5; }
+        .empty-state h3 { margin-bottom: 10px; }
+        .empty-state p { margin-bottom: 20px; }
 
         .bottom-nav {
             position: fixed;
@@ -141,6 +298,17 @@
         .nav-item.active { color: var(--accent); }
         .nav-icon { font-size: 20px; }
         .nav-label { font-size: 12px; }
+
+        @media (max-width: 768px) {
+            .track-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
@@ -160,44 +328,124 @@
     <div class="container">
         <h1 class="page-title">Мои треки</h1>
 
-        <div class="tracks-grid" th:if="${not #lists.isEmpty(tracks)}">
-            <div class="track-card" th:each="track : ${tracks}"
+        <!-- Статистика -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value total" th:text="${totalTracks}">0</div>
+                <div class="stat-label">Всего треков</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value approved" th:text="${approvedCount}">0</div>
+                <div class="stat-label">Одобрено</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value pending" th:text="${pendingCount}">0</div>
+                <div class="stat-label">На модерации</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value rejected" th:text="${rejectedCount}">0</div>
+                <div class="stat-label">Отклонено</div>
+            </div>
+        </div>
+
+        <!-- Фильтры -->
+        <div class="filters">
+            <a href="/artist/tracks" class="filter-btn" th:classappend="${currentStatus == null ? 'active' : ''}">
+                <i class="fas fa-list"></i> Все
+            </a>
+            <a href="/artist/tracks?status=approved" class="filter-btn" th:classappend="${currentStatus == 'approved' ? 'active' : ''}">
+                <i class="fas fa-check-circle"></i> Одобренные
+            </a>
+            <a href="/artist/tracks?status=pending" class="filter-btn" th:classappend="${currentStatus == 'pending' ? 'active' : ''}">
+                <i class="fas fa-clock"></i> На модерации
+            </a>
+            <a href="/artist/tracks?status=rejected" class="filter-btn" th:classappend="${currentStatus == 'rejected' ? 'active' : ''}">
+                <i class="fas fa-times-circle"></i> Отклоненные
+            </a>
+        </div>
+
+        <!-- Список треков -->
+        <div class="tracks-list" th:if="${not #lists.isEmpty(tracks)}">
+            <div class="track-item" th:each="track : ${tracks}"
                  th:data-track-id="${track.id}"
                  th:data-track-title="${track.title}"
-                 th:data-track-artist="${track.artist != null ? track.artist.name : 'Неизвестный исполнитель'}">
-                <div class="track-card-header">
-                    <div>
-                        <div class="track-card-title" th:text="${track.title}">Название</div>
-                        <div class="track-card-meta">
-                            <span th:text="${track.artist != null ? track.artist.name : 'Неизвестный исполнитель'}">Исполнитель</span>
-                            <span th:if="${track.genre != null}"> • </span>
-                            <span th:if="${track.genre != null}" th:text="${track.genre.name}">Жанр</span>
-                            <span> • </span>
-                            <span th:text="${track.formattedDuration}">3:45</span>
+                 th:data-track-artist="${track.artist != null ? track.artist.name : 'Неизвестный исполнитель'}"
+                 th:classappend="${trackStatuses != null && trackStatuses.containsKey(track.id) ? 'status-' + trackStatuses.get(track.id) : ''}">
+                <div class="track-header">
+                    <div class="track-info">
+                        <div class="track-title" th:text="${track.title}">Название</div>
+                        <div class="track-meta">
+                            <span>
+                                <i class="fas fa-user"></i>
+                                <span th:text="${track.artist != null ? track.artist.name : 'Неизвестный исполнитель'}">Исполнитель</span>
+                            </span>
+                            <span th:if="${track.genre != null}">
+                                <i class="fas fa-tag"></i>
+                                <span th:text="${track.genre.name}">Жанр</span>
+                            </span>
+                            <span>
+                                <i class="fas fa-clock"></i>
+                                <span th:text="${track.formattedDuration}">3:45</span>
+                            </span>
                         </div>
                     </div>
-                    <span class="status-badge" th:classappend="${track.moderated} ? 'status-approved' : 'status-pending'"
-                          th:text="${track.moderated} ? 'Одобрен' : 'На модерации'"></span>
-                </div>
 
-                <div class="track-card-actions">
+                        <!-- Статус трека -->
+                                        <span th:if="${trackStatuses != null && trackStatuses.containsKey(track.id)}">
+                    <span th:if="${trackStatuses.get(track.id) == 'approved'}" class="status-badge approved">
+                        <i class="fas fa-check-circle"></i> Одобрен
+                    </span>
+                    <span th:if="${trackStatuses.get(track.id) == 'rejected'}" class="status-badge rejected">
+                        <i class="fas fa-times-circle"></i> Отклонен
+                    </span>
+                    <span th:if="${trackStatuses.get(track.id) == 'pending'}" class="status-badge pending">
+                        <i class="fas fa-clock"></i> На модерации
+                    </span>
+                </span>
+
+                        <!-- Комментарий модератора (если есть) -->
+                        <div th:if="${moderationComments != null && moderationComments.containsKey(track.id)}"
+                             class="moderation-comment"
+                             th:classappend="${trackStatuses != null && trackStatuses.get(track.id) == 'rejected' ? 'rejected' : 'approved'}">
+                            <div class="comment-label">
+                                <th:block th:if="${trackStatuses != null && trackStatuses.get(track.id) == 'rejected'}">
+                                    <i class="fas fa-exclamation-circle"></i> Причина отклонения:
+                                </th:block>
+                                <th:block th:unless="${trackStatuses != null && trackStatuses.get(track.id) == 'rejected'}">
+                                    <i class="fas fa-info-circle"></i> Комментарий модератора:
+                                </th:block>
+                            </div>
+                            <div class="comment-text" th:text="${moderationComments.get(track.id)}">
+                                Комментарий
+                            </div>
+                        </div>
+
+                    </div>
+
+                <div class="track-actions">
                     <button class="btn-sm btn-play play-track-btn"
                             th:data-track-id="${track.id}"
                             th:data-track-title="${track.title}"
-                            th:data-track-artist="${track.artist != null ? track.artist.name : 'Неизвестный исполнитель'}">
+                            th:data-track-artist="${track.artist != null ? track.artist.name : 'Неизвестный исполнитель'}"
+                            onclick="event.stopPropagation()">
                         <i class="fas fa-play"></i> Слушать
                     </button>
-                    <a th:href="@{'/admin/tracks/' + ${track.id}}" class="btn-sm btn-edit" th:if="${isAdmin}">
-                        <i class="fas fa-edit"></i> Ред.
+                    <a th:href="@{'/admin/tracks/' + ${track.id}}" class="btn-sm btn-edit" th:if="${isAdmin}" onclick="event.stopPropagation()">
+                        <i class="fas fa-edit"></i> Редактировать
                     </a>
                 </div>
             </div>
         </div>
 
+        <!-- Пустое состояние -->
         <div th:unless="${not #lists.isEmpty(tracks)}" class="empty-state">
             <i class="fas fa-music"></i>
-            <h3>У вас пока нет треков</h3>
-            <p>Загрузите свой первый трек в кабинете музыканта</p>
+            <h3 th:if="${currentStatus == null}">У вас пока нет треков</h3>
+            <h3 th:if="${currentStatus == 'approved'}">Нет одобренных треков</h3>
+            <h3 th:if="${currentStatus == 'pending'}">Нет треков на модерации</h3>
+            <h3 th:if="${currentStatus == 'rejected'}">Нет отклоненных треков</h3>
+            <p th:if="${currentStatus == null}">Загрузите свой первый трек в кабинете музыканта</p>
+            <p th:unless="${currentStatus == null}">Измените фильтр для просмотра других треков</p>
         </div>
     </div>
 </main>
@@ -234,8 +482,8 @@
         document.querySelectorAll('[data-track-id]').forEach(el => {
             playlist.push({
                 id: el.dataset.trackId,
-                title: el.dataset.trackTitle || el.querySelector('.track-card-title')?.textContent || 'Неизвестный трек',
-                artistName: el.dataset.trackArtist || el.querySelector('.track-card-meta')?.textContent?.split(' • ')[0] || 'Неизвестный исполнитель'
+                title: el.dataset.trackTitle || el.querySelector('.track-title')?.textContent || 'Неизвестный трек',
+                artistName: el.dataset.trackArtist || el.querySelector('.track-meta')?.textContent?.split(' • ')[0] || 'Неизвестный исполнитель'
             });
         });
 
@@ -258,8 +506,8 @@
         });
 
         // Клик по карточке трека
-        document.querySelectorAll('.track-card').forEach(card => {
-            card.addEventListener('click', function(e) {
+        document.querySelectorAll('.track-item').forEach(item => {
+            item.addEventListener('click', function(e) {
                 if (e.target.closest('button, a')) return;
 
                 const trackId = this.dataset.trackId;
