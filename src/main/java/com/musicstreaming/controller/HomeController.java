@@ -79,7 +79,7 @@ public class HomeController {
 
         try {
             // Новые релизы
-            List<Album> newReleases = albumService.findNewReleases(8);
+            List<Album> newReleases = albumService.findNewReleases(5);
             model.addAttribute("newReleases", newReleases);
 
             // Рекомендации
