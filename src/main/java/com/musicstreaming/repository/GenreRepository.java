@@ -1,4 +1,3 @@
-// src/main/java/com/musicstreaming/repository/GenreRepository.java
 package com.musicstreaming.repository;
 
 import com.musicstreaming.model.Genre;

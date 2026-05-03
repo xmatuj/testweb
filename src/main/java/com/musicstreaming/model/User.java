@@ -77,7 +77,6 @@ public class User {
     public List<Playlist> getPlaylists() { return playlists; }
     public void setPlaylists(List<Playlist> playlists) { this.playlists = playlists; }
 
-    // Helper methods
     public boolean canUploadTracks() {
         return role == UserRole.Admin || role == UserRole.Musician;
     }

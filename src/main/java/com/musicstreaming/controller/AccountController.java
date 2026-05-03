@@ -69,7 +69,7 @@ public class AccountController {
             // Проверяем статус подписки при входе
             subscriptionService.checkSubscriptionOnLogin(user);
 
-            // Загружаем обновленного пользователя (с обновленной ролью)
+            // Загружаем обновленного пользователя
             User refreshedUser = userService.findById(user.getId())
                     .orElse(user);
 
@@ -134,7 +134,7 @@ public class AccountController {
             authService.login(request, refreshedUser);
         }
 
-        // Если пользователь музыкант (но не админ, или админ с музыкантом)
+        // Если пользователь музыкант
         if (refreshedUser.isMusician()) {
             return "redirect:/artist/cabinet";
         }

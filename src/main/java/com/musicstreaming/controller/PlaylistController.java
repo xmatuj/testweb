@@ -33,7 +33,7 @@ public class PlaylistController {
     @Autowired
     private SubscriptionService subscriptionService;
 
-    // ============ READ ALL ============
+    // вывести все
     @GetMapping
     public String listPlaylists(Model model, HttpServletRequest request) {
         User currentUser = authService.getCurrentUser(request);
@@ -53,7 +53,7 @@ public class PlaylistController {
         return "playlists/list";
     }
 
-    // ============ CREATE ============
+    // создание
     @GetMapping("/create")
     public String createForm(Model model, HttpServletRequest request,
                              RedirectAttributes redirectAttributes) {
@@ -97,7 +97,7 @@ public class PlaylistController {
         return "redirect:/playlists/" + saved.getId();
     }
 
-    // ============ READ ONE ============
+    // посмотреть один
     @GetMapping("/{id}")
     public String viewPlaylist(@PathVariable Integer id, Model model,
                                HttpServletRequest request,
@@ -133,7 +133,7 @@ public class PlaylistController {
         return "playlists/view";
     }
 
-    // ============ UPDATE (Add track to playlist) ============
+    // добавить трек в плейлист
     @PostMapping("/{playlistId}/add-track")
     public String addTrackToPlaylist(@PathVariable Integer playlistId,
                                      @RequestParam Integer trackId,
@@ -161,7 +161,7 @@ public class PlaylistController {
         return "redirect:/playlists/" + playlistId;
     }
 
-    // ============ DELETE (Remove track from playlist) ============
+    // удаление
     @PostMapping("/{playlistId}/remove-track")
     public String removeTrackFromPlaylist(@PathVariable Integer playlistId,
                                           @RequestParam Integer trackId,
@@ -189,7 +189,7 @@ public class PlaylistController {
         return "redirect:/playlists/" + playlistId;
     }
 
-    // ============ UPDATE (Edit playlist) ============
+    // апдейт
     @GetMapping("/edit/{id}")
     public String editForm(@PathVariable Integer id, Model model,
                            HttpServletRequest request,
@@ -212,7 +212,7 @@ public class PlaylistController {
         return "playlists/form";
     }
 
-    // ============ DELETE (Delete playlist) ============
+    // удалить плейлист
     @PostMapping("/delete/{id}")
     public String deletePlaylist(@PathVariable Integer id,
                                  HttpServletRequest request,
@@ -235,9 +235,7 @@ public class PlaylistController {
         return "redirect:/playlists";
     }
 
-    /**
-     * Проверяет, может ли пользователь создавать плейлисты
-     */
+    // Проверяет, может ли пользователь создавать плейлисты
     private boolean canCreatePlaylist(User user) {
         if (user == null) return false;
 

@@ -72,7 +72,6 @@ public class ArtistProfileDTO {
     public String getDisplayName() { return displayName; }
     public void setDisplayName(String displayName) { this.displayName = displayName; }
 
-    // Helper methods
     public boolean isAdmin() { return role == User.UserRole.Admin; }
     public boolean isMusician() { return role == User.UserRole.Musician || role == User.UserRole.Admin; }
     public boolean canUploadTracks() { return role == User.UserRole.Admin || role == User.UserRole.Musician; }

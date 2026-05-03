@@ -268,7 +268,7 @@ public class AdminController {
                 tracks = trackService.findAll();
             }
 
-            // ДОБАВЛЯЕМ: статусы модерации для каждого трека
+            // статусы модерации для каждого трека
             Map<Integer, String> trackModerationStatuses = new HashMap<>();
             for (Track track : tracks) {
                 trackModerationStatuses.put(track.getId(), getTrackModerationStatus(track));
@@ -377,7 +377,7 @@ public class AdminController {
         try {
             User currentUser = authService.getCurrentUser(request);
 
-            // Если это существующий трек (редактирование), загружаем его из базы
+            // Если это существующий трек, загружаем его из базы
             if (track.getId() != null) {
                 Track existingTrack = trackService.findById(track.getId())
                         .orElseThrow(() -> new IllegalArgumentException("Трек не найден: " + track.getId()));
@@ -443,7 +443,7 @@ public class AdminController {
                 // Сохраняем имя файла в БД
                 track.setFilePath(filename);
 
-                // АВТОМАТИЧЕСКОЕ ОПРЕДЕЛЕНИЕ ДЛИТЕЛЬНОСТИ
+                // автоопределение длины трека
                 int detectedDuration = audioMetadataService.getDurationInSeconds(destFile.toString());
                 if (detectedDuration > 0) {
                     track.setDuration(detectedDuration);
@@ -451,7 +451,7 @@ public class AdminController {
                             detectedDuration, detectedDuration / 60, detectedDuration % 60);
                 } else if (track.getDuration() == null || track.getDuration() == 0) {
                     // Если не удалось определить и нет явно указанной длительности
-                    track.setDuration(180); // 3 минуты по умолчанию
+                    track.setDuration(180);
                     logger.warn("Using default duration of 180 seconds");
                 }
             } else if (track.getDuration() == null || track.getDuration() == 0) {
@@ -826,48 +826,6 @@ public class AdminController {
         return "redirect:/admin/genres";
     }
 
-    // ==================== ARTIST MANAGEMENT ====================
-
-//    @PostMapping("/artists/save")
-//    public String saveArtist(@RequestParam(required = false) Integer id,
-//                             @RequestParam String name,
-//                             @RequestParam(required = false) String description,
-//                             @RequestParam(value = "photoFile", required = false) MultipartFile photoFile,
-//                             HttpServletRequest request,
-//                             RedirectAttributes redirectAttributes) {
-//
-//        if (!authService.isAdmin(request)) {
-//            redirectAttributes.addFlashAttribute("error", "Access denied");
-//            return "redirect:/";
-//        }
-//
-//        try {
-//            Artist artist;
-//            if (id != null) {
-//                artist = artistService.findById(id)
-//                        .orElseThrow(() -> new IllegalArgumentException("Artist not found: " + id));
-//            } else {
-//                artist = new Artist();
-//            }
-//
-//            artist.setName(name);
-//            artist.setDescription(description);
-//
-//            // Загрузка фото
-//            if (photoFile != null && !photoFile.isEmpty()) {
-//                String filename = saveImage(photoFile, "artists");
-//                artist.setPhotoPath("/images/" + filename);
-//            }
-//
-//            artistService.save(artist);
-//            redirectAttributes.addFlashAttribute("success", "Исполнитель сохранен");
-//        } catch (Exception e) {
-//            logger.error("Error saving artist", e);
-//            redirectAttributes.addFlashAttribute("error", "Ошибка: " + e.getMessage());
-//        }
-//        return "redirect:/admin/artists";
-//    }
-
     // ==================== MODERATION ====================
 
     @GetMapping("/moderation")
@@ -885,18 +843,14 @@ public class AdminController {
         model.addAttribute("pageTitle", "Модерация контента");
         model.addAttribute("activePage", "moderation");
 
-        // Получаем ВСЕ непроверенные треки
+        // Получаем непроверенные треки
         List<Track> pendingTracks = trackService.findPendingModeration();
 
         // Фильтруем - исключаем отклоненные треки
-        // Отклоненный трек - это трек, у которого последняя запись в Moderations имеет статус Rejected
         List<Track> filteredPendingTracks = new ArrayList<>();
         for (Track track : pendingTracks) {
             Optional<Moderation> latestModeration = moderationRepository.findLatestByTrackId(track.getId());
 
-            // Показываем трек только если:
-            // 1. Нет записей в модерации (новый трек)
-            // 2. Или последний статус не Rejected
             if (latestModeration.isEmpty() || latestModeration.get().getStatus() != Moderation.ModerationStatus.Rejected) {
                 filteredPendingTracks.add(track);
             }
@@ -905,7 +859,7 @@ public class AdminController {
         model.addAttribute("pendingTracks", filteredPendingTracks);
         model.addAttribute("pendingCount", filteredPendingTracks.size());
 
-        // История модерации с пагинацией
+        // История модерации
         int pageSize = 10;
         Pageable pageable = PageRequest.of(page, pageSize);
         Page<Moderation> moderationPage = moderationRepository.findModerationHistory(pageable);

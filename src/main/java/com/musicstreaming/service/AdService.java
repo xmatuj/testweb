@@ -30,9 +30,7 @@ public class AdService {
         this.subscriptionService = subscriptionService;
     }
 
-    /**
-     * Проверяет, нужно ли показывать рекламу пользователю
-     */
+    // Проверяет, нужно ли показывать рекламу пользователю
     public boolean shouldShowAd(HttpServletRequest request) {
         User user = authService.getCurrentUser(request);
 
@@ -53,9 +51,7 @@ public class AdService {
         return !hasActiveSubscription;
     }
 
-    /**
-     * Получает случайное рекламное объявление
-     */
+    // Получает случайное рекламное объявление
     public AdDTO getRandomAd() {
         return ads.get(random.nextInt(ads.size()));
     }

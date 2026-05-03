@@ -48,18 +48,18 @@ public class PlaylistService {
                 .collect(Collectors.toList());
     }
 
-    // Вывести по айди (обычный, без eager loading)
+    // Вывести по айди
     public Optional<Playlist> findById(Integer id) {
         return playlistRepository.findById(id);
     }
 
-    // Найти плейлист с пользователем и треками (все связи загружены eagerly)
+    // Найти плейлист с пользователем и треками
     @Transactional(readOnly = true)
     public Optional<Playlist> findByIdWithUser(Integer id) {
         return playlistRepository.findByIdWithUser(id);
     }
 
-    // Получить треки плейлиста (с загруженными связями)
+    // Получить треки плейлиста
     @Transactional(readOnly = true)
     public List<Track> getTracks(Integer playlistId) {
         List<PlaylistTrack> playlistTracks = playlistTrackRepository.findByPlaylistIdOrdered(playlistId);

@@ -22,7 +22,7 @@ public interface TrackStatisticsRepository extends JpaRepository<TrackStatistics
     @Query("SELECT ts FROM TrackStatistics ts WHERE ts.track.id = :trackId ORDER BY ts.date DESC")
     List<TrackStatistics> findByTrackId(@Param("trackId") Integer trackId);
 
-    // НОВЫЙ МЕТОД: найти статистику по нескольким трекам за период
+    // найти статистику по нескольким трекам за период
     @Query("SELECT ts FROM TrackStatistics ts WHERE ts.track.id IN :trackIds AND ts.date > :after ORDER BY ts.date DESC")
     List<TrackStatistics> findByTrackIdInAndDateAfter(@Param("trackIds") List<Integer> trackIds, @Param("after") LocalDateTime after);
 }

@@ -36,7 +36,6 @@ public class ArtistService {
         this.userRepository = userRepository;
     }
 
-    // Существующие методы для работы с сущностями
     public List<Artist> findAll() {
         return artistRepository.findAllOrdered();
     }
@@ -63,8 +62,6 @@ public class ArtistService {
         artistRepository.deleteById(id);
     }
 
-    // НОВЫЕ МЕТОДЫ для работы с DTO (без LazyInitializationException)
-
     public List<ArtistDTO> findAllDTOs() {
         return artistRepository.findAllArtistDTOs();
     }
@@ -90,9 +87,7 @@ public class ArtistService {
                 .orElse(null);
     }
 
-    /**
-     * Получить профиль артиста с полной статистикой
-     */
+    // Получить профиль артиста с полной статистикой
     @Transactional(readOnly = true)
     public ArtistProfileDTO getArtistProfile(Integer userId) {
         User user = userRepository.findById(userId)
@@ -126,7 +121,6 @@ public class ArtistService {
         }
         profile.setAlbums(artistAlbums);
 
-        // Простая статистика
         long totalPlays = 0;
         for (Track track : artistTracks) {
             List<TrackStatistics> stats = trackStatisticsRepository.findByTrackId(track.getId());

@@ -131,7 +131,7 @@ public class SubscriptionController {
                     break;
             }
 
-            // Применяем промокод (простая логика для примера)
+            // Применяем промокод (не работает, я ленивый)
             if ("FIRSTMONTH".equalsIgnoreCase(promoCode)) {
                 amount = new BigDecimal("1.00");
                 logger.info("Promo code applied: {}", promoCode);

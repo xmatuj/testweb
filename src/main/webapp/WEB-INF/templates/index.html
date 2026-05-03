@@ -727,9 +727,6 @@
                 </div>
                 <div class="track-duration" th:text="${track.formattedDuration}">3:45</div>
                 <div class="track-actions">
-                    <button class="action-btn like-btn" onclick="event.stopPropagation()">
-                        <i class="far fa-heart"></i>
-                    </button>
                     <button class="action-btn add-to-playlist-btn"
                             th:data-track-id="${track.id}"
                             onclick="event.stopPropagation()">

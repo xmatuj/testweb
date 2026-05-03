@@ -49,9 +49,7 @@ public class ArtistCabinetController {
     @Autowired
     private ModerationRepository moderationRepository;
 
-    /**
-     * Определяет статус трека на основе записей в Moderations
-     */
+    // Определяет статус трека на основе записей в Moderations
     private String getTrackStatus(com.musicstreaming.model.Track track) {
         // Если трек одобрен (isModerated = true)
         if (track.isModerated()) {
@@ -90,7 +88,7 @@ public class ArtistCabinetController {
 
         ArtistProfileDTO artistProfile = artistService.getArtistProfile(currentUser.getId());
 
-        // ДОБАВЛЯЕМ: статусы модерации для треков
+        // статусы модерации для треков
         Map<Integer, String> trackStatuses = new HashMap<>();
         if (artistProfile.getPopularTracks() != null) {
             for (com.musicstreaming.model.Track track : artistProfile.getPopularTracks()) {

@@ -51,9 +51,7 @@ public class AlbumController {
         return "album/view";
     }
 
-    /**
-     * Запись прослушивания альбома (вызывается ТОЛЬКО через AJAX)
-     */
+    // Запись прослушивания альбома
     @PostMapping("/{id}/record-play")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> recordPlay(@PathVariable Integer id) {
@@ -68,9 +66,7 @@ public class AlbumController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Запись прослушивания трека из альбома
-     */
+   // Запись прослушивания трека из альбома
     @PostMapping("/{albumId}/track/{trackId}/record-play")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> recordTrackPlay(@PathVariable Integer albumId,

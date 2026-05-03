@@ -19,11 +19,6 @@ public class AudioMetadataService {
 
     private static final Logger logger = LoggerFactory.getLogger(AudioMetadataService.class);
 
-    /**
-     * Получить длительность аудиофайла в секундах
-     * @param filePath полный путь к файлу
-     * @return длительность в секундах или 0, если не удалось определить
-     */
     public int getDurationInSeconds(String filePath) {
         try {
             File audioFile = new File(filePath);
@@ -47,9 +42,6 @@ public class AudioMetadataService {
         }
     }
 
-    /**
-     * Получить отформатированную длительность (минуты:секунды)
-     */
     public String getFormattedDuration(String filePath) {
         int seconds = getDurationInSeconds(filePath);
         if (seconds <= 0) {

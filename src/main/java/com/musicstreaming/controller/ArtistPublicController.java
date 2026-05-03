@@ -67,7 +67,7 @@ public class ArtistPublicController {
         model.addAttribute("popularTracks", popularTracks);
         model.addAttribute("albums", albums);
 
-        // Заглушка для "похожих исполнителей"
+        // Заглушка для похожих исполнителей
         model.addAttribute("relatedArtists", artistService.findAllDTOs().stream().limit(4).toList());
 
         long totalListens = popularTracks.stream()

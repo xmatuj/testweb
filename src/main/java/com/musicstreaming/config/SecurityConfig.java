@@ -14,6 +14,5 @@ public class SecurityConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // AuthFilter is registered as a Filter in web.xml, not as an Interceptor
     }
 }

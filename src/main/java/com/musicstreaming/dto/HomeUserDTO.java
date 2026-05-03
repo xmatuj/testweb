@@ -28,7 +28,6 @@ public class HomeUserDTO {
     public LocalDateTime getDateOfCreated() { return dateOfCreated; }
     public boolean isHasActiveSubscription() { return hasActiveSubscription; }
 
-    // Helper methods
     public boolean isAdmin() { return role == User.UserRole.Admin; }
     public boolean isMusician() { return role == User.UserRole.Musician || role == User.UserRole.Admin; }
     public boolean isSubscriber() { return role == User.UserRole.Subscriber || role == User.UserRole.Admin || hasActiveSubscription; }

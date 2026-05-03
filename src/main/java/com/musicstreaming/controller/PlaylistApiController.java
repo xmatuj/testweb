@@ -28,9 +28,7 @@ public class PlaylistApiController {
     @Autowired
     private SubscriptionService subscriptionService;
 
-    /**
-     * Проверить, может ли пользователь создавать/редактировать плейлисты
-     */
+    // Проверить, может ли пользователь создавать/редактировать плейлисты
     @GetMapping("/can-create")
     public ResponseEntity<Map<String, Object>> canCreatePlaylist(HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
@@ -55,9 +53,7 @@ public class PlaylistApiController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Получить плейлисты текущего пользователя для модального окна
-     */
+    // Получить плейлисты текущего пользователя для модального окна
     @GetMapping("/my")
     public ResponseEntity<Map<String, Object>> getMyPlaylists(HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
@@ -93,9 +89,7 @@ public class PlaylistApiController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Добавить трек в плейлист
-     */
+    // Добавить трек в плейлист
     @PostMapping("/{playlistId}/add-track")
     public ResponseEntity<Map<String, Object>> addTrackToPlaylist(
             @PathVariable Integer playlistId,
@@ -132,9 +126,7 @@ public class PlaylistApiController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Проверить, есть ли трек в плейлисте
-     */
+    // Проверить, есть ли трек в плейлисте
     @GetMapping("/{playlistId}/has-track/{trackId}")
     public ResponseEntity<Map<String, Object>> hasTrackInPlaylist(
             @PathVariable Integer playlistId,
@@ -164,9 +156,7 @@ public class PlaylistApiController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Проверяет, может ли пользователь управлять плейлистами
-     */
+    // Проверяет, может ли пользователь управлять плейлистами
     private boolean canUserManagePlaylists(User user) {
         if (user == null) return false;
 

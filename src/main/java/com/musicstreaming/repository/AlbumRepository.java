@@ -49,7 +49,6 @@ class AlbumRepositoryImpl implements AlbumRepositoryCustom {
         CriteriaQuery<Album> cq = cb.createQuery(Album.class);
         Root<Album> album = cq.from(Album.class);
 
-        // Fetch artist для избежания LazyInitializationException
         album.fetch("artist", JoinType.LEFT);
 
         List<Predicate> predicates = new ArrayList<>();
@@ -60,7 +59,7 @@ class AlbumRepositoryImpl implements AlbumRepositoryCustom {
             // Поиск по названию альбома
             Predicate titlePredicate = cb.like(cb.lower(album.get("title")), searchPattern);
 
-            // Поиск по имени исполнителя (через join)
+            // Поиск по имени исполнителя
             Join<Object, Object> artist = album.join("artist", JoinType.LEFT);
             Predicate artistPredicate = cb.like(cb.lower(artist.get("name")), searchPattern);
 

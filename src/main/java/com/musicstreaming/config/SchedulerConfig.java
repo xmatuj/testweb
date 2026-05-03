@@ -16,11 +16,9 @@ public class SchedulerConfig {
 
     @Autowired
     private SubscriptionService subscriptionService;
-
-    /**
-     * Проверка истекших подписок каждый час
-     */
-    @Scheduled(fixedRate = 3600000) // Каждый час (3600000 мс = 1 час)
+    
+    // Проверка истекших подписок каждый час
+    @Scheduled(fixedRate = 3600000)
     public void checkExpiredSubscriptions() {
         logger.info("Running scheduled check for expired subscriptions...");
         try {

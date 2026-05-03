@@ -73,9 +73,7 @@ public class AlbumService {
         return albumStatisticsRepository.getTotalListenCountByAlbumId(albumId);
     }
 
-    /**
-     * Запись прослушивания альбома
-     */
+    // Запись прослушивания альбома
     @Transactional
     public void recordAlbumPlay(Integer albumId) {
         albumRepository.findById(albumId).ifPresent(album -> {

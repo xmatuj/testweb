@@ -26,13 +26,11 @@ public interface RecommendationRepository extends JpaRepository<Recommendation, 
     @Query("SELECT DISTINCT r.track FROM Recommendation r WHERE r.user.id = :userId")
     List<Track> findDistinctTracksByUserId(@Param("userId") Integer userId);
 
-    // Исправлено: убрали алиас "count" который конфликтует с SQL функцией COUNT
     @Query("SELECT r.track.genre, COUNT(r) FROM Recommendation r " +
             "WHERE r.user.id = :userId AND r.track.genre IS NOT NULL " +
             "GROUP BY r.track.genre ORDER BY COUNT(r) DESC")
     List<Object[]> findGenrePreferencesByUserId(@Param("userId") Integer userId);
 
-    // Исправлено: убрали алиас "count" который конфликтует с SQL функцией COUNT
     @Query("SELECT r.track.artist, COUNT(r) FROM Recommendation r " +
             "WHERE r.user.id = :userId AND r.track.artist IS NOT NULL " +
             "GROUP BY r.track.artist ORDER BY COUNT(r) DESC")
@@ -58,14 +56,12 @@ public interface RecommendationRepository extends JpaRepository<Recommendation, 
             "AND t.id NOT IN (SELECT r.track.id FROM Recommendation r WHERE r.user.id = :userId)")
     List<Track> findTracksFromSameAlbums(@Param("userId") Integer userId);
 
-    // Исправлено: убрали алиас "listenCount" внутри COUNT
     @Query("SELECT t, COUNT(r) FROM Recommendation r " +
             "JOIN r.track t " +
             "WHERE r.date > :after AND t.isModerated = true " +
             "GROUP BY t ORDER BY COUNT(r) DESC")
     List<Object[]> findPopularTracksSince(@Param("after") LocalDateTime after, Pageable pageable);
 
-    // Нативный запрос для коллаборативной фильтрации (работает только с MySQL)
     @Query(value = "SELECT t.* FROM tracks t " +
             "INNER JOIN recommendations r2 ON t.Id = r2.TrackId " +
             "WHERE r2.UserId IN (" +

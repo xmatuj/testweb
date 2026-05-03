@@ -15,8 +15,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-// src/main/java/com/musicstreaming/service/SubscriptionService.java
-
 @Service
 @Transactional
 public class SubscriptionService {
@@ -76,7 +74,7 @@ public class SubscriptionService {
         subscription.setActivated(true);
         subscription.setTransactionId("TXN-" + System.currentTimeMillis());
 
-        // Обновляем роль пользователя на SUBSCRIBER
+        // Обновляем роль пользователя
         if (user.getRole() == User.UserRole.User) {
             user.setRole(User.UserRole.Subscriber);
             userRepository.save(user);
@@ -126,10 +124,6 @@ public class SubscriptionService {
         });
     }
 
-    /**
-     * Проверяет истекшие подписки и обновляет роли пользователей
-     * Этот метод должен вызываться периодически (например, по расписанию)
-     */
     @Transactional
     public void checkExpiredSubscriptions() {
         List<Subscription> activeSubscriptions = subscriptionRepository.findActiveSubscriptions(LocalDateTime.now());
@@ -151,9 +145,6 @@ public class SubscriptionService {
         }
     }
 
-    /**
-     * Проверяет наличие активных подписок у пользователя и обновляет его роль
-     */
     @Transactional
     public void checkAndUpdateUserRole(Integer userId) {
         User user = userRepository.findById(userId).orElse(null);
@@ -161,7 +152,6 @@ public class SubscriptionService {
             return;
         }
 
-        // Пропускаем админов и музыкантов - они не должны терять свои роли
         if (user.getRole() == User.UserRole.Admin || user.getRole() == User.UserRole.Musician) {
             return;
         }
@@ -169,14 +159,12 @@ public class SubscriptionService {
         boolean hasActiveSubscription = findActiveByUserId(userId).isPresent();
 
         if (hasActiveSubscription) {
-            // Есть активная подписка - должен быть Subscriber
             if (user.getRole() != User.UserRole.Subscriber) {
                 user.setRole(User.UserRole.Subscriber);
                 userRepository.save(user);
                 logger.info("User {} role restored to Subscriber (has active subscription)", user.getUsername());
             }
         } else {
-            // Нет активной подписки - должен быть User
             if (user.getRole() == User.UserRole.Subscriber) {
                 user.setRole(User.UserRole.User);
                 userRepository.save(user);
@@ -185,14 +173,10 @@ public class SubscriptionService {
         }
     }
 
-    /**
-     * Проверяет статус подписки при входе пользователя
-     */
     @Transactional
     public void checkSubscriptionOnLogin(User user) {
         if (user == null) return;
 
-        // Пропускаем админов и музыкантов
         if (user.getRole() == User.UserRole.Admin || user.getRole() == User.UserRole.Musician) {
             return;
         }

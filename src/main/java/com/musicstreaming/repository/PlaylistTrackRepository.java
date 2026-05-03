@@ -14,7 +14,6 @@ import java.util.List;
 @Repository
 public interface PlaylistTrackRepository extends JpaRepository<PlaylistTrack, PlaylistTrackId> {
 
-    // Загружаем треки вместе с artist, album, genre чтобы избежать LazyInitializationException
     @EntityGraph(attributePaths = {"track", "track.artist", "track.album", "track.genre"})
     @Query("SELECT pt FROM PlaylistTrack pt WHERE pt.playlist.id = :playlistId ORDER BY pt.position ASC, pt.addedDate ASC")
     List<PlaylistTrack> findByPlaylistIdOrdered(@Param("playlistId") Integer playlistId);
