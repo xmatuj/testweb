@@ -56,7 +56,6 @@
             padding: 0 20px;
         }
 
-        /* Admin Layout */
         .admin-layout {
             display: flex;
             min-height: 100vh;
@@ -197,7 +196,6 @@
             font-weight: 600;
         }
 
-        /* Buttons */
         .btn {
             padding: 10px 20px;
             border-radius: 8px;
@@ -245,7 +243,6 @@
             border-radius: 4px;
         }
 
-        /* Data Table */
         .data-table {
             width: 100%;
             background-color: var(--card-bg);
@@ -275,7 +272,6 @@
             border-bottom: none;
         }
 
-        /* Alerts */
         .alert {
             padding: 15px;
             border-radius: 8px;
@@ -335,10 +331,10 @@
 </head>
 <body>
 <div class="admin-layout">
-    <!-- Sidebar -->
+    <!-- Боковая панель -->
     <div th:replace="admin/fragments/sidebar :: sidebar"></div>
 
-    <!-- Main Content -->
+    <!-- Основной контент -->
     <main class="main-content">
         <header class="top-bar">
             <div class="container top-bar-content">
@@ -354,7 +350,7 @@
         </header>
 
         <div class="container" style="padding: 30px 20px;">
-            <!-- Alerts -->
+            <!-- Алерты -->
             <div th:if="${success}" class="alert alert-success">
                 <i class="fas fa-check-circle"></i> <span th:text="${success}">Success</span>
             </div>
@@ -362,7 +358,7 @@
                 <i class="fas fa-exclamation-circle"></i> <span th:text="${error}">Error</span>
             </div>
 
-            <!-- Action Button -->
+            <!-- Кнопка действия -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="font-size: 20px; font-weight: 600;">
                     Всего жанров: <span th:text="${#lists.size(genres)}" style="color: var(--accent);">0</span>
@@ -372,7 +368,7 @@
                 </a>
             </div>
 
-            <!-- Table View -->
+            <!-- Вьеювка -->
             <div th:if="${genres != null and not #lists.isEmpty(genres)}">
                 <table class="data-table">
                     <thead>

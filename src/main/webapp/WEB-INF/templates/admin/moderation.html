@@ -59,7 +59,6 @@
             padding: 0 20px;
         }
 
-        /* Admin Layout */
         .admin-layout {
             display: flex;
             min-height: 100vh;
@@ -237,7 +236,6 @@
             font-weight: 600;
         }
 
-        /* Buttons */
         .btn {
             padding: 10px 20px;
             border-radius: 8px;
@@ -304,7 +302,6 @@
             border-radius: 4px;
         }
 
-        /* Alerts */
         .alert {
             padding: 15px;
             border-radius: 8px;
@@ -326,7 +323,6 @@
             color: var(--danger);
         }
 
-        /* Filters */
         .moderation-filters {
             background-color: var(--card-bg);
             border-radius: 10px;
@@ -398,7 +394,6 @@
             background-color: var(--hover-bg);
         }
 
-        /* Stats Cards */
         .stats-row {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -429,7 +424,6 @@
         .stat-value.rejected { color: var(--danger); }
         .stat-value.total { color: var(--accent); }
 
-        /* Moderation List */
         .moderation-list {
             margin: 20px 0;
         }
@@ -658,7 +652,6 @@
             background-color: var(--hover-bg);
         }
 
-        /* Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -765,7 +758,6 @@
             border-top: 1px solid var(--border-color);
         }
 
-        /* History Table */
         .history-section {
             margin-top: 40px;
         }
@@ -813,7 +805,6 @@
             opacity: 0.5;
         }
 
-        /* Pagination */
         .pagination {
             display: flex;
             justify-content: center;
@@ -850,7 +841,6 @@
             cursor: not-allowed;
         }
 
-        /* Notification */
         .notification-toast {
             position: fixed;
             top: 20px;
@@ -884,7 +874,6 @@
             background-color: var(--info);
         }
 
-        /* Responsive */
         @media (max-width: 992px) {
             .sidebar {
                 width: 70px;
@@ -954,10 +943,10 @@
 </head>
 <body>
 <div class="admin-layout">
-    <!-- Sidebar -->
+    <!-- Боковая панель -->
     <div th:replace="admin/fragments/sidebar :: sidebar"></div>
 
-    <!-- Main Content -->
+    <!-- Основной контент -->
     <main class="main-content">
         <header class="top-bar">
             <div class="container top-bar-content">
@@ -977,7 +966,7 @@
         </header>
 
         <div class="container" style="padding: 30px 20px;">
-            <!-- Alerts -->
+            <!-- Алерты -->
             <div th:if="${success}" class="alert alert-success">
                 <i class="fas fa-check-circle"></i> <span th:text="${success}">Success</span>
             </div>
@@ -985,7 +974,7 @@
                 <i class="fas fa-exclamation-circle"></i> <span th:text="${error}">Error</span>
             </div>
 
-            <!-- Filters -->
+            <!-- Фильтрация -->
             <section class="moderation-filters">
                 <div class="filter-row">
                     <div class="filter-group">
@@ -1027,7 +1016,7 @@
                 </div>
             </section>
 
-            <!-- Pending Tracks List -->
+            <!-- Список треков в ожидании -->
             <section class="moderation-list">
                 <div class="section-header">
                     <h2 class="section-title">Треки на модерации</h2>
@@ -1129,7 +1118,7 @@
                 </div>
             </section>
 
-            <!-- History Section -->
+            <!-- История -->
             <section class="history-section">
                 <div class="section-header">
                     <h2 class="section-title">История модерации</h2>
@@ -1165,7 +1154,6 @@
                         </tbody>
                     </table>
 
-                    <!-- Pagination for history -->
                     <div class="pagination" th:if="${totalPages > 1}">
                         <button class="page-btn" th:classappend="${currentPage == 0 ? 'disabled' : ''}"
                                 th:disabled="${currentPage == 0}"
@@ -1193,7 +1181,7 @@
                 </div>
             </section>
 
-            <!-- Back Button -->
+            <!-- Назад -->
             <div style="margin-top: 30px;">
                 <a href="/admin" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Назад к дашборду
@@ -1203,7 +1191,7 @@
     </main>
 </div>
 
-<!-- Approve Modal -->
+<!-- Одобрить трек -->
 <div class="modal-overlay" id="approveModal">
     <div class="modal">
         <div class="modal-header">
@@ -1232,7 +1220,7 @@
     </div>
 </div>
 
-<!-- Reject Modal -->
+<!-- Отклонить трек -->
 <div class="modal-overlay" id="rejectModal">
     <div class="modal">
         <div class="modal-header">
@@ -1304,7 +1292,6 @@
     </div>
 </div>
 
-<!-- Notification Toast -->
 <div class="notification-toast" id="notificationToast">
     <i class="fas fa-check-circle"></i>
     <span id="notificationMessage"></span>

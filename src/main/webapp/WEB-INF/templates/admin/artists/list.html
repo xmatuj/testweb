@@ -57,7 +57,6 @@
             padding: 0 20px;
         }
 
-        /* Боковая навигация */
         .admin-layout {
             display: flex;
             min-height: 100vh;
@@ -220,7 +219,6 @@
             font-weight: 600;
         }
 
-        /* Контент страницы пользователей */
         .users-container {
             padding: 30px 20px;
         }
@@ -319,7 +317,6 @@
             background-color: var(--hover-bg);
         }
 
-        /* Таблица пользователей */
         .users-table-container {
             background-color: var(--card-bg);
             border-radius: 10px;
@@ -446,7 +443,6 @@
             display: inline;
         }
 
-        /* Пагинация */
         .pagination {
             display: flex;
             justify-content: center;
@@ -481,7 +477,6 @@
             cursor: not-allowed;
         }
 
-        /* Уведомления */
         .alert {
             padding: 15px;
             border-radius: 8px;
@@ -745,10 +740,10 @@
 </head>
 <body>
 <div class="admin-layout">
-    <!-- Sidebar -->
+    <!-- Боковая панель -->
     <div th:replace="admin/fragments/sidebar :: sidebar"></div>
 
-    <!-- Main Content -->
+    <!-- Основной контент -->
     <main class="main-content">
         <header class="top-bar">
             <div class="container top-bar-content">
@@ -769,7 +764,7 @@
         </header>
 
         <div class="container" style="padding: 30px 20px;">
-            <!-- Alerts -->
+            <!-- Алерты -->
             <div th:if="${success}" class="alert alert-success">
                 <i class="fas fa-check-circle"></i> <span th:text="${success}">Success</span>
             </div>
@@ -777,26 +772,25 @@
                 <i class="fas fa-exclamation-circle"></i> <span th:text="${error}">Error</span>
             </div>
 
-            <!-- Search Info -->
+            <!-- Поиск -->
             <div th:if="${search != null and !search.isEmpty()}" class="alert alert-info">
                 <i class="fas fa-search"></i> Результаты поиска: "<span th:text="${search}"></span>"
                 <a href="/admin/artists" class="btn btn-sm" style="margin-left: 15px; background-color: var(--secondary-bg);">Сбросить</a>
             </div>
 
-            <!-- Action Button -->
+            <!-- КНопка действия -->
             <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
                 <a href="/admin/artists/new" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Добавить исполнителя
                 </a>
             </div>
 
-            <!-- Artists Grid - ИСПОЛЬЗУЕМ ПОЛЯ ИЗ DTO -->
+            <!-- Сетка артистов -->
             <div th:if="${artists != null and not #lists.isEmpty(artists)}">
                 <div class="stats-cards">
                     <div class="stat-card" th:each="artist : ${artists}">
                         <div class="stat-value" style="font-size: 24px;" th:text="${artist.name}">Исполнитель</div>
                         <div class="stat-label">
-                            <!-- ИСПОЛЬЗУЕМ ПОЛЯ ИЗ DTO -->
                             <span th:text="${artist.albumCount} + ' альбомов'">5 альбомов</span> |
                             <span th:text="${artist.trackCount} + ' треков'">15 треков</span>
                         </div>

@@ -103,7 +103,6 @@
             padding-bottom: 100px;
         }
 
-        /* Заголовок плейлиста */
         .playlist-header {
             padding: 40px 0;
             background: linear-gradient(to bottom, #1a1a1a, #121212);
@@ -208,7 +207,6 @@
             color: white;
         }
 
-        /* Список треков */
         .tracks-section {
             margin: 40px 0;
         }
@@ -409,7 +407,7 @@
     </style>
 </head>
 <body>
-<!-- Navbar -->
+<!-- Навигация -->
 <nav class="navbar">
     <div class="container navbar-content">
         <a href="/" class="logo">
@@ -424,7 +422,7 @@
     </div>
 </nav>
 
-<!-- Playlist Header -->
+<!-- Хедер плейлиста -->
 <header class="playlist-header">
     <div class="container">
         <div class="playlist-info">
@@ -467,10 +465,10 @@
     </div>
 </header>
 
-<!-- Main Content -->
+<!-- Основной контент -->
 <main class="main-content">
     <div class="container">
-        <!-- Messages -->
+        <!-- Сообщения -->
         <div th:if="${success}" class="alert alert-success">
             <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
         </div>
@@ -478,7 +476,7 @@
             <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
         </div>
 
-        <!-- Tracks List -->
+        <!-- Список треков -->
         <section class="tracks-section">
             <div class="section-header">
                 <h2 class="section-title">Треки в плейлисте</h2>
@@ -518,7 +516,7 @@
     </div>
 </main>
 
-<!-- Bottom Navigation -->
+<!-- Нижняя навигация -->
 <nav class="bottom-nav">
     <div class="nav-items">
         <a href="/" class="nav-item">

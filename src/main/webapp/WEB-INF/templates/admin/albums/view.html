@@ -56,7 +56,6 @@
             padding: 0 20px;
         }
 
-        /* Admin Layout */
         .admin-layout {
             display: flex;
             min-height: 100vh;
@@ -207,7 +206,6 @@
             font-weight: 600;
         }
 
-        /* Buttons */
         .btn {
             padding: 10px 20px;
             border-radius: 8px;
@@ -274,7 +272,6 @@
             border-radius: 4px;
         }
 
-        /* Album Header */
         .album-header {
             padding: 30px 0;
             background: linear-gradient(to bottom, #1a1a1a, #121212);
@@ -412,7 +409,6 @@
             flex-wrap: wrap;
         }
 
-        /* Tracks Section */
         .tracks-section {
             margin: 40px 0;
         }
@@ -502,7 +498,6 @@
             background-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* Album Info Section */
         .album-info-section {
             margin: 40px 0;
         }
@@ -546,7 +541,6 @@
             opacity: 0.5;
         }
 
-        /* Alerts */
         .alert {
             padding: 15px;
             border-radius: 8px;
@@ -562,7 +556,6 @@
             color: var(--success);
         }
 
-        /* Responsive */
         @media (max-width: 992px) {
             .sidebar {
                 width: 70px;
@@ -614,10 +607,10 @@
 </head>
 <body>
 <div class="admin-layout">
-    <!-- Sidebar -->
+    <!-- Боковая панель -->
     <div th:replace="admin/fragments/sidebar :: sidebar"></div>
 
-    <!-- Main Content -->
+    <!-- Основной контент -->
     <main class="main-content">
         <header class="top-bar">
             <div class="container top-bar-content">
@@ -632,10 +625,10 @@
             </div>
         </header>
 
-        <!-- Album Header -->
+        <!-- Хедер -->
         <header class="album-header">
             <div class="container header-content">
-                <!-- Action Buttons -->
+                <!-- Кнопки действий -->
                 <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                     <a href="/admin/albums" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Назад к списку
@@ -686,7 +679,7 @@
         </header>
 
         <div class="container" style="padding: 20px;">
-            <!-- Tracks Section -->
+            <!-- Секция с треками -->
             <section class="tracks-section">
                 <div class="tracks-header">
                     <h2 class="section-title">Треки в альбоме</h2>
@@ -715,7 +708,7 @@
                 </div>
             </section>
 
-            <!-- Album Info -->
+            <!-- Информация об альбоме -->
             <section class="album-info-section">
                 <h2 class="section-title" style="margin-bottom: 20px;">Информация об альбоме</h2>
 

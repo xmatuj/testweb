@@ -57,7 +57,6 @@
             padding: 0 20px;
         }
 
-        /* Admin Layout */
         .admin-layout {
             display: flex;
             min-height: 100vh;
@@ -192,7 +191,6 @@
             font-weight: 600;
         }
 
-        /* Forms */
         .form-container {
             max-width: 600px;
             margin: 30px 0;
@@ -301,7 +299,6 @@
             color: var(--danger);
         }
 
-        /* File input styling */
         .file-input-wrapper {
             position: relative;
             display: inline-block;
@@ -380,10 +377,10 @@
 </head>
 <body>
 <div class="admin-layout">
-    <!-- Sidebar -->
+    <!-- Боковая панель -->
     <div th:replace="admin/fragments/sidebar :: sidebar"></div>
 
-    <!-- Main Content -->
+    <!-- Основной контент -->
     <main class="main-content">
         <header class="top-bar">
             <div class="container top-bar-content">
@@ -398,14 +395,13 @@
         </header>
 
         <div class="container" style="padding: 30px 20px;">
-            <!-- Error message -->
+            <!-- Сообщение об ошиьке -->
             <div th:if="${error}" class="alert alert-error">
                 <i class="fas fa-exclamation-circle"></i>
                 <span th:text="${error}"></span>
             </div>
 
             <div class="form-container">
-                <!-- ВАЖНО: enctype="multipart/form-data" для загрузки файлов -->
                 <form th:action="@{/admin/tracks/save}" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="id" th:value="${track.id}">
 
@@ -414,7 +410,7 @@
                         <input type="text" name="title" class="form-control" th:value="${track.title}" required placeholder="Название трека">
                     </div>
 
-                    <!-- Аудиофайл - загружаемый файл -->
+                    <!-- Загружаемый файл -->
                     <div class="form-group">
                         <label class="form-label">Аудиофайл <span th:if="${track.id == null}" style="color: var(--danger);">*</span></label>
                         <div class="file-input-wrapper">

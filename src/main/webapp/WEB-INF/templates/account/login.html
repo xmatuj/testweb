@@ -61,7 +61,6 @@
             margin: 0 auto;
         }
 
-        /* Обертка для аутентификации */
         .auth-wrapper {
             display: flex;
             min-height: 600px;
@@ -70,7 +69,6 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         }
 
-        /* Левая часть - промо */
         .auth-promo {
             flex: 1;
             background: var(--gradient);
@@ -147,7 +145,6 @@
             margin-top: 40px;
         }
 
-        /* Правая часть - форма */
         .auth-form-container {
             flex: 1;
             background-color: var(--card-bg);
@@ -173,7 +170,6 @@
             font-size: 16px;
         }
 
-        /* Форма */
         .auth-form {
             width: 100%;
             max-width: 400px;
@@ -244,7 +240,6 @@
             display: block;
         }
 
-        /* Дополнительные опции */
         .form-options {
             display: flex;
             justify-content: space-between;
@@ -274,7 +269,6 @@
             opacity: 0.8;
         }
 
-        /* Кнопка отправки */
         .submit-btn {
             width: 100%;
             padding: 16px;
@@ -320,7 +314,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Разделитель */
         .divider {
             display: flex;
             align-items: center;
@@ -341,7 +334,6 @@
             font-size: 14px;
         }
 
-        /* Ссылка на регистрацию/вход */
         .auth-switch {
             text-align: center;
             margin-top: 30px;
@@ -360,7 +352,6 @@
             opacity: 0.8;
         }
 
-        /* Адаптивность */
         @media (max-width: 992px) {
             .auth-wrapper {
                 flex-direction: column;
@@ -398,7 +389,6 @@
             }
         }
 
-        /* Анимация переключения форм */
         .form-page {
             display: none;
         }
@@ -413,7 +403,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Дополнительные стили для регистрации */
         .password-strength {
             margin-top: 8px;
             height: 4px;
@@ -477,7 +466,6 @@
 <body>
 <div class="container">
     <div class="auth-wrapper">
-        <!-- Левая часть - промо -->
         <div class="auth-promo">
             <div class="promo-content">
                 <div class="logo">
@@ -501,7 +489,6 @@
             </div>
         </div>
 
-        <!-- Правая часть - форма входа -->
         <div class="auth-form-container">
             <div class="form-header">
                 <h2 class="form-title">Вход в аккаунт</h2>

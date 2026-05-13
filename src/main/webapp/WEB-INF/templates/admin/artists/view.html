@@ -57,7 +57,6 @@
             padding: 0 20px;
         }
 
-        /* Боковая навигация */
         .admin-layout {
             display: flex;
             min-height: 100vh;
@@ -220,7 +219,6 @@
             font-weight: 600;
         }
 
-        /* Контент страницы пользователей */
         .users-container {
             padding: 30px 20px;
         }
@@ -319,7 +317,6 @@
             background-color: var(--hover-bg);
         }
 
-        /* Таблица пользователей */
         .users-table-container {
             background-color: var(--card-bg);
             border-radius: 10px;
@@ -446,7 +443,6 @@
             display: inline;
         }
 
-        /* Пагинация */
         .pagination {
             display: flex;
             justify-content: center;
@@ -481,7 +477,6 @@
             cursor: not-allowed;
         }
 
-        /* Уведомления */
         .alert {
             padding: 15px;
             border-radius: 8px;
@@ -811,7 +806,7 @@
         </header>
 
         <div class="container" style="padding: 30px 20px;">
-            <!-- Action Buttons -->
+            <!-- Кнопки действия -->
             <div style="display: flex; gap: 15px; margin-bottom: 30px;">
                 <a href="/admin/artists" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Назад
@@ -827,7 +822,7 @@
                 </form>
             </div>
 
-            <!-- Artist Details -->
+            <!-- Детали артистов -->
             <div class="detail-card">
                 <h2 style="color: var(--accent); margin-bottom: 20px;">Информация об исполнителе</h2>
 
@@ -848,13 +843,11 @@
 
                 <div class="detail-row">
                     <div class="detail-label">Альбомов:</div>
-                    <!-- ИСПОЛЬЗУЕМ ПОЛЯ ИЗ DTO -->
                     <div class="detail-value" th:text="${artist.albumCount}">5</div>
                 </div>
 
                 <div class="detail-row">
                     <div class="detail-label">Треков:</div>
-                    <!-- ИСПОЛЬЗУЕМ ПОЛЯ ИЗ DTO -->
                     <div class="detail-value" th:text="${artist.trackCount}">20</div>
                 </div>
             </div>

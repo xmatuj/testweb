@@ -45,7 +45,6 @@
         button { cursor: pointer; border: none; background: none; color: inherit; font-size: inherit; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 
-        /* Навигация */
         .navbar {
             position: fixed;
             top: 0; left: 0; right: 0;
@@ -79,7 +78,6 @@
         }
         .back-link:hover { color: var(--text-primary); }
 
-        /* Основной контент */
         .main-content { padding-top: 100px; padding-bottom: 80px; }
 
         .page-header {
@@ -103,7 +101,6 @@
             font-weight: 600;
         }
 
-        /* Переключатель периодов */
         .period-toggle {
             display: flex;
             justify-content: center;
@@ -130,7 +127,6 @@
             color: var(--primary-bg);
         }
 
-        /* Тарифные карточки */
         .plans-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -237,7 +233,6 @@
             cursor: default;
         }
 
-        /* Адаптивность */
         @media (max-width: 768px) {
             .page-title { font-size: 36px; }
             .plans-grid { grid-template-columns: 1fr; max-width: 400px; }
@@ -340,7 +335,7 @@
                     </a>
                 </div>
                 <div th:unless="${hasActiveSubscription}">
-                    <!-- ВАЖНО: передаем параметр plan -->
+                    <!-- Передаем параметр plan -->
                     <a th:href="@{${isAuthenticated} ? '/subscription/create?plan=monthly' : '/account/login'}"
                        class="plan-button primary" id="premiumButton">
                         <i class="fas fa-crown"></i>

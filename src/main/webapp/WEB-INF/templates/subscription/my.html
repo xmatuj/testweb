@@ -187,7 +187,7 @@
         <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
     </div>
 
-    <!-- Active Subscription -->
+    <!-- Активная подписка -->
     <div th:if="${activeSubscription != null}" class="active-subscription">
         <h2>Активная подписка</h2>
         <p th:text="'Действует до: ' + ${#temporals.format(activeSubscription.endDate, 'dd.MM.yyyy')}"></p>
@@ -196,7 +196,7 @@
         </form>
     </div>
 
-    <!-- Subscription History -->
+    <!-- История подписок -->
     <h2 style="margin: 30px 0 20px;">История подписок</h2>
 
     <div th:if="${subscriptions != null and not #lists.isEmpty(subscriptions)}">

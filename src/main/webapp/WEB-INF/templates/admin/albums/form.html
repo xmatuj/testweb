@@ -55,7 +55,6 @@
             padding: 0 20px;
         }
 
-        /* Admin Layout */
         .admin-layout {
             display: flex;
             min-height: 100vh;
@@ -190,7 +189,6 @@
             font-weight: 600;
         }
 
-        /* Forms */
         .form-container {
             max-width: 600px;
             margin: 30px 0;
@@ -312,10 +310,10 @@
 </head>
 <body>
 <div class="admin-layout">
-    <!-- Sidebar -->
+    <!-- Боковая панель -->
     <div th:replace="admin/fragments/sidebar :: sidebar"></div>
 
-    <!-- Main Content -->
+    <!-- Основной контент -->
     <main class="main-content">
         <header class="top-bar">
             <div class="container top-bar-content">
@@ -330,7 +328,7 @@
         </header>
 
         <div class="container" style="padding: 30px 20px;">
-            <!-- Error message -->
+            <!-- Сообщение об ошибке -->
             <div th:if="${error}" class="alert alert-error">
                 <i class="fas fa-exclamation-circle"></i>
                 <span th:text="${error}"></span>

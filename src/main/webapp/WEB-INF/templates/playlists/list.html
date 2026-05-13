@@ -294,10 +294,10 @@
         </div>
     </nav>
 </header>
-<!-- Main Content -->
+<!-- Основной контент -->
 <main class="main-content">
     <div class="container">
-        <!-- Header -->
+        <!-- Хедер -->
         <div class="page-header">
             <h1 class="page-title">Мои плейлисты</h1>
             <th:block th:if="${canCreatePlaylist}">
@@ -312,17 +312,17 @@
             </th:block>
         </div>
 
-        <!-- Success Message -->
+        <!-- Успех -->
         <div th:if="${success}" class="alert alert-success">
             <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
         </div>
 
-        <!-- Error Message -->
+        <!-- Ошибка -->
         <div th:if="${error}" class="alert alert-error">
             <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
         </div>
 
-        <!-- My Playlists -->
+        <!-- Мои плейлисты -->
         <div th:if="${playlists != null and not #lists.isEmpty(playlists)}">
             <h2 class="section-title">Ваши плейлисты</h2>
             <div class="playlists-grid">
@@ -345,7 +345,7 @@
             </div>
         </div>
 
-        <!-- Public Playlists -->
+        <!-- Публичные плейлисты -->
         <div th:if="${publicPlaylists != null and not #lists.isEmpty(publicPlaylists)}">
             <h2 class="section-title">Публичные плейлисты</h2>
             <div class="playlists-grid">
@@ -364,7 +364,7 @@
             </div>
         </div>
 
-        <!-- Empty State -->
+        <!-- Пустое состояние -->
         <div th:if="${#lists.isEmpty(playlists) and #lists.isEmpty(publicPlaylists)}" class="empty-state">
             <i class="fas fa-list" style="font-size: 64px;"></i>
             <h3>У вас пока нет плейлистов</h3>
@@ -384,7 +384,7 @@
     </div>
 </main>
 
-<!-- Bottom Navigation -->
+<!-- Нижняя навигация -->
 <nav class="bottom-nav">
     <div class="nav-items">
         <a href="/" class="nav-item">

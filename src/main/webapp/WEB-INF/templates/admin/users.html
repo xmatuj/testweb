@@ -57,7 +57,6 @@
             padding: 0 20px;
         }
 
-        /* Боковая навигация */
         .admin-layout {
             display: flex;
             min-height: 100vh;
@@ -220,7 +219,6 @@
             font-weight: 600;
         }
 
-        /* Контент страницы пользователей */
         .users-container {
             padding: 30px 20px;
         }
@@ -319,7 +317,6 @@
             background-color: var(--hover-bg);
         }
 
-        /* Таблица пользователей */
         .users-table-container {
             background-color: var(--card-bg);
             border-radius: 10px;
@@ -446,7 +443,6 @@
             display: inline;
         }
 
-        /* Пагинация */
         .pagination {
             display: flex;
             justify-content: center;
@@ -481,7 +477,6 @@
             cursor: not-allowed;
         }
 
-        /* Уведомления */
         .alert {
             padding: 15px;
             border-radius: 8px;
@@ -745,10 +740,10 @@
 </head>
 <body>
 <div class="admin-layout">
-    <!-- Sidebar -->
+    <!-- Боковая панель -->
     <div th:replace="admin/fragments/sidebar :: sidebar"></div>
 
-    <!-- Main Content -->
+    <!-- Основной контент -->
     <main class="main-content">
         <header class="top-bar">
             <div class="container top-bar-content">
@@ -770,7 +765,7 @@
         </header>
 
         <div class="container" style="padding: 30px 20px;">
-            <!-- Alerts -->
+            <!-- Алерты -->
             <div th:if="${success}" class="alert alert-success">
                 <i class="fas fa-check-circle"></i> <span th:text="${success}">Success</span>
             </div>
@@ -778,14 +773,13 @@
                 <i class="fas fa-exclamation-circle"></i> <span th:text="${error}">Error</span>
             </div>
 
-            <!-- Statistics -->
+            <!-- Статистика -->
             <div class="stats-cards">
                 <div class="stat-card">
                     <div class="stat-value" th:text="${#lists.size(users)}">0</div>
                     <div class="stat-label">Всего пользователей</div>
                 </div>
                 <div class="stat-card">
-                    <!-- Эти значения будут переданы из контроллера -->
                     <div class="stat-value" th:text="${totalAdmins}">0</div>
                     <div class="stat-label">Администраторов</div>
                 </div>
@@ -799,13 +793,13 @@
                 </div>
             </div>
 
-            <!-- Search Info -->
+            <!-- Поиск -->
             <div th:if="${search != null and !search.isEmpty()}" class="alert alert-info">
                 <i class="fas fa-search"></i> Результаты поиска: "<span th:text="${search}"></span>"
                 <a href="/admin/users" class="btn btn-sm" style="margin-left: 15px; background-color: var(--secondary-bg);">Сбросить</a>
             </div>
 
-            <!-- Users Grid -->
+            <!-- Сетка пользователей -->
             <div th:if="${users != null and not #lists.isEmpty(users)}">
                 <div class="users-grid">
                     <div class="user-card" th:each="user : ${users}" th:data-user-id="${user.id}">
@@ -836,7 +830,7 @@
                         <div class="user-actions">
                             <span style="color: var(--text-secondary); margin-right: 10px;">Изменить роль:</span>
 
-                            <!-- Make Musician -->
+                            <!-- Назначить музыканта -->
                             <form th:if="${user.role.name() != 'Musician'}"
                                   th:action="@{'/admin/users/' + ${user.id} + '/make-musician'}"
                                   method="post" style="display: inline;">
@@ -845,7 +839,7 @@
                                 </button>
                             </form>
 
-                            <!-- Make Admin -->
+                            <!-- Назначить админа -->
                             <form th:if="${user.role.name() != 'Admin'}"
                                   th:action="@{'/admin/users/' + ${user.id} + '/make-admin'}"
                                   method="post" style="display: inline;"
@@ -855,7 +849,7 @@
                                 </button>
                             </form>
 
-                            <!-- Make User -->
+                            <!-- Назначить пользователя -->
                             <form th:if="${user.role.name() != 'User'}"
                                   th:action="@{'/admin/users/' + ${user.id} + '/make-user'}"
                                   method="post" style="display: inline;">
@@ -864,7 +858,7 @@
                                 </button>
                             </form>
 
-                            <!-- Make Subscriber -->
+                            <!-- Назначить подписчиком -->
                             <form th:if="${user.role.name() != 'Subscriber'}"
                                   th:action="@{'/admin/users/' + ${user.id} + '/make-subscriber'}"
                                   method="post" style="display: inline;">
@@ -874,7 +868,6 @@
                             </form>
                         </div>
 
-                        <!-- Dropdown alternative for smaller screens -->
                         <div class="role-selector" style="display: none;">
                             <button class="btn btn-secondary btn-sm">
                                 <i class="fas fa-cog"></i> Сменить роль

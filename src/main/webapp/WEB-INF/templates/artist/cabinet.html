@@ -60,7 +60,6 @@
             padding: 0 20px;
         }
 
-        /* Навигационная панель */
         .navbar {
             position: fixed;
             top: 0;
@@ -115,7 +114,6 @@
             color: var(--text-primary);
         }
 
-        /* Заголовок кабинета */
         .artist-header {
             padding-top: 90px;
             padding-bottom: 30px;
@@ -222,7 +220,6 @@
             color: var(--text-secondary);
         }
 
-        /* Табы навигации */
         .artist-tabs {
             display: flex;
             gap: 10px;
@@ -264,12 +261,10 @@
             background-color: var(--hover-bg);
         }
 
-        /* Основной контент */
         .main-content {
             padding-bottom: 100px;
         }
 
-        /* Сообщения */
         .alert {
             padding: 15px 20px;
             border-radius: 10px;
@@ -291,7 +286,6 @@
             color: var(--danger);
         }
 
-        /* Статистика */
         .stats-section {
             margin: 30px 0;
         }
@@ -334,7 +328,6 @@
             color: var(--text-secondary);
         }
 
-        /* Треки */
         .tracks-section {
             margin: 40px 0;
         }
@@ -470,7 +463,6 @@
             background-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* Альбомы */
         .albums-section {
             margin: 40px 0;
         }
@@ -528,7 +520,6 @@
             color: var(--text-secondary);
         }
 
-        /* Секция загрузки */
         .upload-section {
             margin: 40px 0;
             background-color: var(--card-bg);
@@ -585,7 +576,6 @@
             background-color: var(--accent-hover);
         }
 
-        /* Модальное окно */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -757,7 +747,6 @@
             cursor: not-allowed;
         }
 
-        /* Нижняя панель */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -803,7 +792,6 @@
             font-size: 12px;
         }
 
-        /* Адаптивность */
         @media (max-width: 768px) {
             .track-item {
                 grid-template-columns: 40px 1fr 80px 80px 40px;
@@ -890,7 +878,6 @@ small a:hover {
     background-color: rgba(226, 33, 52, 0.1);
 }
 
-/* Стили для кнопки выхода в форме */
 .artist-actions form {
     display: inline-flex;
     align-items: center;
@@ -932,7 +919,6 @@ small a:hover {
         </a>
 
         <div class="artist-actions">
-            <!-- Переключатель на админ-панель (только для админов) -->
             <a th:if="${isAdmin}" href="/admin" class="notification-btn" title="Админ-панель">
                 <i class="fas fa-crown"></i>
             </a>

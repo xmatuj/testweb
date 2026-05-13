@@ -137,7 +137,7 @@
         </div>
 
         <form th:action="@{/subscription/create}" method="post">
-            <!-- ВАЖНО: передаем выбранный план -->
+            <!-- Передаем выбранный план -->
             <input type="hidden" name="plan" th:value="${selectedPlan}">
 
             <div class="form-group">

@@ -58,7 +58,6 @@ button {
     padding: 0 20px;
 }
 
-/* Admin Layout */
 .admin-layout {
     display: flex;
     min-height: 100vh;
@@ -234,7 +233,6 @@ button {
     font-weight: 600;
 }
 
-/* Alerts */
 .alert {
     padding: 15px;
     border-radius: 8px;
@@ -262,7 +260,6 @@ button {
     color: var(--info);
 }
 
-/* Buttons */
 .btn {
     padding: 10px 20px;
     border-radius: 8px;
@@ -328,7 +325,6 @@ button {
     border-radius: 4px;
 }
 
-/* Cards */
 .stats-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -360,7 +356,6 @@ button {
     margin-top: 5px;
 }
 
-/* Tables */
 .data-table {
     width: 100%;
     background-color: var(--card-bg);
@@ -390,7 +385,6 @@ button {
     border-bottom: none;
 }
 
-/* Status badges */
 .status-badge {
     padding: 4px 8px;
     border-radius: 4px;
@@ -414,7 +408,6 @@ button {
     color: white;
 }
 
-/* Forms */
 .form-container {
     max-width: 600px;
     margin: 30px 0;
@@ -481,7 +474,6 @@ textarea.form-control {
     margin-top: 30px;
 }
 
-/* Modal */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -560,7 +552,6 @@ textarea.form-control {
     border-top: 1px solid var(--border-color);
 }
 
-/* Pagination */
 .pagination {
     display: flex;
     justify-content: center;
@@ -596,7 +587,6 @@ textarea.form-control {
     cursor: not-allowed;
 }
 
-/* Empty state */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -609,7 +599,6 @@ textarea.form-control {
     opacity: 0.5;
 }
 
-/* Responsive */
 @media (max-width: 992px) {
     .sidebar {
         width: 70px;
@@ -642,10 +631,10 @@ textarea.form-control {
 </style>
 <body>
 <div class="admin-layout">
-    <!-- Sidebar -->
+    <!-- Боковая панель -->
     <div th:replace="admin/fragments/sidebar :: sidebar"></div>
 
-    <!-- Main Content -->
+    <!-- Основной контент -->
     <main class="main-content">
         <header class="top-bar">
             <div class="container top-bar-content">
@@ -667,7 +656,7 @@ textarea.form-control {
         </header>
 
         <div class="container" style="padding: 30px 20px;">
-            <!-- Alerts -->
+            <!-- Алерты -->
             <div th:if="${success}" class="alert alert-success">
                 <i class="fas fa-check-circle"></i> <span th:text="${success}">Success</span>
             </div>
@@ -675,7 +664,7 @@ textarea.form-control {
                 <i class="fas fa-exclamation-circle"></i> <span th:text="${error}">Error</span>
             </div>
 
-            <!-- Action Buttons -->
+            <!-- Кнопки действий -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <div class="stats-cards" style="margin: 0; flex: 1;">
                     <div class="stat-card" style="margin: 0; max-width: 200px;">
@@ -688,13 +677,13 @@ textarea.form-control {
                 </a>
             </div>
 
-            <!-- Search Info -->
+            <!-- Поиск -->
             <div th:if="${search != null and !search.isEmpty()}" class="alert alert-info">
                 <i class="fas fa-search"></i> Результаты поиска: "<span th:text="${search}"></span>"
                 <a href="/admin/tracks" class="btn btn-sm" style="margin-left: 15px; background-color: var(--secondary-bg);">Сбросить</a>
             </div>
 
-            <!-- Tracks Table -->
+            <!-- Треки -->
             <div th:if="${tracks != null and not #lists.isEmpty(tracks)}">
                 <table class="data-table">
                     <thead>
@@ -775,7 +764,7 @@ textarea.form-control {
     </main>
 </div>
 
-<!-- Approve Modal -->
+<!-- Одобрить -->
 <div class="modal-overlay" id="approveModal">
     <div class="modal">
         <div class="modal-header">
@@ -801,7 +790,7 @@ textarea.form-control {
     </div>
 </div>
 
-<!-- Reject Modal -->
+<!-- Отклонить -->
 <div class="modal-overlay" id="rejectModal">
     <div class="modal">
         <div class="modal-header">

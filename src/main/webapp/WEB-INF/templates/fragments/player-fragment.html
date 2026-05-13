@@ -235,7 +235,6 @@
             accent-color: var(--accent, #ffdb4d);
         }
 
-        /* Стили для модального окна рекламы */
         .ad-modal {
             position: fixed;
             top: 0;
@@ -440,7 +439,7 @@
                 display: none;
             }
         }
-        /* Исправленные стили для плеера */
+
 .global-player {
     position: fixed;
     bottom: 70px;
@@ -472,7 +471,7 @@
 .player-cover {
     width: 48px;
     height: 48px;
-    min-width: 48px; /* Добавлено для предотвращения сжатия */
+    min-width: 48px;
     border-radius: 4px;
     background: linear-gradient(135deg, var(--accent, #ffdb4d), #ffcc00);
     display: flex;
@@ -486,7 +485,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    min-width: 0; /* Добавлено для корректного text-overflow */
+    min-width: 0;
 }
 
 .player-track-name {
@@ -509,14 +508,14 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-shrink: 0; /* Добавлено для предотвращения сжатия */
+    flex-shrink: 0;
 }
 
 .control-btn {
     width: 36px;
     height: 36px;
-    min-width: 36px; /* Добавлено для предотвращения сжатия */
-    min-height: 36px; /* Добавлено для предотвращения сжатия */
+    min-width: 36px;
+    min-height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -526,7 +525,7 @@
     border: none;
     cursor: pointer;
     transition: background-color 0.2s;
-    padding: 0; /* Добавлено для сброса отступов */
+    padding: 0;
 }
 
 .control-btn:hover {
@@ -536,8 +535,8 @@
 .control-btn.play-btn {
     width: 44px;
     height: 44px;
-    min-width: 44px; /* Добавлено для предотвращения сжатия */
-    min-height: 44px; /* Добавлено для предотвращения сжатия */
+    min-width: 44px;
+    min-height: 44px;
     background-color: var(--accent, #ffdb4d);
     color: #000;
     border-radius: 50%;
@@ -547,7 +546,6 @@
     background-color: #ffcc00;
 }
 
-/* Исправление для иконки play */
 .control-btn.play-btn i,
 .control-btn i {
     display: flex;
@@ -615,7 +613,6 @@
     accent-color: var(--accent, #ffdb4d);
 }
 
-/* Стили для модального окна рекламы */
 .ad-modal {
     position: fixed;
     top: 0;
@@ -686,7 +683,7 @@
     color: var(--text-primary);
     cursor: pointer;
     transition: background 0.2s;
-    display: none; /* Скрыто */
+    display: none;
 }
 
 .ad-close-btn:hover {
@@ -796,14 +793,13 @@
     cursor: pointer;
     transition: color 0.2s;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    display: none; /* Скрыто */
+    display: none;
 }
 
 .ad-skip-text:hover {
     color: var(--accent);
 }
 
-/* Адаптивные стили для плеера */
 @media (max-width: 900px) {
     .player-progress-container {
         min-width: 150px;
